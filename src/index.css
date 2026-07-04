@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import "tailwindcss";
+
+:root {
+  /* Define your custom CSS variables here */
+  --primary-color: #bf8322;
+  --primary-background-color: #fff;
+  --secondary-background-color: #f0f1f3;
+  --footer-background-color: #573b0f;
+}
+
+body {
+  background-color: var(--primary-background-color);
+  font-family: "Montserrat", sans-serif;
+}

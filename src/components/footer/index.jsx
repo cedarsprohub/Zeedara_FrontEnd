@@ -6,23 +6,23 @@ const shopLinks = [
     to: "/categories",
   },
   {
-    label: "Hair & Wigs",
+    label: "Beauty & Care",
     to: "/categories",
   },
   {
-    label: "Hair & Wigs",
+    label: "Makeup",
     to: "/categories",
   },
   {
-    label: "Hair & Wigs",
+    label: "Skincare",
     to: "/categories",
   },
   {
-    label: "Hair & Wigs",
+    label: "Personal Care",
     to: "/categories",
   },
   {
-    label: "Hair & Wigs",
+    label: "New Arrivals",
     to: "/categories",
   },
 ];
@@ -33,50 +33,50 @@ const customerCareLinks = [
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Track your Order",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Delivery Information",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Returns & Exchanges",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Refund Policy",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Payment Options",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "FAQs",
     to: "",
   },
   {
-    label: "Help Centre",
+    label: "Contact Support",
     to: "",
   },
 ];
 
 const AboutUsLinks = [
   {
-    label: "About Zeedara",
+    label: "About us",
     to: "",
   },
   {
-    label: "About Zeedara",
+    label: "Why Zeedara",
     to: "",
   },
   {
-    label: "About Zeedara",
+    label: "Customer Reviews",
     to: "",
   },
   {
-    label: "About Zeedara",
+    label: "Wholesale Application",
     to: "",
   },
 ];
@@ -87,23 +87,23 @@ const myAccountLinks = [
     to: "",
   },
   {
-    label: "Sign In",
+    label: "Create Account",
     to: "",
   },
   {
-    label: "Sign In",
+    label: "My Orders",
     to: "",
   },
   {
-    label: "Sign In",
+    label: "Saved Addresses",
     to: "",
   },
   {
-    label: "Sign In",
+    label: "Order History",
     to: "",
   },
   {
-    label: "Sign In",
+    label: "Submit a Review",
     to: "",
   },
 ];
@@ -114,11 +114,11 @@ const contactLinks = [
     to: "",
   },
   {
-    label: "Whatsapp Support",
+    label: "Email",
     to: "",
   },
   {
-    label: "Whatsapp Support",
+    label: "Instagram",
     to: "",
   },
 ];

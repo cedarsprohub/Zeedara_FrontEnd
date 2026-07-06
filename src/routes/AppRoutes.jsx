@@ -12,6 +12,7 @@ import Skincare from "../pages/Skincare";
 // Auth Pages
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
+import ConfirmEmail from "../pages/Auth/ConfirmEmail";
 
 function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ function AppRoutes() {
         {/* Auth pages (standalone, no shared layout) */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/confirm-email" element={<ConfirmEmail />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

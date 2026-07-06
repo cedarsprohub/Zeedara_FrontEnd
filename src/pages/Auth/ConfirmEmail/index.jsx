@@ -85,7 +85,7 @@ function ConfirmEmail() {
 
         {/* Confirm-email card */}
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="confirm-card flex w-full max-w-[540px] flex-col gap-7 bg-white p-6 sm:p-10">
+          <form className="confirm-card flex w-full max-w-[420px] flex-col gap-5 bg-white p-5 sm:p-7">
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -98,7 +98,7 @@ function ConfirmEmail() {
             </button>
 
             <div className="flex flex-col gap-3">
-              <h1 className="font-['Anton'] text-[28px] sm:text-[36px] leading-[1.4] tracking-[-0.72px] text-black">
+              <h1 className="font-['Anton'] text-[26px] sm:text-[30px] leading-[1.4] tracking-[-0.72px] text-black">
                 Confirm your email
               </h1>
               <p className="text-[14px] font-medium leading-[1.4] text-black">
@@ -106,7 +106,7 @@ function ConfirmEmail() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center justify-start gap-2">
               {code.map((digit, index) => (
                 <div key={index} className="contents">
                   <input
@@ -119,10 +119,10 @@ function ConfirmEmail() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={handlePaste}
                     aria-label={`Digit ${index + 1}`}
-                    className="min-w-0 flex-1 border-[1.5px] border-[#828a9b] p-[17.5px] text-center text-[18px] font-semibold text-black focus:border-(--primary-color) focus:outline-none"
+                    className="size-10 sm:size-11 border-[1.5px] border-[#828a9b] text-center text-[16px] font-semibold text-black focus:border-(--primary-color) focus:outline-none"
                   />
                   {index === 2 && (
-                    <span className="h-[1.5px] w-3 shrink-0 bg-[#828a9b]" />
+                    <span className="h-[1.5px] w-2 shrink-0 bg-[#828a9b]" />
                   )}
                 </div>
               ))}

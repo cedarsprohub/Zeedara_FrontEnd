@@ -25,11 +25,9 @@ function AppRoutes() {
           <Route path="/skincare" element={<Skincare />} />
         </Route>
 
-        {/* <Route element={<AuthLayout/>}>
-          
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/register" element={<Register />} />
-        </Route> */}
+        {/* Auth pages (standalone, no shared layout) */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

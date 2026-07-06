@@ -141,10 +141,10 @@ function Navbar() {
                   to={link.path}
                   end={link.path === "/"}
                   className={({ isActive }) =>
-                    `relative flex items-center gap-1.5 px-2 py-3 text-[16px] font-semibold whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color) after:transition-transform after:duration-300 hover:text-(--primary-color) hover:after:origin-left hover:after:scale-x-100 ${
+                    `relative flex items-center gap-1.5 px-2 py-3 text-[14px] font-semibold whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:bg-(--primary-color) after:transition-[transform,opacity] after:duration-300 after:ease-out hover:text-(--primary-color) hover:after:scale-x-100 hover:after:opacity-30 ${
                       isActive
-                        ? "text-(--primary-color) after:origin-left after:scale-x-100"
-                        : "text-[#667085] after:origin-right after:scale-x-0"
+                        ? "text-(--primary-color) after:scale-x-100"
+                        : "text-[#667085] after:scale-x-0 after:opacity-100"
                     }`
                   }
                 >

@@ -16,9 +16,10 @@ const accountMenu = [
   { label: "Track Order", icon: Truck, to: "/track-order" },
 ];
 
-function AccountDropdown() {
+function AccountDropdown({ light = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const triggerColor = light ? "text-white" : "text-black";
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -40,13 +41,18 @@ function AccountDropdown() {
         className="account_btn flex items-center gap-2 cursor-pointer"
       >
         <div className="account_btn_inner flex items-center gap-2">
-          <CircleUser className="size-5 shrink-0 text-black" strokeWidth={2} />
-          <span className="text-[16px] font-medium text-black leading-[1.4]">
+          <CircleUser
+            className={`size-5 shrink-0 ${triggerColor}`}
+            strokeWidth={2}
+          />
+          <span
+            className={`text-[16px] font-medium leading-[1.4] ${triggerColor}`}
+          >
             Account
           </span>
         </div>
         <ChevronDown
-          className={`size-6 shrink-0 text-black transition-transform duration-300 ${
+          className={`size-6 shrink-0 transition-transform duration-300 ${triggerColor} ${
             open ? "rotate-180" : ""
           }`}
         />

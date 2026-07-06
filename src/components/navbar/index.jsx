@@ -102,19 +102,21 @@ function Navbar() {
               />
             </NavLink>
 
-            <div className="searchbar order-3 w-full lg:order-none lg:w-auto lg:flex-1 flex items-center bg-[#f7f8fa] max-w-[863px]">
-              <input
-                type="text"
-                placeholder="Search a Product here"
-                className="flex-1 min-w-0 bg-transparent border-none pl-7 py-4 text-[14px] font-medium text-black placeholder:text-[#bdc2cb] focus:outline-none"
-              />
-              <button
-                type="button"
-                aria-label="Search"
-                className="shrink-0 flex items-center justify-center bg-(--primary-color) p-4 cursor-pointer"
-              >
-                <Search className="size-6 text-white" />
-              </button>
+            <div className="searchbar-wrap order-3 w-full lg:order-none lg:flex-1 lg:flex lg:justify-center">
+              <div className="searchbar flex w-full items-center bg-[#f7f8fa] lg:max-w-[560px]">
+                <input
+                  type="text"
+                  placeholder="Search a Product here"
+                  className="flex-1 min-w-0 bg-transparent border-none pl-5 py-2.5 text-[14px] font-medium text-black placeholder:text-[#bdc2cb] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  aria-label="Search"
+                  className="shrink-0 flex items-center justify-center bg-(--primary-color) p-2.5 cursor-pointer"
+                >
+                  <Search className="size-5 text-white" />
+                </button>
+              </div>
             </div>
 
             <div className="account flex items-center gap-4 ml-auto lg:ml-0">

@@ -164,10 +164,10 @@ function Footer() {
                   strokeWidth={1.5}
                 />
                 <div className="flex flex-col items-center gap-2">
-                  <h3 className="font-['Anton'] text-[28px] leading-[34px] tracking-[-0.84px] text-white">
+                  <h3 className="font-['Anton'] text-[18px] leading-[34px] tracking-[-0.84px] text-white">
                     {title}
                   </h3>
-                  <p className="text-[16px] leading-[1.4] text-white font-['Montserrat']">
+                  <p className="text-[14px] leading-[1.4] text-white font-['Montserrat']">
                     {description}
                   </p>
                 </div>
@@ -180,7 +180,7 @@ function Footer() {
         <div className="footer-top-container mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)]">
           <div className="footer-top-inner grid grid-cols-2 justify-items-center w-full gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           <div className="shop-links">
-            <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
+            <h3 className="text-white font-bold text-[18px] capitalize mb-4 w-full py-2 border-b border-white">
               SHOP
             </h3>
             <ul className="space-y-2">
@@ -188,7 +188,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.to}
-                    className="text-white hover:text-(--primary-color)"
+                    className="text-white text-[14px] hover:text-(--primary-color)"
                   >
                     {link.label}
                   </a>
@@ -197,7 +197,7 @@ function Footer() {
             </ul>
           </div>
           <div className="customer-care-links">
-            <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
+            <h3 className="text-white font-bold text-[18px] capitalize mb-4 w-full py-2 border-b border-white">
               CUSTOMER CARE
             </h3>
             <ul className="space-y-2">
@@ -205,7 +205,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.to}
-                    className="text-white hover:text-(--primary-color)"
+                    className="text-white text-[14px] hover:text-(--primary-color)"
                   >
                     {link.label}
                   </a>
@@ -214,7 +214,7 @@ function Footer() {
             </ul>
           </div>
           <div className="about-us-links">
-            <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
+            <h3 className="text-white font-bold text-[18px] capitalize mb-4 w-full py-2 border-b border-white">
               ABOUT ZEEDARA
             </h3>
             <ul className="space-y-2">
@@ -222,7 +222,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.to}
-                    className="text-white hover:text-(--primary-color)"
+                    className="text-white text-[14px] hover:text-(--primary-color)"
                   >
                     {link.label}
                   </a>
@@ -232,7 +232,7 @@ function Footer() {
           </div>
 
           <div className="account-links">
-            <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
+            <h3 className="text-white font-bold text-[18px] capitalize mb-4 w-full py-2 border-b border-white">
               MY ACCOUNT
             </h3>
             <ul className="space-y-2">
@@ -240,7 +240,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.to}
-                    className="text-white hover:text-(--primary-color)"
+                    className="text-white text-[14px] hover:text-(--primary-color)"
                   >
                     {link.label}
                   </a>
@@ -250,7 +250,7 @@ function Footer() {
           </div>
 
           <div className="contact-links">
-            <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
+            <h3 className="text-white font-bold text-[18px] capitalize mb-4 w-full py-2 border-b border-white">
               CONTACT
             </h3>
             <ul className="space-y-2">
@@ -258,7 +258,7 @@ function Footer() {
                 <li key={link.label}>
                   <a
                     href={link.to}
-                    className="text-white hover:text-(--primary-color)"
+                    className="text-white text-[14px] hover:text-(--primary-color)"
                   >
                     {link.label}
                   </a>
@@ -271,28 +271,28 @@ function Footer() {
       </div>
       <div className="footer-bottom bg-[#6c4a13] py-6">
         <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-          <p className="text-white text-center">
+          <p className="text-white text-[14px] text-center">
             Copyright &copy; {new Date().getFullYear()} Zeedara. All Rights
             Reserved.
           </p>
 
           <div className="footer-bottom-links flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <NavLink
-              className="text-white hover:text-(--primary-color) hover:underline"
+              className="text-white text-[14px] hover:text-(--primary-color) hover:underline"
               to="/"
             >
               Terms & Conditions
             </NavLink>
             <div className="h-1 w-1 bg-white rounded-full"></div>
             <NavLink
-              className="text-white hover:text-(--primary-color) hover:underline"
+              className="text-white text-[14px] hover:text-(--primary-color) hover:underline"
               to="/"
             >
               Privacy Policy
             </NavLink>
             <div className="h-1 w-1 bg-white rounded-full"></div>
             <NavLink
-              className="text-white hover:text-(--primary-color) hover:underline"
+              className="text-white text-[14px] hover:text-(--primary-color) hover:underline"
               to="/"
             >
               Cookie Policy

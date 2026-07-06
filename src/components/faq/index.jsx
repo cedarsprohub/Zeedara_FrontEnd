@@ -99,7 +99,7 @@ function Faq() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="font-semibold text-[18px] leading-[1.4] text-[#575f71]">
+                    <p className="font-semibold text-[14px] leading-[1.4] text-[#575f71]">
                       {faq.answer}
                     </p>
                   </div>

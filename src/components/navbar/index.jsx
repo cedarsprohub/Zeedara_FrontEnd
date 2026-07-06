@@ -1,165 +1,155 @@
 import { NavLink } from "react-router-dom";
+import { Search, ShoppingCart, ChevronDown } from "lucide-react";
+import AccountDropdown from "./AccountDropdown";
+import zeedaraLogo from "../../assets/navbar/zeedara_logo.png";
+import instagramIcon from "../../assets/navbar/instagram_icon.svg";
+import youtubeIcon from "../../assets/navbar/youtube_icon.svg";
+import facebookIcon from "../../assets/navbar/facebook_icon.svg";
+import twitterIcon from "../../assets/navbar/twitter_icon.svg";
 
 const navLinks = [
-  { name: "HOME", path: "/", icon: "" },
-  {
-    name: "CATEGORIES",
-    path: "/categories",
-    icon: "/src/assets/navbar/arrow_down_icon.svg",
-  },
-  { name: "NEW ARRIVALS", path: "/new-arrivals", icon: "" },
-  { name: "SKINCARE CLINIC", path: "/skincare-clinic", icon: "" },
-  { name: "CONSULTATION", path: "/consultation", icon: "" },
-  { name: "REQUEST A QUOTE", path: "/request-a-quote", icon: "" },
+  { name: "HOME", path: "/" },
+  { name: "CATEGORIES", path: "/categories", hasDropdown: true },
+  { name: "NEW ARRIVALS", path: "/new-arrivals" },
+  { name: "SKINCARE CLINIC", path: "/skincare-clinic" },
+  { name: "CONSULTATION", path: "/consultation" },
+  { name: "REQUEST A QUOTE", path: "/request-a-quote" },
 ];
 
 const socialIcons = [
   {
     name: "Instagram",
     url: "https://www.instagram.com/zeedara",
-    path: "/src/assets/navbar/instagram_icon.svg",
+    path: instagramIcon,
   },
   {
     name: "Youtube",
     url: "https://www.youtube.com/zeedara",
-    path: "/src/assets/navbar/youtube_icon.svg",
+    path: youtubeIcon,
   },
   {
     name: "Facebook",
     url: "https://www.facebook.com/zeedara",
-    path: "/src/assets/navbar/facebook_icon.svg",
+    path: facebookIcon,
   },
   {
     name: "Twitter",
     url: "https://www.twitter.com/zeedara",
-    path: "/src/assets/navbar/twitter_icon.svg",
+    path: twitterIcon,
   },
 ];
+
+const sidePadding = "px-[clamp(1rem,2.5vw,3rem)]";
 
 function Navbar() {
   return (
     <div className="navbar">
-      {/* Banner  */}
-      <div className="navbar-banner bg-black py-4">
-        <div className="navbar-banner-inner container mx-auto px-4 flex items-center justify-between">
-          <div className="nav-contact-left flex items-center space-x-4">
-            <div className="socials flex items-center space-x-2">
-              <span className="text-white text-[14px] 2xl:text-[16px]">
+      {/* Top bar */}
+      <div className={`navbar-banner bg-black py-4 ${sidePadding}`}>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          {/* Left: socials + call */}
+          <div className="nav-contact-left hidden lg:flex items-center gap-4">
+            <div className="socials flex items-center gap-[10px]">
+              <span className="text-white text-[10px] font-semibold whitespace-nowrap">
                 Follow Us :
               </span>
-              <div className="social-icons flex space-x-3">
-                {socialIcons.map((icon) => (
+              <div className="social-icons flex items-center gap-[2px]">
+                {socialIcons.map(({ name, url, path }) => (
                   <a
-                    key={icon.name}
-                    href={icon.url}
+                    key={name}
+                    href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="social-icon block"
+                    aria-label={name}
+                    className="p-[5px] transition-opacity hover:opacity-70"
                   >
-                    <img src={icon.path} alt={icon.name} className="w-4 h-4" />
+                    <img src={path} alt={name} className="size-4" />
                   </a>
                 ))}
               </div>
             </div>
-            <span className="divider text-[#e3caa1] text-[20px]">|</span>
-            <span className="text-white font-semibold text-[14px] 2xl:text-[16px]">
+            <span className="h-4 w-px bg-[#e3caa1]" />
+            <span className="text-white font-semibold text-[10px] whitespace-nowrap">
               CALL: 090123455869 FOR INQUIRIES
             </span>
           </div>
 
-          <div className="nav-contact-center text-[14px] 2xl:text-[16px] flex items-center font-semibold text-white">
-            Members Save{" "}
-            <span className="text-(--primary-color) mx-1">10%</span> Today —
-            SIGN UP ON{" "}
-            <span className="text-(--primary-color) ml-1">ZEEDARA</span>
+          {/* Center: promo */}
+          <div className="nav-contact-center col-start-2 flex items-center justify-center text-center text-[10px] font-semibold text-white">
+            <p>
+              Members Save <span className="text-(--primary-color)">10%</span>{" "}
+              Today — SIGN UP ON{" "}
+              <span className="text-(--primary-color)">ZEEDARA</span>
+            </p>
           </div>
 
-          <div className="nav-contact-right text-white font-semibold text-[14px] 2xl:text-[16px]">
+          {/* Right: hours */}
+          <div className="nav-contact-right hidden lg:flex items-center justify-end text-white font-semibold text-[10px] whitespace-nowrap">
             OPEN: MON - SAT: 8:00AM - 6:00PM
           </div>
         </div>
       </div>
-      {/* Navbar Main */}
-      <div className="navbar-main bg-white py-6">
-        <div className="navbar-main-inner container mx-auto px-4 ">
-          <div className="head flex items-center justify-between">
-            <div className="navbar-logo">
-              <NavLink to="/">
-                <img
-                  src="/src/assets/navbar/zeedara_logo.png"
-                  alt="Zeedara Logo"
-                  className="w-[180px] 2xl:w-[210.936px] h-[36px] 2xl:h-[44px] aspect-auto"
-                />
-              </NavLink>
-            </div>
 
-            <div className="searchbar relative">
+      {/* Main nav */}
+      <div className={`navbar-main bg-white py-6 ${sidePadding}`}>
+        <div className="navbar-main-inner mx-auto max-w-[1920px]">
+          <div className="head flex flex-wrap items-center gap-4 lg:gap-8">
+            <NavLink to="/" className="navbar-logo shrink-0">
+              <img
+                src={zeedaraLogo}
+                alt="Zeedara Logo"
+                className="h-[44px] w-auto"
+              />
+            </NavLink>
+
+            <div className="searchbar order-3 w-full lg:order-none lg:w-auto lg:flex-1 flex items-center bg-[#f7f8fa] max-w-[863px]">
               <input
                 type="text"
-                placeholder="Search a Product Here"
-                className="border-none bg-[#f7f8fa] py-2 px-4 w-[600px] 2xl:w-[800px] h-[56px] focus:outline-none focus:ring-2 focus:ring-(--primary-color) focus:border-transparent"
+                placeholder="Search a Product here"
+                className="flex-1 min-w-0 bg-transparent border-none pl-7 py-4 text-[14px] font-medium text-black placeholder:text-[#bdc2cb] focus:outline-none"
               />
-              <div className="search-icon absolute right-0 h-full px-[16px] flex items-center justify-center top-1/2 transform -translate-y-1/2 bg-(--primary-color) p-2 cursor-pointer">
-                <img
-                  src="/src/assets/navbar/search_icon.svg"
-                  alt="Search Icon"
-                  className="aspect-auto"
-                />
-              </div>
+              <button
+                type="button"
+                aria-label="Search"
+                className="shrink-0 flex items-center justify-center bg-(--primary-color) p-4 cursor-pointer"
+              >
+                <Search className="size-6 text-white" />
+              </button>
             </div>
 
-            <div className="account flex items-center space-x-6">
-              <div className="account_btn flex items-center space-x-3 cursor-pointer">
-                <div className="account_btn_inner flex items-center space-x-2">
-                  <img
-                    src="/src/assets/navbar/user_icon.svg"
-                    className="w-5 h-5 object-cover"
-                    alt="Account Icon"
-                  />
-                  <span className="text-[14px] 2xl:text-[16px] font-medium">
-                    Account
-                  </span>
-                </div>
-                <img
-                  src="/src/assets/navbar/arrow_down_icon.svg"
-                  className="w-5 h-5 object-cover"
-                  alt="Account Dropdown Icon"
-                />
-              </div>
+            <div className="account flex items-center gap-4 ml-auto lg:ml-0">
+              <AccountDropdown />
 
-              <div className="shopping_cart flex space-x-1 cursor-pointer">
-                <img
-                  src="/src/assets/navbar/cart_icon.svg"
-                  className="w-5 h-5 object-cover"
-                  alt="Shopping Cart Icon"
-                />
-                <div className="badge py-px px-2 bg-(--primary-color) text-white text-[12px] font-bold rounded-full">
+              <button
+                type="button"
+                aria-label="Shopping cart"
+                className="shopping_cart flex items-center gap-1 p-2 cursor-pointer"
+              >
+                <ShoppingCart className="size-[22px] text-black" />
+                <span className="min-w-[19px] rounded-[10px] bg-[#ca9949] px-1 py-px text-center text-[10px] font-semibold text-white leading-[1.4]">
                   1
-                </div>
-              </div>
+                </span>
+              </button>
             </div>
           </div>
 
-          <div className="foot w-full flex justify-center py-6">
-            <div className="navbar-links flex items-center space-x-6">
+          <div className="foot w-full flex justify-center pt-6">
+            <div className="navbar-links flex flex-wrap items-center justify-center gap-2">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.path}
                   to={link.path}
-                  className={({ isActive }) => `
-                    text-[14px] flex 2xl:text-[16px] font-semibold text-[#667085] relative transition-colors duration-300 py-2 after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full 
-        after:bg-(--primary-color) after:transition-transform after:duration-300 hover:text-(--primary-color) after:origin-right after:scale-x-0 hover:after:origin-left hover:after:scale-x-100
-                    ${isActive ? "text-[#bf8322] after:origin-left after:scale-x-100" : ""}
-                  `}
+                  end={link.path === "/"}
+                  className={({ isActive }) =>
+                    `relative flex items-center gap-1.5 px-2 py-3 text-[16px] font-semibold whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color) after:transition-transform after:duration-300 hover:text-(--primary-color) hover:after:origin-left hover:after:scale-x-100 ${
+                      isActive
+                        ? "text-(--primary-color) after:origin-left after:scale-x-100"
+                        : "text-[#667085] after:origin-right after:scale-x-0"
+                    }`
+                  }
                 >
                   {link.name}
-                  {link.icon && (
-                    <img
-                      src={link.icon}
-                      className="w-5 h-5 object-cover ml-2"
-                      alt={link.name}
-                    />
-                  )}
+                  {link.hasDropdown && <ChevronDown className="size-6" />}
                 </NavLink>
               ))}
             </div>

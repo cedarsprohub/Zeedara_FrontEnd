@@ -152,8 +152,8 @@ function Footer() {
   return (
     <div className="footer">
       <div className="top-footer bg-black">
-        <div className="top-footer-inner w-full px-4 sm:px-8 lg:px-20 xl:px-[120px] py-[50px]">
-          <div className="grid grid-cols-1 gap-[40px] sm:grid-cols-2 xl:grid-cols-4 xl:gap-[60px]">
+        <div className="top-footer-inner mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-[50px]">
+          <div className="grid grid-cols-1 gap-[40px] sm:grid-cols-2 lg:grid-cols-4 lg:gap-[clamp(1.5rem,3.125vw,3.75rem)]">
             {trustBadges.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
@@ -177,8 +177,8 @@ function Footer() {
         </div>
       </div>
       <div className="footer-top bg-(--footer-background-color) py-10">
-        <div className="footer-top-container w-full px-4 sm:px-8 lg:px-20 xl:px-[120px]">
-          <div className="footer-top-inner grid grid-cols-1 justify-items-center w-full md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="footer-top-container mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)]">
+          <div className="footer-top-inner grid grid-cols-2 justify-items-center w-full gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           <div className="shop-links">
             <h3 className="text-white font-bold text-[20px] capitalize mb-4 w-full py-2 border-b border-white">
               SHOP
@@ -270,7 +270,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom bg-[#6c4a13] py-6">
-        <div className="w-full px-4 sm:px-8 lg:px-20 xl:px-[120px] flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+        <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <p className="text-white text-center">
             Copyright &copy; {new Date().getFullYear()} Zeedara. All Rights
             Reserved.

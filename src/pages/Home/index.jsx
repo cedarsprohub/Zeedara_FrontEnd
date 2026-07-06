@@ -1,4 +1,5 @@
 import CartItem from "../../components/ui/CartItem";
+import Faq from "../../components/faq";
 
 function Home() {
   return (
@@ -12,6 +13,7 @@ function Home() {
         discount={25}
         quantity={1}
       />
+      <Faq />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import Skincare from "../pages/Skincare";
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
 import ConfirmEmail from "../pages/Auth/ConfirmEmail";
+import GetStarted from "../pages/Auth/GetStarted";
 
 function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ function AppRoutes() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route path="/get-started" element={<GetStarted />} />
         </Route>
 
         {/* Auth pages (standalone, no shared layout) */}

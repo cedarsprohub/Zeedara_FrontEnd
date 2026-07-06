@@ -109,11 +109,11 @@ const AboutUsLinks = [
 const myAccountLinks = [
   {
     label: "Sign In",
-    to: "",
+    to: "/login",
   },
   {
     label: "Create Account",
-    to: "",
+    to: "/register",
   },
   {
     label: "My Orders",

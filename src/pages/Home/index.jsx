@@ -1,18 +1,45 @@
 import CartItem from "../../components/ui/CartItem";
 import Faq from "../../components/faq";
+import CTA from "../../components/home/cta";
+import Testimonials from "../../components/home/testimonials";
 
 function Home() {
   return (
     <div>
       Home
-      <CartItem
-        img="/src/assets/ui/sampleImg.png"
-        name="Bare Lace 13X6 Wig Lacefrontal"
-        oldPrice={19.99}
-        newPrice={14.99}
-        discount={25}
-        quantity={1}
+      <CTA
+        sectionBg="bg-(--grey-color)"
+        sectionSideImg="/src/assets/home/side_img.png"
+        sectionBadge="STOP AND WEAR"
+        sectionTitle={
+          <>
+            Medicube Deep Vita C
+            <br /> Capsule Cream
+          </>
+        }
+        sectionTitleColor="text-black"
+        sectionDesc="The concentration of a perfume is the percentage of pure fragrance oil to stabilizing ingredients, which determines lasting power."
+        sectionBtnText="Search"
+        sectionDescColor="text-black"
+        sectionBtnLink="/search"
       />
+      <CTA
+        sectionBg="bg-black"
+        sectionSideImg="/src/assets/home/superdeal_img.png"
+        sectionBadge="SUPER DEAL TODAY ONLY!"
+        sectionTitle={
+          <>
+            BEST COSMETICS
+            <br /> JUST<span className="text-(--primary-color)"> 80,000</span>
+          </>
+        }
+        sectionTitleColor="text-white"
+        sectionDesc="The concentration of a perfume is the percentage of pure fragrance oil to stabilizing ingredients, which determines lasting power."
+        sectionBtnText="SHOP NOW"
+        sectionDescColor="text-gray-300"
+        sectionBtnLink="/categories"
+      />
+      <Testimonials />
       <Faq />
     </div>
   );

@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Anton&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -8,10 +8,11 @@
   --primary-background-color: #fff;
   --secondary-background-color: #f0f1f3;
   --footer-background-color: #573b0f;
-  --grey-color: rgba(240, 241, 243, 0.60)
+  --grey-color: rgba(240, 241, 243, 0.6);
 }
 
 body {
   background-color: var(--primary-background-color);
   font-family: "Montserrat", sans-serif;
+  overflow-x: hidden;
 }

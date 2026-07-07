@@ -1,6 +1,8 @@
 import CartItem from "../../components/ui/CartItem";
 import Faq from "../../components/faq";
 import CTA from "../../components/home/cta";
+import sideImg from "../../assets/home/side_img.png";
+import superDealImg from "../../assets/home/superdeal_img.png";
 import Testimonials from "../../components/home/testimonials";
 
 function Home() {
@@ -9,7 +11,7 @@ function Home() {
       Home
       <CTA
         sectionBg="bg-(--grey-color)"
-        sectionSideImg="/src/assets/home/side_img.png"
+        sectionSideImg={sideImg}
         sectionBadge="STOP AND WEAR"
         sectionTitle={
           <>
@@ -25,7 +27,7 @@ function Home() {
       />
       <CTA
         sectionBg="bg-black"
-        sectionSideImg="/src/assets/home/superdeal_img.png"
+        sectionSideImg={superDealImg}
         sectionBadge="SUPER DEAL TODAY ONLY!"
         sectionTitle={
           <>

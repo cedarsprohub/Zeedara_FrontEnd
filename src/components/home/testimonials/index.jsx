@@ -61,7 +61,7 @@ function Testimonials() {
           <h2 className="testimonials-title text-[32px] md:text-[35px] lg:text-[48px] capitalize lg:uppercase font-medium leading-tight font-['Anton'] text-black">
             What Our Customers are Saying
           </h2>
-          <p className="testimonials-description text-black text-start w-full lg:w-[80%]">
+          <p className="testimonials-description text-black text-start w-full lg:w-[80%] lg:text-center">
             Honest reviews from customers who trust Zeedara for premium beauty,
             hair, and personal care.
           </p>

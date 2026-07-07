@@ -74,11 +74,11 @@ function Testimonials() {
             {/* Container: Added -ml-4 to counteract slide padding */}
             <div className="flex -ml-4">
               {/* Slides: Each takes up 25% width (1/4 of the viewport) */}
-              {[1, 2, 3, 4, 5, 6].map((_) => {
+              {slides.map((item, index) => {
                 return (
                   <div
                     className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33%] xl:flex-[0_0_25%] min-w-0 pl-4"
-                    key={_}
+                    key={item.id}
                   >
                     <div className="bg-(--secondary-background-color) flex flex-col gap-16 p-6">
                       <div className="testimonial-rating flex gap-2 items-center">
@@ -94,21 +94,21 @@ function Testimonials() {
                             className="h-[20px] w-[20px]"
                           />{" "}
                         </div>
-                        5.0
+                        {item.rating}
                       </div>
 
                       <div className="content flex flex-col gap-2">
                         <h2 className="testimonial-title font-[Anton]">
-                          Loved by thousands globally
+                          {item.contentTitle}
                         </h2>
                         <p className="testimonial-text text-[#595959]">
-                          See why our customers keep coming back for more
+                          {item.content}
                         </p>
                       </div>
 
                       <div className="name flex gap-2 items-center">
                         <div className="line w-[16px] h-[2px] bg-black"></div>
-                        <span>Cynthia Okafor</span>
+                        <span>{item.name}</span>
                       </div>
 
                       <div className="favorite">

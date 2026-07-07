@@ -4,11 +4,13 @@ import CTA from "../../components/home/cta";
 import sideImg from "../../assets/home/side_img.png";
 import superDealImg from "../../assets/home/superdeal_img.png";
 import Testimonials from "../../components/home/testimonials";
+import Hero from "../../components/home/hero";
+import Collections from "../../components/home/collections";
 
 function Home() {
   return (
     <div>
-      Home
+      <Hero />
       <CTA
         sectionBg="bg-(--grey-color)"
         sectionSideImg={sideImg}
@@ -25,6 +27,7 @@ function Home() {
         sectionDescColor="text-black"
         sectionBtnLink="/search"
       />
+      <Collections />
       <CTA
         sectionBg="bg-black"
         sectionSideImg={superDealImg}

@@ -32,7 +32,7 @@ function AccountDropdown({ light = false }) {
   }, []);
 
   return (
-    <div className="account-dropdown relative" ref={ref}>
+    <div className="account-dropdown relative hidden lg:block" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}

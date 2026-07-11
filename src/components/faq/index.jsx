@@ -46,16 +46,16 @@ function Faq() {
         {/* Left: heading */}
         <div className="faq-intro flex flex-1 flex-col gap-4 items-start w-full min-w-0">
           <div className="border-2 border-[#2e323c] flex items-center justify-center p-3">
-            <p className="font-semibold text-[18px] text-black text-center leading-[1.4]">
+            <p className="font-semibold text-[12px] lg:text-[16px] text-black text-center leading-[1.4]">
               FREQUENTLY ASKED QUESTIONS
             </p>
           </div>
-          <h2 className="font-['Anton'] text-[length:clamp(2rem,2.7vw,3.25rem)] leading-[1.21] tracking-[-1.04px] text-black">
+          <h2 className="font-['Anton'] text-[40px] lg:text-[48px] leading-[1.21] tracking-[-1.04px] text-black">
             Questions?
             <br aria-hidden />
             We&rsquo;re here to help.
           </h2>
-          <p className="text-[16px] leading-[1.48] text-black max-w-[588px]">
+          <p className="text-[14px] lg:text-[16px] leading-[1.48] text-black max-w-[588px]">
             Get answers to common questions about Zeedara products, payments,
             delivery, returns, refunds, wholesale, and customer support.
           </p>
@@ -79,7 +79,7 @@ function Faq() {
                   className="flex w-full items-center justify-between gap-4 cursor-pointer text-left"
                 >
                   <span
-                    className={`font-semibold text-[18px] leading-[1.4] ${
+                    className={`font-semibold text-[14px] lg:text-[16px] leading-[1.4] ${
                       isOpen ? "text-black" : "text-[#575f71]"
                     }`}
                   >
@@ -99,7 +99,7 @@ function Faq() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="font-semibold text-[14px] leading-[1.4] text-[#575f71]">
+                    <p className="font-medium text-[14px] leading-[1.4] text-[#575f71]">
                       {faq.answer}
                     </p>
                   </div>

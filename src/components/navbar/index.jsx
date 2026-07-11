@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { Search, ShoppingCart, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import AccountDropdown from "./AccountDropdown";
+import CategoriesDropdown from "./CategoriesDropdown";
+import MobileNav from "./MobileNav";
 import zeedaraLogo from "../../assets/navbar/zeedara_logo.png";
 import instagramIcon from "../../assets/navbar/instagram_icon.svg";
 import youtubeIcon from "../../assets/navbar/youtube_icon.svg";
@@ -13,6 +15,7 @@ const navLinks = [
   { name: "NEW ARRIVALS", path: "/new-arrivals" },
   { name: "SKINCARE CLINIC", path: "/skincare-clinic" },
   { name: "CONSULTATION", path: "/consultation" },
+  { name: "CUSTOM WIG", path: "/custom-wig" },
   { name: "REQUEST A QUOTE", path: "/request-a-quote" },
 ];
 
@@ -91,18 +94,18 @@ function Navbar() {
       </div>
 
       {/* Main nav */}
-      <div className={`navbar-main bg-white py-6 ${sidePadding}`}>
+      <div className={`navbar-main relative bg-white py-6 ${sidePadding}`}>
         <div className="navbar-main-inner mx-auto max-w-[1920px]">
           <div className="head flex flex-wrap items-center gap-4 lg:gap-8">
             <NavLink to="/" className="navbar-logo shrink-0">
               <img
                 src={zeedaraLogo}
                 alt="Zeedara Logo"
-                className="h-[44px] w-auto"
+                className="h-[18px] lg:h-[44px] w-auto"
               />
             </NavLink>
 
-            <div className="searchbar-wrap order-3 w-full lg:order-none lg:flex-1 lg:flex lg:justify-center">
+            <div className="searchbar-wrap hidden lg:flex order-3 w-full lg:order-none lg:flex-1 lg:flex lg:justify-center">
               <div className="searchbar flex w-full items-center bg-[#f7f8fa] lg:max-w-[560px]">
                 <input
                   type="text"
@@ -119,7 +122,7 @@ function Navbar() {
               </div>
             </div>
 
-            <div className="account flex items-center gap-4 ml-auto lg:ml-0">
+            <div className="account flex items-center gap-1 lg:gap-4 ml-auto lg:ml-0">
               <AccountDropdown />
 
               <button
@@ -132,28 +135,33 @@ function Navbar() {
                   1
                 </span>
               </button>
+
+              <MobileNav navLinks={navLinks} logo={zeedaraLogo} />
             </div>
           </div>
 
-          <div className="foot w-full flex justify-center pt-6">
+          <div className="foot w-full hidden lg:flex justify-center pt-6">
             <div className="navbar-links flex flex-wrap items-center justify-center gap-2">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  end={link.path === "/"}
-                  className={({ isActive }) =>
-                    `relative flex items-center gap-1.5 px-2 py-3 text-[14px] font-semibold whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:bg-(--primary-color) after:transition-[transform,opacity] after:duration-300 after:ease-out hover:text-(--primary-color) hover:after:scale-x-100 hover:after:opacity-30 ${
-                      isActive
-                        ? "text-(--primary-color) after:scale-x-100"
-                        : "text-[#667085] after:scale-x-0 after:opacity-100"
-                    }`
-                  }
-                >
-                  {link.name}
-                  {link.hasDropdown && <ChevronDown className="size-6" />}
-                </NavLink>
-              ))}
+              {navLinks.map((link) =>
+                link.hasDropdown ? (
+                  <CategoriesDropdown key={link.path} link={link} />
+                ) : (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    end={link.path === "/"}
+                    className={({ isActive }) =>
+                      `relative flex items-center gap-1.5 px-2 py-3 text-[14px] font-semibold whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:bg-(--primary-color) after:transition-[transform,opacity] after:duration-300 after:ease-out hover:text-(--primary-color) hover:after:scale-x-100 hover:after:opacity-30 ${
+                        isActive
+                          ? "text-(--primary-color) after:scale-x-100"
+                          : "text-[#667085] after:scale-x-0 after:opacity-100"
+                      }`
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                ),
+              )}
             </div>
           </div>
         </div>

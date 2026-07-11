@@ -12,7 +12,7 @@ function Hero() {
       <div
         className={`mx-auto max-w-[1920px] ${sidePadding} relative z-10 pt-15 lg:pt-0 pb-0 hero-inner flex flex-col gap-3 items-center justify-center text-center`}
       >
-        <h2 className="hero-header uppercase font-medium font-[Anton] leading-11 md:leading-14 lg:leading-14 xl:leading-17 text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl text-white">
+        <h2 className="hero-header uppercase font-medium font-[Anton] leading-11 md:leading-14 lg:leading-14 xl:leading-17 text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl text-[#faf4eb]">
           Beauty products <br />{" "}
           <span className="text-(--footer-background-color)">
             you can shop with

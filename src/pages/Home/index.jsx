@@ -23,9 +23,9 @@ function Home() {
         }
         sectionTitleColor="text-black"
         sectionDesc="The concentration of a perfume is the percentage of pure fragrance oil to stabilizing ingredients, which determines lasting power."
-        sectionBtnText="Search"
+        sectionBtnText="purchase now"
         sectionDescColor="text-black"
-        sectionBtnLink="/search"
+        sectionBtnLink="/purchase"
       />
       <Collections />
       <CTA

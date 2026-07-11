@@ -11,28 +11,24 @@ function Collections() {
       img: collectionImgOne,
       linkTo: "/categories",
       title: "Luxry Hairs",
-      height: "400px",
     },
     {
       id: 2,
       img: collectionImgThree,
       linkTo: "/categories",
       title: "Skin Care",
-      height: "250px",
     },
     {
       id: 3,
       img: collectionImgTwo,
       linkTo: "/categories",
       title: "Make-up",
-      height: "250px",
     },
     {
       id: 4,
       img: collectionImgFour,
       linkTo: "/categories",
       title: "Brushes",
-      height: "400px",
     },
   ];
 
@@ -44,28 +40,27 @@ function Collections() {
         className={`collections-inner mx-auto max-w-[1920px] ${sidePadding} flex flex-col gap-8 items-center`}
       >
         <div className="collections-content flex flex-col gap-4 w-[100%] lg:w-[70%] xl:w-[65%] items-center">
-          <span className="collections-badge bg-transparent text-[18px] w-full lg:w-fit text-black font-bold py-2 px-4 text-center uppercase border border-2 border-black">
+          <span className="collections-badge bg-transparent text-[12px] lg:text-[16px] w-fit text-black font-bold py-2 px-4 text-center uppercase border border-2 border-black">
             Shop What Works
           </span>
-          <h2 className="collections-title text-[32px] md:text-[35px] lg:text-[48px] capitalize lg:uppercase font-medium leading-tight font-['Anton'] text-black">
+          <h2 className="collections-title text-[40px] text-center lg:text-[48px] uppercase font-medium leading-tight font-['Anton'] text-black">
             2026 Top Collections
           </h2>
         </div>
 
         <div className="collections-container w-full md:w-[80%] lg:w-[60%] mx-auto">
-          <div className="columns-1 sm:columns-2">
-            {products.map((product) => (
+          <div className="columns-2">
+            {products.map((product, index) => (
               <div
                 key={product.id}
-                className={`group flex flex-col p-3 transition-all duration-300 break-inside-avoid`}
-                style={{ height: product.height }}
+                className={`group flex flex-col h-[${index == 0 || index == 3 ? "192px" : "130px"}] lg:h-[${index == 0 || index == 3 ? "400px" : "230px"}] p-3 transition-all duration-300 break-inside-avoid`}
               >
                 {/* Image Container Area */}
                 <div className="relative overflow-hidden bg-[#faf4eb]">
                   <img
                     src={product.img}
                     alt={product.title}
-                    className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
+                    className={`w-full h-full object-fit transition-transform duration-500 ease-out group-hover:scale-105`}
                     loading="lazy"
                   />
 

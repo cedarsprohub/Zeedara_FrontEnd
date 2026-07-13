@@ -15,6 +15,8 @@ import Login from "../pages/Auth/Login";
 import ConfirmEmail from "../pages/Auth/ConfirmEmail";
 import GetStarted from "../pages/Auth/GetStarted";
 import CreatePassword from "../pages/Auth/CreatePassword";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import VerifyForgotPassword from "../pages/Auth/VerifyForgotPassword";
 
 function AppRoutes() {
   return (
@@ -34,7 +36,8 @@ function AppRoutes() {
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/get-started" element={<GetStarted />} />
         <Route path="/create-password" element={<CreatePassword />} />
-        
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-forgot-password" element={<VerifyForgotPassword />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

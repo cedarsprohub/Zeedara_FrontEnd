@@ -1,4 +1,3 @@
-import CartItem from "../../components/ui/CartItem";
 import Faq from "../../components/faq";
 import CTA from "../../components/home/cta";
 import sideImg from "../../assets/home/side_img.png";
@@ -6,11 +5,13 @@ import superDealImg from "../../assets/home/superdeal_img.png";
 import Testimonials from "../../components/home/testimonials";
 import Hero from "../../components/home/hero";
 import Collections from "../../components/home/collections";
+import PopularProducts from "../../components/home/popular-products";
 
 function Home() {
   return (
     <div>
       <Hero />
+      <PopularProducts />
       <CTA
         sectionBg="bg-(--grey-color)"
         sectionSideImg={sideImg}

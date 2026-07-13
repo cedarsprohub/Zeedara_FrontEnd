@@ -14,6 +14,7 @@ import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
 import ConfirmEmail from "../pages/Auth/ConfirmEmail";
 import GetStarted from "../pages/Auth/GetStarted";
+import CreatePassword from "../pages/Auth/CreatePassword";
 
 function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/get-started" element={<GetStarted />} />
+        <Route path="/create-password" element={<CreatePassword />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

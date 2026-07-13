@@ -5,7 +5,7 @@ import userAddIcon from "../../../assets/navbar/user-add-02.svg";
 import loginIcon from "../../../assets/navbar/login-02.svg";
 import NavCard from "../NavCard";
 
-import navcardImg from "../../../assets/navbar/navcardImg.png"
+import navcardImg from "../../../assets/navbar/navcardImg.png";
 
 const categoryLinks = [
   {
@@ -244,7 +244,19 @@ function MobileNav({ navLinks = [], logo }) {
 
         {/* Footer actions (shared across views) */}
         <div className="flex flex-col gap-3 px-5 py-5">
-          <NavCard label={<><span>Shop by <br />Brands</span></>} img={navcardImg} alt="by-brand-Image"/>
+          <NavCard
+            label={
+              <>
+                <span>
+                  Shop by <br />
+                  Brands
+                </span>
+              </>
+            }
+            img={navcardImg}
+            to="shop"
+            alt="by-brand-Image"
+          />
           <div className="footer auth-links flex flex-col gap-3">
             <NavLink
               to="/register"

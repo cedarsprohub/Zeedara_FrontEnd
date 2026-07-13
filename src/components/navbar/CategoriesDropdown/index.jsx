@@ -82,7 +82,7 @@ function CategoriesDropdown({ link }) {
   }, []);
 
   return (
-    <div className="categories-dropdown relative" ref={ref}>
+    <div className="categories-dropdown" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -105,9 +105,9 @@ function CategoriesDropdown({ link }) {
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-50 mt-3 rounded-br-[20px] bg-white p-7 shadow-[-2px_9px_43.9px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 right-0 top-full z-50 border-t border-gray-100 bg-white px-[clamp(1rem,2.5vw,3rem)] py-8 shadow-[0_20px_43.9px_rgba(0,0,0,0.08)]"
         >
-          <div className="grid grid-cols-4 gap-x-10 gap-y-8">
+          <div className="mx-auto grid max-w-[1920px] grid-cols-4 gap-x-10 gap-y-8 xl:grid-cols-7">
             {categories.map((category) => (
               <div key={category.name} className="flex flex-col gap-2">
                 <span className="text-[14px] font-bold uppercase text-black">

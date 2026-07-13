@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Faq from "../../../components/faq";
@@ -7,11 +7,20 @@ import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/confirm_hero.png";
 
 const CODE_LENGTH = 6;
+const RESEND_SECONDS = 60;
 
 function ConfirmEmail() {
   const navigate = useNavigate();
   const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
+  const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const inputsRef = useRef([]);
+
+  // Countdown — tick down to zero, then the Resend link is revealed.
+  useEffect(() => {
+    if (seconds <= 0) return undefined;
+    const id = setTimeout(() => setSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [seconds]);
 
   const focusInput = (index) => {
     const input = inputsRef.current[index];
@@ -49,6 +58,16 @@ function ConfirmEmail() {
     });
     focusInput(Math.min(digits.length, CODE_LENGTH - 1));
   };
+
+  const handleResend = () => {
+    setCode(Array(CODE_LENGTH).fill(""));
+    setSeconds(RESEND_SECONDS);
+    focusInput(0);
+    // TODO: trigger the resend-code request here.
+  };
+
+  const minutes = Math.floor(seconds / 60);
+  const secondsLabel = String(seconds % 60).padStart(2, "0");
 
   return (
     <div className="confirm-email">
@@ -112,10 +131,29 @@ function ConfirmEmail() {
                 Verify now
               </button>
               <p className="flex gap-2 text-[14px] font-semibold">
-                <span className="text-[#667085]">
-                  Didn&rsquo;t receive a code? Wait
-                </span>
-                <span className="text-(--primary-color)">1:99</span>
+                {seconds > 0 ? (
+                  <>
+                    <span className="text-[#667085]">
+                      Didn&rsquo;t receive a code? Wait
+                    </span>
+                    <span className="text-(--primary-color)">
+                      {minutes}:{secondsLabel}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#667085]">
+                      Didn&rsquo;t receive a code?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      className="text-(--primary-color) cursor-pointer hover:underline"
+                    >
+                      Resend
+                    </button>
+                  </>
+                )}
               </p>
             </div>
           </form>

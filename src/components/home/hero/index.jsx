@@ -113,8 +113,9 @@ function Hero() {
         {/* Embla Container */}
         <div className="flex h-full">
           {slidesData.map((slide, index) => (
-            <div
+            <NavLink
               key={index}
+              to={slide.btnLink}
               // 3. Dynamically apply slide.bgColorClass directly inside the layout string
               className={`flex-[0_0_100%] min-w-0 h-full relative flex items-start lg:items-center bg-no-repeat bg-cover bg-center transition-colors duration-500 ${
                 slide.isFullBackground ? "" : slide.bgColorClass
@@ -170,7 +171,7 @@ function Hero() {
                   />
                 </div>
               )}
-            </div>
+            </NavLink>
           ))}
         </div>
       </div>

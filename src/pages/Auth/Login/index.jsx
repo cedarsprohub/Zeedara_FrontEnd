@@ -4,9 +4,20 @@ import { ShoppingCart, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AccountDropdown from "../../../components/navbar/AccountDropdown";
+import MobileNav from "../../../components/navbar/MobileNav";
 import zeedaraLogo from "../../../assets/navbar/zeedara_logo.png";
 import heroImage from "../../../assets/auth/login_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
+
+const navLinks = [
+  { name: "HOME", path: "/" },
+  { name: "CATEGORIES", path: "/categories", hasDropdown: true },
+  { name: "NEW ARRIVALS", path: "/new-arrivals" },
+  { name: "SKINCARE CLINIC", path: "/skincare-clinic" },
+  { name: "CONSULTATION", path: "/consultation" },
+  { name: "CUSTOM WIG", path: "/custom-wig" },
+  { name: "REQUEST A QUOTE", path: "/request-a-quote" },
+];
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,13 +30,17 @@ function Login() {
         className="relative isolate flex min-h-screen flex-col overflow-hidden bg-cover bg-top bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        {/* Overlaid top nav */}
-        <div className="flex items-center justify-between px-[clamp(1rem,2.5vw,3rem)] py-6">
+        {/* Top nav — solid white bar on mobile, overlaid on the hero on desktop */}
+        <div className="relative z-20 flex items-center justify-between bg-white lg:bg-transparent px-[clamp(1rem,2.5vw,3rem)] py-5 lg:py-6">
           <NavLink to="/" className="shrink-0">
-            <img src={zeedaraLogo} alt="Zeedara Logo" className="h-[44px] w-auto" />
+            <img
+              src={zeedaraLogo}
+              alt="Zeedara Logo"
+              className="h-[24px] lg:h-[44px] w-auto"
+            />
           </NavLink>
 
-          <div className="flex items-center gap-3 text-white">
+          <div className="flex items-center gap-3 text-black lg:text-white">
             <AccountDropdown light />
             <button
               type="button"
@@ -37,6 +52,7 @@ function Login() {
                 1
               </span>
             </button>
+            <MobileNav navLinks={navLinks} logo={zeedaraLogo} />
           </div>
         </div>
 

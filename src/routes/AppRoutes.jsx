@@ -8,6 +8,7 @@ import Home from "../pages/Home";
 import Categories from "../pages/Categories";
 import Consultation from "../pages/Consultation";
 import Skincare from "../pages/Skincare";
+import Account from "../pages/Account";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -29,6 +30,7 @@ function AppRoutes() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route path="/account" element={<Account />} />
         </Route>
         
 

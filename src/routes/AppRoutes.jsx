@@ -34,6 +34,7 @@ function AppRoutes() {
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/get-started" element={<GetStarted />} />
         <Route path="/create-password" element={<CreatePassword />} />
+        
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

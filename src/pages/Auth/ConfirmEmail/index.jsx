@@ -61,7 +61,7 @@ function ConfirmEmail() {
       >
         {/* Confirm-email card */}
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="confirm-card flex w-full max-w-[420px] flex-col gap-5 bg-white p-5 sm:p-7">
+          <form className="confirm-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8">
             <button
               type="button"
               onClick={() => navigate(-1)}

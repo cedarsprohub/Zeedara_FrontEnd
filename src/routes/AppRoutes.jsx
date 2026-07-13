@@ -25,13 +25,13 @@ function AppRoutes() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
-          <Route path="/get-started" element={<GetStarted />} />
         </Route>
 
         {/* Auth pages (standalone, no shared layout) */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
+        <Route path="/get-started" element={<GetStarted />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { ShoppingCart, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
-import AccountDropdown from "../../../components/navbar/AccountDropdown";
-import zeedaraLogo from "../../../assets/navbar/zeedara_logo.png";
+import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/login_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
 
@@ -14,32 +13,13 @@ function Login() {
 
   return (
     <div className="login">
+      <AuthNav />
+
       {/* Hero */}
       <section
         className="relative isolate flex min-h-screen flex-col overflow-hidden bg-cover bg-top bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        {/* Overlaid top nav */}
-        <div className="flex items-center justify-between px-[clamp(1rem,2.5vw,3rem)] py-6">
-          <NavLink to="/" className="shrink-0">
-            <img src={zeedaraLogo} alt="Zeedara Logo" className="h-[44px] w-auto" />
-          </NavLink>
-
-          <div className="flex items-center gap-3 text-white">
-            <AccountDropdown light />
-            <button
-              type="button"
-              aria-label="Shopping cart"
-              className="flex items-center gap-1 p-2 cursor-pointer"
-            >
-              <ShoppingCart className="size-[22px]" />
-              <span className="min-w-[19px] rounded-[10px] bg-[#ca9949] px-1 py-px text-center text-[12px] font-semibold text-white leading-[1.4]">
-                1
-              </span>
-            </button>
-          </div>
-        </div>
-
         {/* Sign-in card (right side) */}
         <div className="flex flex-1 items-center justify-center lg:justify-end px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
           <form className="signin-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8">

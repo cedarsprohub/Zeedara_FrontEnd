@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import Faq from "../../../components/faq";
+import Footer from "../../../components/footer";
+import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/getstarted_hero.png";
 import nigeriaFlag from "../../../assets/auth/flag_nigeria.svg";
 
@@ -9,14 +11,12 @@ function GetStarted() {
 
   return (
     <div className="get-started">
+      <AuthNav />
+
       {/* Hero */}
       <section
-        className="relative isolate flex min-h-[560px] lg:min-h-[720px] flex-col overflow-hidden bg-no-repeat"
-        style={{
-          backgroundImage: `url(${heroImage})`,
-          backgroundSize: "177.86%",
-          backgroundPosition: "3.7% 5%",
-        }}
+        className="relative isolate flex min-h-[560px] lg:min-h-[720px] flex-col overflow-hidden bg-cover bg-top bg-no-repeat lg:[background-size:177.86%] lg:[background-position:3.7%_5%]"
+        style={{ backgroundImage: `url(${heroImage})` }}
       >
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
           <form className="getstarted-card flex w-full max-w-[460px] flex-col gap-6 bg-white p-5 sm:p-8">
@@ -112,6 +112,7 @@ function GetStarted() {
       </section>
 
       <Faq />
+      <Footer />
     </div>
   );
 }

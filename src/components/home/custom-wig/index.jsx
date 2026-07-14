@@ -8,7 +8,7 @@ function CustomWig() {
   return (
     <div className="custom bg-[#faf4eb]">
       <div
-        className={`custom-inner flex flex-col gap-4 lg:flex-row justify-center mx-auto max-w-1920 ${sidePadding} pt-[clamp(3rem,6.25vw,7.5rem)]`}
+        className={`custom-inner flex flex-col gap-4 lg:flex-row justify-between 2xl:justify-center items-center mx-auto max-w-[1920px] ${sidePadding} pt-[clamp(3rem,6.25vw,7.5rem)]`}
       >
         <div className="custom-img w-full h-auto lg:w-[50%] order-1 lg:order-0">
           <img
@@ -18,7 +18,7 @@ function CustomWig() {
           />
         </div>
 
-        <div className="custom-content w-full lg:w-[50%] flex flex-col gap-3 md:gap-4">
+        <div className="custom-content w-full lg:w-[40%] xl:w-[40%] 2xl:w-[30%] flex flex-col gap-3 md:gap-4 ">
           <div className="logo w-[116px] md:w-[140px] lg:w-[206px] h-[24px] md:h-[30px] lg:h-[43px]">
             <img
               src={logo}
@@ -26,13 +26,13 @@ function CustomWig() {
               alt="Zeedara Logo"
             />
           </div>
-          <h1 className="text-black uppercase leading-tight text-[40px] md:text-[60px] lg:text-[80px] 2xl:text-[80px] font-medium font-[Anton]">
+          <h1 className="text-black uppercase leading-tight text-[40px] md:text-[60px] xl:text-[80px] font-medium font-[Anton]">
             Custom Wigs
             <div className="flex text-black relative">
               <span>Made</span>
               <img
                 src={fourImg}
-                className="object-fit w-[60px] left-20 md:w-[90px] lg:w-[120px] absolute md:left-30 lg:left-39 -bottom-0"
+                className="object-fit w-[60px] left-20 md:w-[90px] xl:w-[120px] absolute md:left-30 xl:left-39 -bottom-0"
                 alt="Four Image"
               />
               <span className="ms-10 md:ms-20">You</span>

@@ -19,7 +19,7 @@ function GetStarted() {
         style={{ backgroundImage: `url(${heroImage})` }}
       >
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="getstarted-card flex w-full max-w-[460px] flex-col gap-6 bg-white p-5 sm:p-8">
+          <form className="getstarted-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8">
             <button
               type="button"
               onClick={() => navigate(-1)}

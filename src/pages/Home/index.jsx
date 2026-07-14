@@ -6,6 +6,7 @@ import Testimonials from "../../components/home/testimonials";
 import Hero from "../../components/home/hero";
 import Collections from "../../components/home/collections";
 import PopularProducts from "../../components/home/popular-products";
+import CustomWig from "../../components/home/custom-wig";
 
 function Home() {
   return (
@@ -29,6 +30,7 @@ function Home() {
         sectionBtnLink="/purchase"
       />
       <Collections />
+      <CustomWig />
       <CTA
         sectionBg="bg-black"
         sectionSideImg={superDealImg}

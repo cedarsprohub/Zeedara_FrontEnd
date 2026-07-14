@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LogIn,
-  UserPlus,
   Package,
   Truck,
   CircleUser,
   ChevronDown,
+  MessageCircleMore,
 } from "lucide-react";
+import userAddIcon from "../../../assets/navbar/user-add-02.svg";
+import loginIcon from "../../../assets/navbar/login-02.svg";
 
 const accountMenu = [
-  { label: "Sign in", icon: LogIn, to: "/login" },
-  { label: "Create an Account", icon: UserPlus, to: "/register" },
-  { label: "Your Orders", icon: Package, to: "/orders" },
-  { label: "Track Order", icon: Truck, to: "/track-order" },
+  { label: "My Orders", icon: Package, to: "/orders" },
+  { label: "Messages", icon: MessageCircleMore, to: "/register" },
+  { label: "Payments", icon: Truck, to: "/payments" },
 ];
 
 function AccountDropdown({ light = false }) {
@@ -61,21 +61,61 @@ function AccountDropdown({ light = false }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-3 flex min-w-[220px] flex-col rounded-br-[20px] bg-white p-3 shadow-[-2px_-9px_43.9px_24px_rgba(0,0,0,0.05)]"
+          className="absolute right-0 top-full z-50 mt-3 flex min-w-[250px] flex-col rounded-br-[20px] bg-white p-3 shadow-[-2px_-9px_43.9px_24px_rgba(0,0,0,0.05)]"
         >
-          {accountMenu.map(({ label, icon: Icon, to }) => (
+          <div className="footer auth-links flex flex-col gap-3 pb-2">
             <NavLink
-              key={label}
-              to={to}
+              to="/register"
+              onClick={close}
+              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[14px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
+            >
+              Create an Account
+              <img src={userAddIcon} alt="signup Icon" className="" />
+            </NavLink>
+            <NavLink
+              to="/login"
+              onClick={close}
+              className="w-full bg-(--primary-color) flex items-center justify-center gap-3 px-6 py-3 text-center text-[14px] font-medium capitalize text-white transition-colors hover:bg-[#573b0f]"
+            >
+              sign In
+              <img src={loginIcon} alt="" className="" />
+            </NavLink>
+          </div>
+          <div className="flex flex-col border-t border-b border-[#bdc2cb]">
+            {accountMenu.map(({ label, icon: Icon, to }) => (
+              <NavLink
+                key={label}
+                to={to}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
+              >
+                <Icon className="size-5 shrink-0" strokeWidth={2} />
+                <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+                  {label}
+                </span>
+              </NavLink>
+            ))}
+          </div>
+          <div className="flex flex-col">
+            <NavLink
+              to="/settings"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
-              <Icon className="size-5 shrink-0" strokeWidth={2} />
               <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
-                {label}
+                Settings
               </span>
             </NavLink>
-          ))}
+            <NavLink
+              to="/refund-policy"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
+            >
+              <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+                Return & refund policy
+              </span>
+            </NavLink>
+          </div>
         </div>
       )}
     </div>

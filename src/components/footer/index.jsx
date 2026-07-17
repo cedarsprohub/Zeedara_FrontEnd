@@ -219,7 +219,7 @@ function Footer() {
             <div className="about flex flex-col gap-4">
               <img
                 src={logo}
-                className="object-fit h-[26px] w-[128px] lg:h-[44px] w-[210px]"
+                className="object-fit h-[26px] w-[128px] lg:h-[44px] lg:w-[210px]"
                 alt="Zeedara Logo"
               />
               <p className="text-[14px] text-white">

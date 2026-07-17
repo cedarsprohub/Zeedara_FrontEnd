@@ -1,15 +1,28 @@
 import { useState } from "react";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 
-function CartItem({ img, name, oldPrice, newPrice, discount }) {
+function CartItem({ id, img, name, oldPrice, newPrice, discount }) {
   const [quantity, setQuantity] = useState(0);
 
-  const addToCart = () => setQuantity(1);
-  const increment = () => setQuantity((current) => current + 1);
-  const decrement = () => setQuantity((current) => Math.max(current - 1, 0));
+  const addToCart = (event) => {
+    event.preventDefault();
+    setQuantity(1);
+  };
+  const increment = (event) => {
+    event.preventDefault();
+    setQuantity((current) => current + 1);
+  };
+  const decrement = (event) => {
+    event.preventDefault();
+    setQuantity((current) => Math.max(current - 1, 0));
+  };
 
   return (
-    <div className="cart-item w-full flex flex-col h-[251px] sm:h-[300px] md:h-[310px] lg:h-[350px] xl:h-[370px] items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2">
+    <Link
+      to={`/products/${id}`}
+      className="cart-item w-full flex flex-col h-[251px] sm:h-[300px] md:h-[310px] lg:h-[350px] xl:h-[370px] items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2 transition-colors duration-300 hover:border-(--primary-color)"
+    >
       <div className="cart-img bg-(--grey-color) mb-1 w-full h-full flex items-center justify-center overflow-hidden">
         <img src={img} alt={name} className="object-cover" />
       </div>
@@ -71,7 +84,7 @@ function CartItem({ img, name, oldPrice, newPrice, discount }) {
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

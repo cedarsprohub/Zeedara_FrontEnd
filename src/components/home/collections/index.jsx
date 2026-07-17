@@ -4,34 +4,46 @@ import collectionImgThree from "../../../assets/home/collection_img_three.png";
 import collectionImgFour from "../../../assets/home/collection_img_four.png";
 import { NavLink } from "react-router-dom";
 
-function Collections() {
-  const products = [
-    {
-      id: 1,
-      img: collectionImgOne,
-      linkTo: "/categories",
-      title: "Luxry Hairs",
-    },
-    {
-      id: 2,
-      img: collectionImgThree,
-      linkTo: "/categories",
-      title: "Skin Care",
-    },
-    {
-      id: 3,
-      img: collectionImgTwo,
-      linkTo: "/categories",
-      title: "Make-up",
-    },
-    {
-      id: 4,
-      img: collectionImgFour,
-      linkTo: "/categories",
-      title: "Brushes",
-    },
-  ];
+// Item heights alternate tall/short so each masonry column sums to the same
+// total height (tall + short == short + tall), letting the browser's column
+// balancing split the 4 items 2-and-2 with no leftover space at either column's end.
+const sizeClasses = {
+  tall: "h-[192px] md:h-[270px] lg:h-[400px]",
+  short: "h-[130px] md:h-[170px] lg:h-[230px]",
+};
 
+const products = [
+  {
+    id: 1,
+    img: collectionImgOne,
+    linkTo: "/categories",
+    title: "Luxury Hairs",
+    size: "tall",
+  },
+  {
+    id: 2,
+    img: collectionImgThree,
+    linkTo: "/categories",
+    title: "Skin Care",
+    size: "short",
+  },
+  {
+    id: 3,
+    img: collectionImgTwo,
+    linkTo: "/categories",
+    title: "Make-up",
+    size: "short",
+  },
+  {
+    id: 4,
+    img: collectionImgFour,
+    linkTo: "/categories",
+    title: "Brushes",
+    size: "tall",
+  },
+];
+
+function Collections() {
   const sidePadding =
     "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
   return (
@@ -49,26 +61,26 @@ function Collections() {
         </div>
 
         <div className="collections-container w-full md:w-[80%] lg:w-[60%] mx-auto">
-          <div className="columns-2">
-            {products.map((product, index) => (
+          <div className="columns-2 gap-x-2 lg:gap-x-6">
+            {products.map((product) => (
               <div
                 key={product.id}
-                className={`group flex flex-col h-[${index == 0 || index == 3 ? "192px" : "130px"}] lg:h-[${index == 0 || index == 3 ? "400px" : "230px"}] p-3 transition-all duration-300 break-inside-avoid`}
+                className={`group flex flex-col ${sizeClasses[product.size]} p-1.5 lg:p-3 transition-all duration-300 break-inside-avoid`}
               >
                 {/* Image Container Area */}
-                <div className="relative overflow-hidden bg-[#faf4eb]">
+                <div className="relative flex-1 overflow-hidden bg-[#faf4eb]">
                   <img
                     src={product.img}
                     alt={product.title}
-                    className={`w-full h-full object-fit transition-transform duration-500 ease-out group-hover:scale-105`}
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     loading="lazy"
                   />
 
-                  {/* Hover Fade-in Shop Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#bf8322]/40 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100">
+                  {/* Shop Overlay - always visible on mobile, fades in on hover from lg upward */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#bf8322]/40 opacity-100 transition-opacity duration-300 ease-out lg:opacity-0 lg:group-hover:opacity-100">
                     <NavLink
                       to={product.linkTo}
-                      className="transform translate-y-2 uppercase bg-white px-5 py-3 text-xs md:text-sm font-semibold text-(--primary-color) transition-all duration-300 hover:bg-gray-100 hover:scale-105 group-hover:translate-y-0"
+                      className="transform translate-y-0 uppercase bg-white lg:px-5 px-4 py-2 lg:py-3 text-xs text-[10px] md:text-sm font-semibold text-(--primary-color) transition-all duration-300 hover:bg-gray-100 hover:scale-105 lg:translate-y-2 lg:group-hover:translate-y-0"
                     >
                       Shop Now
                     </NavLink>
@@ -77,7 +89,7 @@ function Collections() {
 
                 {/* Title Section (Placed safely below the hover zoom area) */}
                 <div className="mt-3 px-1">
-                  <h3 className="text-sm md:text-base uppercase font-semibold text-gray-800 line-clamp-1 group-hover:text-gray-900 transition-colors duration-200">
+                  <h3 className="text-sm md:text-base capitalize lg:uppercase font-semibold text-gray-800 line-clamp-1 group-hover:text-gray-900 transition-colors duration-200">
                     {product.title}
                   </h3>
                 </div>

@@ -8,9 +8,11 @@ import belowImg from "../../../assets/home/below-img.png";
 
 import heroImg2 from "../../../assets/home/heroImg2.png";
 import heroImg3 from "../../../assets/home/heroImg3.png";
+import { useNavbarHeight } from "../../../context/NavbarHeightContext";
 
 function Hero() {
   const [isMobile, setIsMobile] = useState(false);
+  const navbarHeight = useNavbarHeight();
 
   // Monitor viewport width to match Tailwind's 'lg' breakpoint (1024px)
   useEffect(() => {
@@ -50,9 +52,11 @@ function Hero() {
     {
       isFullBackground: true,
       imageAsset: heroImg,
-      bgColorClass: "", // Slide 1 uses full background image, so no color class is needed
-      alignClass: "items-center justify-center text-center",
-      hasBelowImg: true,
+      // Slide 1 has its own dedicated bottom graphic for mobile screens
+      mobileImage: belowImg,
+      // Slide 1 shows the primary-color background on mobile; the full image takes over at lg
+      bgColorClass: "bg-[#c99964] lg:bg-transparent",
+      alignClass: "items-center justify-start lg:justify-center text-center",
       header: (
         <>
           Beauty products <br />{" "}
@@ -71,9 +75,10 @@ function Hero() {
     {
       isFullBackground: false,
       imageAsset: heroImg2,
+      // Slides 2 and 3 reuse their own side image as the mobile bottom graphic
+      mobileImage: heroImg2,
       bgColorClass: "bg-[#faf4eb]", // 1. Custom background color for Slide 2 (Soft Rose/Clay Warmth)
-      alignClass: "items-start justify-center text-left",
-      hasBelowImg: false,
+      alignClass: "items-start justify-start lg:justify-center text-left",
       header: (
         <>
           <span className="text-(--primary-color)">Beauty Treatments</span>
@@ -88,9 +93,9 @@ function Hero() {
     {
       isFullBackground: false,
       imageAsset: heroImg3,
+      mobileImage: heroImg3,
       bgColorClass: "bg-[#ebeae6]", // 2. Custom background color for Slide 3 (Clean Clean/Sage Gray Tint)
-      alignClass: "items-start justify-center text-left",
-      hasBelowImg: false,
+      alignClass: "items-start justify-start lg:justify-center text-left",
       header: (
         <>
           <span className="text-[#859072]">Beauty Treatments</span>
@@ -107,7 +112,10 @@ function Hero() {
 
   const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
   return (
-    <div className="relative group w-full overflow-hidden h-[calc(100vh-80px)] lg:h-[calc(100vh-270px)] xl:h-[calc(100vh-222px)]">
+    <div
+      className="relative group w-full overflow-hidden"
+      style={{ height: `calc(100vh - ${navbarHeight}px)` }}
+    >
       {/* Embla Viewport */}
       <div className="w-full h-full overflow-hidden" ref={emblaRef}>
         {/* Embla Container */}
@@ -117,27 +125,28 @@ function Hero() {
               key={index}
               to={slide.btnLink}
               // 3. Dynamically apply slide.bgColorClass directly inside the layout string
-              className={`flex-[0_0_100%] min-w-0 h-full relative flex items-start lg:items-center bg-no-repeat bg-cover bg-center transition-colors duration-500 ${
-                slide.isFullBackground ? "" : slide.bgColorClass
-              }`}
-              style={
-                slide.isFullBackground
-                  ? { backgroundImage: `url(${slide.imageAsset})` }
-                  : {}
-              }
+              className={`flex-[0_0_100%] min-w-0 h-full relative flex items-start lg:items-center transition-colors duration-500 ${slide.bgColorClass}`}
             >
+              {/* Desktop full-bleed background image (Slide 1 only, lg and up) */}
+              {slide.isFullBackground && (
+                <div
+                  className="hidden lg:block absolute inset-0 z-0 bg-no-repeat bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slide.imageAsset})` }}
+                />
+              )}
+
               {/* Slide Content Box */}
               <div
                 className={`mx-auto max-w-[1920px] w-full flex justify-between items-center h-full ${sidePadding} relative z-20 pt-15 lg:pt-0 pb-0 flex flex-col gap-3 ${slide.alignClass}`}
               >
                 <h2
-                  className="hero-header uppercase font-medium font-[Anton] leading-11 md:leading-14 lg:leading-14 xl:leading-17 text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl text-gray-900 data-[bg=true]:text-[#faf4eb]"
+                  className="hero-header uppercase font-medium font-[Anton] leading-11 md:leading-14 lg:leading-14 xl:leading-17 text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl data-[bg=true]:text-[#faf4eb] lg:data-[bg=true]:text-[#faf4eb]"
                   data-bg={slide.isFullBackground}
                 >
                   {slide.header}
                 </h2>
                 <p
-                  className="hero-desc text-[14px] lg:text-[18px] w-full sm:w-[80%] md:w-[60%] xl:w-[40%] text-black data-[bg=true]:text-inherit"
+                  className="hero-desc text-[14px] lg:text-[18px] w-full sm:w-[80%] md:w-[60%] xl:w-[40%] text-black lg:data-[bg=true]:text-inherit"
                   data-bg={slide.isFullBackground}
                 >
                   {slide.description}
@@ -150,9 +159,9 @@ function Hero() {
                 </NavLink>
               </div>
 
-              {/* Standalone Right Image Element for Slides 2 and 3 */}
+              {/* Standalone Right Image Element for Slides 2 and 3 (lg and up) */}
               {!slide.isFullBackground && (
-                <div className="absolute top-0 right-0 h-full w-full lg:w-[50%] z-0 pointer-events-none">
+                <div className="hidden lg:block absolute top-0 right-0 h-full w-[50%] z-0 pointer-events-none">
                   <img
                     src={slide.imageAsset}
                     className="w-full h-full object-cover object-center"
@@ -161,16 +170,14 @@ function Hero() {
                 </div>
               )}
 
-              {/* Mobile overlay graphic for Slide 1 */}
-              {slide.hasBelowImg && (
-                <div className="absolute bottom-0 lg:hidden left-0 h-auto w-full pointer-events-none z-10">
-                  <img
-                    src={belowImg}
-                    className="h-[100%] w-full sm:object-cover object-contain"
-                    alt=""
-                  />
-                </div>
-              )}
+              {/* Bottom-aligned graphic on mobile screens, keeping the content above it */}
+              <div className="absolute bottom-0 lg:hidden left-0 h-auto w-full pointer-events-none z-0">
+                <img
+                  src={slide.mobileImage}
+                  className="h-full w-full sm:object-cover object-contain"
+                  alt=""
+                />
+              </div>
             </NavLink>
           ))}
         </div>

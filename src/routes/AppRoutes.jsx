@@ -8,6 +8,7 @@ import Home from "../pages/Home";
 import Categories from "../pages/Categories";
 import Consultation from "../pages/Consultation";
 import Skincare from "../pages/Skincare";
+import Account from "../pages/Account";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -17,6 +18,7 @@ import GetStarted from "../pages/Auth/GetStarted";
 import CreatePassword from "../pages/Auth/CreatePassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import VerifyForgotPassword from "../pages/Auth/VerifyForgotPassword";
+import ChangePassword from "../pages/Auth/ChangePassword";
 
 function AppRoutes() {
   return (
@@ -28,7 +30,9 @@ function AppRoutes() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route path="/account" element={<Account />} />
         </Route>
+        
 
         {/* Auth pages (standalone, no shared layout) */}
         <Route path="/register" element={<Register />} />
@@ -38,6 +42,7 @@ function AppRoutes() {
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-forgot-password" element={<VerifyForgotPassword />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

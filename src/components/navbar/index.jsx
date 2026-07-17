@@ -1,13 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { Search, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import AccountDropdown from "./AccountDropdown";
 import CategoriesDropdown from "./CategoriesDropdown";
 import MobileNav from "./MobileNav";
+import SearchBar from "./SearchBar";
 import zeedaraLogo from "../../assets/navbar/zeedara_logo.png";
 import instagramIcon from "../../assets/navbar/instagram_icon.svg";
 import youtubeIcon from "../../assets/navbar/youtube_icon.svg";
 import facebookIcon from "../../assets/navbar/facebook_icon.svg";
 import twitterIcon from "../../assets/navbar/twitter_icon.svg";
+import { useState } from "react";
+import CartDrawer from "./CartDrawer";
 
 const navLinks = [
   { name: "HOME", path: "/" },
@@ -45,6 +48,7 @@ const socialIcons = [
 const sidePadding = "px-[clamp(1rem,2.5vw,3rem)]";
 
 function Navbar() {
+   const [isCartOpen, setIsCartOpen] = useState(false);
   return (
     <div className="navbar">
       {/* Top bar */}
@@ -105,22 +109,7 @@ function Navbar() {
               />
             </NavLink>
 
-            <div className="searchbar-wrap hidden lg:flex order-3 w-full lg:order-none lg:flex-1 lg:flex lg:justify-center">
-              <div className="searchbar flex w-full items-center bg-[#f7f8fa] lg:max-w-[560px]">
-                <input
-                  type="text"
-                  placeholder="Search a Product here"
-                  className="flex-1 min-w-0 bg-transparent border-none pl-5 py-2.5 text-[14px] font-medium text-black placeholder:text-[#bdc2cb] focus:outline-none"
-                />
-                <button
-                  type="button"
-                  aria-label="Search"
-                  className="shrink-0 flex items-center justify-center bg-(--primary-color) p-2.5 cursor-pointer"
-                >
-                  <Search className="size-5 text-white" />
-                </button>
-              </div>
-            </div>
+            <SearchBar />
 
             <div className="account flex items-center gap-1 lg:gap-4 ml-auto lg:ml-0">
               <AccountDropdown />
@@ -130,13 +119,21 @@ function Navbar() {
                 aria-label="Shopping cart"
                 className="shopping_cart flex items-center gap-1 p-2 cursor-pointer"
               >
-                <ShoppingCart className="size-[22px] text-black" />
+                <ShoppingCart
+                  className="size-[22px] text-black"
+                  onClick={() => setIsCartOpen(true)}
+                />
                 <span className="min-w-[19px] rounded-[10px] bg-[#ca9949] px-1 py-px text-center text-[10px] font-semibold text-white leading-[1.4]">
                   1
                 </span>
               </button>
 
               <MobileNav navLinks={navLinks} logo={zeedaraLogo} />
+              {/* Cart Drawer Instance injection wrapper layer passing states */}
+              <CartDrawer
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+              />
             </div>
           </div>
 

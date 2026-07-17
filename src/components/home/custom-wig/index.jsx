@@ -8,9 +8,9 @@ function CustomWig() {
   return (
     <div className="custom bg-[#faf4eb]">
       <div
-        className={`custom-inner flex flex-col gap-4 lg:flex-row justify-between 2xl:justify-center items-center mx-auto max-w-[1920px] ${sidePadding} pt-[clamp(3rem,6.25vw,7.5rem)]`}
+        className={`custom-inner flex flex-col gap-4 relative lg:flex-row justify-end items-center mx-auto max-w-[1920px] ${sidePadding} pt-[clamp(3rem,6.25vw,7.5rem)]`}
       >
-        <div className="custom-img w-full h-auto lg:w-[50%] order-1 lg:order-0">
+        <div className="custom-img w-full lg:absolute left-0 bottom-0 h-full lg:w-[50%] order-1 lg:order-0">
           <img
             src={sideImg}
             className="object-fit w-full h-full"
@@ -18,7 +18,7 @@ function CustomWig() {
           />
         </div>
 
-        <div className="custom-content w-full lg:w-[40%] xl:w-[40%] 2xl:w-[30%] flex flex-col gap-3 md:gap-4 ">
+        <div className="custom-content pb-10 w-full lg:w-[40%] xl:w-[40%] 2xl:w-[30%] flex flex-col gap-3 md:gap-4 ">
           <div className="logo w-[116px] md:w-[140px] lg:w-[206px] h-[24px] md:h-[30px] lg:h-[43px]">
             <img
               src={logo}

@@ -191,6 +191,7 @@ function PopularProducts() {
           {currentTab.products.map((product) => (
             <CartItem
               key={product.id}
+              id={product.id}
               img={product.img}
               name={product.name}
               oldPrice={product.oldPrice}

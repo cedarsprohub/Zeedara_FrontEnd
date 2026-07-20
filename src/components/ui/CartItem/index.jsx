@@ -115,7 +115,7 @@ function CartItem({
           {discount}% OFF
         </span>
         <div className="flex flex-col lg:flex-row gap-1 lg:gap-0 items-start">
-          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-2">
+          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1">
             {name}
           </h3>
 

@@ -9,7 +9,9 @@ import Categories from "../pages/Categories";
 import Products from "../pages/Products";
 import Consultation from "../pages/Consultation";
 import Skincare from "../pages/Skincare";
-import Account from "../pages/Account";
+import AccountLayout from "../pages/Account/AccountLayout";
+import AccountOverview from "../pages/Account/Overview";
+import Orders from "../pages/Account/Orders";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -32,7 +34,10 @@ function AppRoutes() {
           <Route path="/products" element={<Products />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
-          <Route path="/account" element={<Account />} />
+          <Route path="/account" element={<AccountLayout />}>
+            <Route index element={<AccountOverview />} />
+            <Route path="orders" element={<Orders />} />
+          </Route>
         </Route>
         
 

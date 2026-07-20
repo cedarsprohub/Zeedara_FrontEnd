@@ -77,7 +77,9 @@ function CartDrawer({ isOpen, onClose }) {
   return (
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-300 ${
-        isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        isOpen
+          ? "pointer-events-auto opacity-100"
+          : "pointer-events-none opacity-0"
       }`}
     >
       <div
@@ -95,7 +97,7 @@ function CartDrawer({ isOpen, onClose }) {
         }`}
       >
         <div className="flex items-center justify-between border-b border-gray-100 p-6">
-          <h3 className="text-xl font-bold text-gray-900">
+          <h3 className="text-xl font-semibold text-gray-900">
             Your Cart ({items.length})
           </h3>
           <button

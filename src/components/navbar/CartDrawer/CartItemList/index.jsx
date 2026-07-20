@@ -20,7 +20,7 @@ function CartItemList({ items, onIncrement, onDecrement, onRemove }) {
           key={item.id}
           className="flex w-full items-stretch gap-4 border border-gray-100"
         >
-          <div className="h-[126px] w-[100px] shrink-0 overflow-hidden bg-gray-100">
+          <div className="h-auto w-[100px] shrink-0 overflow-hidden bg-gray-100">
             <img
               src={item.image}
               alt={item.name}
@@ -30,7 +30,7 @@ function CartItemList({ items, onIncrement, onDecrement, onRemove }) {
 
           <div className="flex flex-1 flex-col justify-between py-2 pr-3">
             <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end">
                 <span className="text-sm text-gray-400 line-through">
                   {formatCurrency(item.originalPrice)}
                 </span>
@@ -38,11 +38,13 @@ function CartItemList({ items, onIncrement, onDecrement, onRemove }) {
                   {formatCurrency(item.salePrice)}
                 </span>
               </div>
-              <h4 className="text-sm font-medium text-black">{item.name}</h4>
+              <h4 className="text-sm font-medium text-black w-[70%] line-clamp-2">
+                {item.name}
+              </h4>
               <p className="text-xs text-gray-500">{item.description}</p>
             </div>
 
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center self-end gap-2">
               <div
                 role="group"
                 aria-label={`Quantity controls for ${item.name}`}

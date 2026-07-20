@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import sampleImg from "../../../assets/ui/sampleImg.png";
 
 const placeholderSuggestions = [
@@ -17,7 +17,6 @@ const recommendedProducts = [
   { id: 3, name: "Vitamin C Serum", image: sampleImg },
   { id: 4, name: "Custom Wig Bundle", image: sampleImg },
   { id: 5, name: "SPF 50 Sunscreen", image: sampleImg },
-  { id: 6, name: "Makeup Brush Set", image: sampleImg },
 ];
 
 function highlightMatch(text, query) {
@@ -40,6 +39,14 @@ function SearchBar() {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const navigate = useNavigate();
+
+  const submitSearch = (event) => {
+    event.preventDefault();
+    if (query.trim() === "") return;
+    navigate(`/products?q=${encodeURIComponent(query.trim())}`);
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -79,7 +86,10 @@ function SearchBar() {
           />
         )}
 
-        <div className="searchbar relative z-50 flex w-full items-center border border-transparent bg-[#f7f8fa] transition-colors focus-within:border-(--primary-color)">
+        <form
+          onSubmit={submitSearch}
+          className="searchbar relative z-50 flex w-full items-center border border-transparent bg-[#f7f8fa] transition-colors focus-within:border-(--primary-color)"
+        >
           <input
             type="text"
             value={query}
@@ -89,13 +99,13 @@ function SearchBar() {
             className="flex-1 min-w-0 bg-transparent border-none pl-5 py-2.5 text-[14px] font-medium text-black placeholder:text-[#bdc2cb] focus:outline-none"
           />
           <button
-            type="button"
+            type="submit"
             aria-label="Search"
             className="shrink-0 flex items-center justify-center bg-(--primary-color) p-2.5 cursor-pointer"
           >
             <Search className="size-5 text-white" />
           </button>
-        </div>
+        </form>
 
         {isOpen && (
           <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[70vh] w-full overflow-y-auto border border-gray-100 bg-white shadow-lg">
@@ -129,16 +139,16 @@ function SearchBar() {
                     key={product.id}
                     to={`/products/${product.id}`}
                     onClick={() => setIsOpen(false)}
-                    className="flex flex-col items-center gap-1.5 border border-gray-200 p-2 transition-colors hover:border-(--primary-color)"
+                    className="flex flex-col items-center gap-1.5 border border-gray-200 px-1 pb-1 transition-colors hover:border-(--primary-color)"
                   >
-                    <div className="aspect-square w-14 overflow-hidden bg-gray-100">
+                    <div className="h-[73px] w-full overflow-hidden bg-gray-100">
                       <img
                         src={product.image}
                         alt={product.name}
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <span className="line-clamp-1 text-center text-xs font-medium text-gray-800">
+                    <span className="line-clamp-2 text-[9px] font-medium text-gray-800">
                       {product.name}
                     </span>
                   </NavLink>

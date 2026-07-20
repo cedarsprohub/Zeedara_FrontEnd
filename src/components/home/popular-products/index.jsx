@@ -147,7 +147,7 @@ function PopularProducts() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
 
   const sidePadding =
-  "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
+    "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
   const currentTab = tabs.find((tab) => tab.id === activeTab);
 
   return (
@@ -204,7 +204,7 @@ function PopularProducts() {
         {/* Show All */}
         <button
           type="button"
-          className="popular-products-showall bg-black text-white text-[14px] font-bold uppercase px-10 py-3 md:py-4 cursor-pointer transition-opacity hover:opacity-90"
+          className="popular-products-showall bg-black text-white text-[14px] font-bold uppercase px-10 py-3 cursor-pointer transition-opacity hover:opacity-90"
         >
           Show All
         </button>

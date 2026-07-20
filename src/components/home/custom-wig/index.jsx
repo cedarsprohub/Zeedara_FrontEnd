@@ -44,7 +44,7 @@ function CustomWig() {
           </p>
 
           <NavLink
-            to="custom-wig"
+            to="/custom-wig"
             className="text-center uppercase text-[14px] lg:text-[16px] lg:text-start bg-(--primary-color) cursor-pointer text-white font-semibold py-2 lg:py-3 px-6 w-fit hover:bg-[#573b0f] transition-colors duration-300"
           >
             Make A Request

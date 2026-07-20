@@ -7,6 +7,7 @@ import Layout from "../layout/Layout";
 import Home from "../pages/Home";
 import Categories from "../pages/Categories";
 import Products from "../pages/Products";
+import CustomWig from "../pages/CustomWig";
 import Consultation from "../pages/Consultation";
 import Skincare from "../pages/Skincare";
 import AccountLayout from "../pages/Account/AccountLayout";
@@ -32,6 +33,7 @@ function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
           <Route path="/account" element={<AccountLayout />}>

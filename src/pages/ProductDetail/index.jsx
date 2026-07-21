@@ -3,8 +3,8 @@ import { ChevronRight } from "lucide-react";
 import ImageGallery from "../../components/product-detail/ImageGallery";
 import ProductInfo from "../../components/product-detail/ProductInfo";
 import ProductTabs from "../../components/product-detail/ProductTabs";
-import CartItem from "../../components/ui/CartItem";
-import { getProductDetail, getRelatedProducts } from "./productDetailData";
+import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
+import { getProductDetail } from "./productDetailData";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -34,8 +34,6 @@ function ProductDetail() {
     );
   }
 
-  const relatedProducts = getRelatedProducts(product.id);
-
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
       {/* Breadcrumb */}
@@ -63,33 +61,7 @@ function ProductDetail() {
         <ProductTabs product={product} />
       </div>
 
-      {/* You May Also Like */}
-      <div>
-        <h2 className="mb-8 text-center font-['Anton'] text-3xl uppercase text-black md:text-4xl">
-          You May Also Like
-        </h2>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {relatedProducts.map((related) => (
-            <CartItem
-              key={related.id}
-              id={related.id}
-              img={related.img}
-              name={related.name}
-              oldPrice={related.oldPrice}
-              newPrice={related.newPrice}
-              discount={related.discount}
-            />
-          ))}
-        </div>
-        <div className="mt-8 flex justify-center">
-          <Link
-            to="/products"
-            className="bg-black px-10 py-3 text-sm font-bold uppercase text-white transition-opacity hover:opacity-90"
-          >
-            Show All
-          </Link>
-        </div>
-      </div>
+      <YouMayAlsoLike excludeId={product.id} />
     </div>
   );
 }

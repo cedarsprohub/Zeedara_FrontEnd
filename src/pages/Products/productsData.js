@@ -24,4 +24,8 @@ const productsData = [
   { id: 121, img: sampleImg, name: "Bare Lace 13X6 Wig Lacefrontal", description: "Color: Black / Size: 20ml", oldPrice: "145,000", newPrice: "120,000", discount: 30 },
 ];
 
+export function getRelatedProducts(id, count = 4) {
+  return productsData.filter((item) => item.id !== id).slice(0, count);
+}
+
 export default productsData;

@@ -8,6 +8,8 @@ import Home from "../pages/Home";
 import Categories from "../pages/Categories";
 import Products from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
+import Cart from "../pages/Cart";
+import OrderReceived from "../pages/OrderReceived";
 import CustomWig from "../pages/CustomWig";
 import Consultation from "../pages/Consultation";
 import Skincare from "../pages/Skincare";
@@ -35,6 +37,8 @@ function AppRoutes() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<OrderReceived />} />
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />

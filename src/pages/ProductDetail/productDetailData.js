@@ -56,6 +56,3 @@ export function getProductDetail(id) {
   };
 }
 
-export function getRelatedProducts(id, count = 4) {
-  return productsData.filter((item) => item.id !== id).slice(0, count);
-}

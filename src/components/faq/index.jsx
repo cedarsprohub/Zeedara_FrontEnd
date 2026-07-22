@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-const faqs = [
+const defaultFaqs = [
   {
     question: "What is Zeedara?",
     answer:
@@ -34,7 +34,7 @@ const faqs = [
   },
 ];
 
-function Faq() {
+function Faq({ faqs = defaultFaqs, description }) {
   const [openIndex, setOpenIndex] = useState(0);
 
   const toggle = (index) =>
@@ -56,8 +56,8 @@ function Faq() {
             We&rsquo;re here to help.
           </h2>
           <p className="text-[14px] lg:text-[16px] leading-[1.48] text-black max-w-[588px]">
-            Get answers to common questions about Zeedara products, payments,
-            delivery, returns, refunds, wholesale, and customer support.
+            {description ??
+              "Get answers to common questions about Zeedara products, payments, delivery, returns, refunds, wholesale, and customer support."}
           </p>
         </div>
 

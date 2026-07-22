@@ -7,6 +7,7 @@ import {
   Headphones,
   RotateCcw,
 } from "lucide-react";
+import { useStickyNavHeight } from "../../context/NavbarHeightContext";
 
 // Nav items with a `to` are real routes; the rest are placeholders until
 // their screens are built.
@@ -22,14 +23,21 @@ const primaryNav = [
 const secondaryNav = ["Address Book", "Settings"];
 
 function AccountSidebar() {
+  const stickyNavHeight = useStickyNavHeight();
+
   return (
     // `self-start` + `sticky` keeps the sidebar pinned while the page content
-    // scrolls underneath it.
-    <aside className="w-full shrink-0 bg-white lg:sticky lg:top-6 lg:w-[300px] lg:self-start">
-      <nav className="flex flex-col">
+    // scrolls underneath it. `top` sits just below the pinned main nav so the
+    // sidebar never slides under it. The inline `top` is inert on mobile where
+    // the aside is static (sticky only kicks in at `lg`).
+    <aside
+      className="w-full shrink-0 bg-white lg:sticky lg:w-[318px] lg:self-start"
+      style={{ top: `${stickyNavHeight + 24}px` }}
+    >
+      <nav className="flex flex-col gap-2">
         {primaryNav.map(({ label, icon: Icon, to, end }) => {
           const base =
-            "flex items-center gap-2 border-l-4 px-4 py-3 text-[14px] font-medium text-black transition-colors";
+            "flex items-center gap-3 border-l-4 px-4 py-3 text-[16px] font-medium text-black transition-colors";
           const content = (
             <>
               <Icon className="size-5 shrink-0" strokeWidth={2} />
@@ -66,12 +74,12 @@ function AccountSidebar() {
 
       <span className="my-2 block h-px w-full bg-[#dadde2]" />
 
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-2">
         {secondaryNav.map((label) => (
           <button
             key={label}
             type="button"
-            className="cursor-pointer px-4 py-3 text-left text-[14px] font-medium text-black transition-colors hover:text-(--primary-color)"
+            className="cursor-pointer px-4 py-3 text-left text-[16px] font-medium text-black transition-colors hover:text-(--primary-color)"
           >
             {label}
           </button>
@@ -83,7 +91,7 @@ function AccountSidebar() {
       <div className="px-4">
         <button
           type="button"
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#cf251f] px-4 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
         >
           Logout
         </button>
@@ -94,7 +102,7 @@ function AccountSidebar() {
 
 function AccountLayout() {
   return (
-    <section className="account bg-white">
+    <section className="account mb-16 bg-white">
       <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-[16px]">
           <AccountSidebar />

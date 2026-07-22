@@ -7,7 +7,9 @@ const pendingActions = [
 
 function Card({ title, children, className = "" }) {
   return (
-    <div className={`flex flex-col border border-[#dadde2] p-5 ${className}`}>
+    <div
+      className={`flex flex-col border border-[#dadde2] px-5 py-4 ${className}`}
+    >
       <div className="flex flex-col gap-3">
         <h2 className="text-[16px] font-semibold leading-[1.4] text-black">
           {title}
@@ -32,16 +34,16 @@ function Overview() {
   return (
     <div className="flex flex-col gap-6 lg:p-8">
       <div className="flex flex-col gap-1">
-        <h1 className="flex flex-wrap items-center gap-2 text-[20px] font-semibold leading-[1.4]">
+        <h1 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">Desmond</span>
         </h1>
-        <p className="text-[16px] text-[#667085]">
+        <p className="text-[14px] text-[#667085]">
           Here&rsquo;s a quick look at your latest account activity.
         </p>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
+      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-x-10 md:gap-y-6">
         {/* Account Details */}
         <Card title="Account Details" className="gap-4">
           <div className="mt-1 flex flex-col gap-3">

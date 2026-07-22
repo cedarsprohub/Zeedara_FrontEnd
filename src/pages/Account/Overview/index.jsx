@@ -33,7 +33,7 @@ function DetailRow({ label, value }) {
 function Overview() {
   return (
     <div className="flex flex-col gap-6 lg:p-8">
-      <div className="flex flex-col gap-1">
+      <div className="hidden flex-col gap-1 lg:flex">
         <h1 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">Desmond</span>

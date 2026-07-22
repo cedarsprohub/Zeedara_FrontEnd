@@ -17,6 +17,8 @@ import AccountLayout from "../pages/Account/AccountLayout";
 import AccountOverview from "../pages/Account/Overview";
 import Orders from "../pages/Account/Orders";
 import TrackOrder from "../pages/Account/TrackOrder";
+import CustomHair from "../pages/Account/CustomHair";
+import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -55,6 +57,11 @@ function AppRoutes() {
             <Route
               path="orders/cancelled"
               element={<TrackOrder status="cancelled" />}
+            />
+            <Route path="custom-hair" element={<CustomHair />} />
+            <Route
+              path="custom-hair/new"
+              element={<CustomHairNewRequest />}
             />
           </Route>
         </Route>

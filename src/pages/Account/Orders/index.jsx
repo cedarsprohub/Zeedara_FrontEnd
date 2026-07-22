@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import productImg from "../../../assets/ui/sampleImg.png";
+
+// Detail page each order status opens when its card is clicked.
+const DETAIL_ROUTE = {
+  shipped: "/account/orders/track",
+  delivered: "/account/orders/delivered",
+  cancelled: "/account/orders/cancelled",
+};
 
 const TABS = ["All", "Shipped", "Delivered", "Cancelled", "Returned"];
 
@@ -26,7 +33,7 @@ const ACTIONS = {
   shipped: [{ label: "TRACK ORDER", variant: "solid", to: "/account/orders/track" }],
   delivered: [
     { label: "ORDER AGAIN", variant: "soft" },
-    { label: "LEAVE REVIEW", variant: "solid" },
+    { label: "LEAVE REVIEW", variant: "solid", to: "/account/orders/delivered" },
   ],
   cancelled: [{ label: "ORDER AGAIN", variant: "soft" }],
   returned: [{ label: "ORDER AGAIN", variant: "soft" }],
@@ -38,13 +45,15 @@ function ActionButton({ label, variant, to }) {
       ? "bg-(--primary-color) text-white hover:opacity-90"
       : "bg-[#faf4eb] text-(--primary-color) hover:bg-[#f3e7d2]";
   const cls = `flex h-9 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[12px] font-semibold tracking-[0.28px] transition-colors ${styles}`;
+  // Stop the click bubbling to the card (which navigates to the order detail).
+  const stop = (e) => e.stopPropagation();
 
   return to ? (
-    <Link to={to} className={cls}>
+    <Link to={to} className={cls} onClick={stop}>
       {label}
     </Link>
   ) : (
-    <button type="button" className={cls}>
+    <button type="button" className={cls} onClick={stop}>
       {label}
     </button>
   );
@@ -62,8 +71,16 @@ function StatusBadge({ status }) {
 }
 
 function OrderCard({ order }) {
+  const navigate = useNavigate();
+  const detail = DETAIL_ROUTE[order.status];
+
   return (
-    <div className="flex border border-[#dadde2] bg-white">
+    <div
+      onClick={detail ? () => navigate(detail) : undefined}
+      className={`flex border border-[#dadde2] bg-white ${
+        detail ? "cursor-pointer transition-colors hover:border-[#bf8322]" : ""
+      }`}
+    >
       {/* Product image — full-height panel flush to the card's left edge */}
       <div className="w-[120px] shrink-0 overflow-hidden bg-[#f0f1f3] sm:w-[163px]">
         <img

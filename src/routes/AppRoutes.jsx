@@ -47,7 +47,15 @@ function AppRoutes() {
             <Route index element={<AccountOverview />} />
             <Route path="overview" element={<AccountOverview />} />
             <Route path="orders" element={<Orders />} />
-            <Route path="orders/track" element={<TrackOrder />} />
+            <Route path="orders/track" element={<TrackOrder status="shipped" />} />
+            <Route
+              path="orders/delivered"
+              element={<TrackOrder status="delivered" />}
+            />
+            <Route
+              path="orders/cancelled"
+              element={<TrackOrder status="cancelled" />}
+            />
           </Route>
         </Route>
         

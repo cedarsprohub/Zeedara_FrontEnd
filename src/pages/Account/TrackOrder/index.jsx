@@ -2,9 +2,47 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
 import productImg from "../../../assets/ui/sampleImg.png";
 
-// Tracking steps. `reached` is the index of the latest completed step.
 const STEPS = ["Order Confirmed", "Processing", "Packed", "Shipped", "Delivered"];
-const REACHED = 3; // Shipped
+
+// Everything that changes between the order states. `showTracking: false`
+// hides the progress stepper (cancelled orders have no tracking).
+const STATUS_CONFIG = {
+  shipped: {
+    reached: 3, // Shipped
+    showTracking: true,
+    badge: { label: "SHIPPED", bg: "bg-[#fbf4e8]", text: "text-[#b87b13]" },
+    heading: "YOUR ORDER IS ON THE WAY",
+    headingColor: "text-[#206f16]",
+    subtext: "Estimated delivery: 15–17 June",
+    actions: [{ label: "CONTACT SUPPORT", variant: "solid" }],
+    itemAction: { label: "VIEW PRODUCT", variant: "solid", to: "/products/1" },
+  },
+  delivered: {
+    reached: 4, // Delivered
+    showTracking: true,
+    badge: { label: "DELIVERED", bg: "bg-[#eefeec]", text: "text-[#298d1c]" },
+    heading: "DELIVERED",
+    headingColor: "text-[#206f16]",
+    subtext: "…on 17 June 2026.",
+    actions: [
+      { label: "LEAVE REVIEW", variant: "soft" },
+      { label: "ORDER AGAIN", variant: "solid" },
+    ],
+    itemAction: { label: "LEAVE REVIEW", variant: "soft" },
+  },
+  cancelled: {
+    showTracking: false,
+    badge: { label: "CANCELLED", bg: "bg-[#fae9e9]", text: "text-[#cf251f]" },
+    heading: "ORDER WAS CANCELLED",
+    headingColor: "text-[#cf251f]",
+    subtext: "Estimated delivery: 15–17 June",
+    actions: [
+      { label: "CONTACT SUPPORT", variant: "soft" },
+      { label: "BUY AGAIN", variant: "solid" },
+    ],
+    itemAction: { label: "BUY AGAIN", variant: "soft" },
+  },
+};
 
 const ITEMS = [
   { name: "Bare Lace 13X6 Wig Lacefrontal", color: "Black", size: "30ml", qty: 1, price: "122,000" },
@@ -19,14 +57,31 @@ const PAYMENT = [
   { label: "Total paid", value: "₦92,500" },
 ];
 
-function Stepper() {
+function PillButton({ label, variant, to, className }) {
+  const styles =
+    variant === "soft"
+      ? "bg-[#faf4eb] text-(--primary-color) hover:bg-[#f3e7d2]"
+      : "bg-(--primary-color) text-white hover:opacity-90";
+  const cls = `flex items-center justify-center whitespace-nowrap font-semibold transition-colors ${styles} ${className}`;
+  return to ? (
+    <Link to={to} className={cls}>
+      {label}
+    </Link>
+  ) : (
+    <button type="button" className={cls}>
+      {label}
+    </button>
+  );
+}
+
+function Stepper({ reached }) {
   return (
     <div className="overflow-x-auto pb-6">
       <div className="flex min-w-[560px] items-start">
         {STEPS.map((label, i) => {
-          const done = i <= REACHED;
-          const leftGreen = i <= REACHED; // segment entering this step
-          const rightGreen = i + 1 <= REACHED; // segment leaving this step
+          const done = i <= reached;
+          const leftGreen = i <= reached; // segment entering this step
+          const rightGreen = i + 1 <= reached; // segment leaving this step
           const isFirst = i === 0;
           const isLast = i === STEPS.length - 1;
           return (
@@ -61,40 +116,37 @@ function Stepper() {
   );
 }
 
-function ItemRow({ item }) {
+function ItemRow({ item, action }) {
   return (
     <div className="flex items-stretch bg-[#f5f5f5]">
       <div className="w-[108px] shrink-0 overflow-hidden">
         <img src={productImg} alt={item.name} className="size-full object-cover" />
       </div>
-      <div className="flex flex-1 flex-col items-end justify-center gap-4 p-4">
-        <div className="flex w-full items-center justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-2">
-            <h4 className="text-[16px] font-semibold text-black">{item.name}</h4>
-            <div className="flex flex-wrap gap-2 whitespace-nowrap text-[14px] font-medium text-[#9fa5b2]">
-              <span>
-                Color: {item.color}/Size: {item.size}
-              </span>
-              <span>Qty: {item.qty}</span>
-            </div>
+      <div className="flex flex-1 items-center justify-between gap-4 p-4">
+        <div className="flex min-w-0 flex-col gap-2">
+          <h4 className="text-[16px] font-semibold text-black">{item.name}</h4>
+          <div className="flex flex-wrap gap-2 whitespace-nowrap text-[14px] font-medium text-[#9fa5b2]">
+            <span>
+              Color: {item.color}/Size: {item.size}
+            </span>
+            <span>Qty: {item.qty}</span>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <p className="text-[16px] font-semibold text-black">&#8358;{item.price}</p>
-            <Link
-              to="/products/1"
-              className="flex h-7 w-[149px] items-center justify-center whitespace-nowrap bg-(--primary-color) px-4 text-[12px] font-semibold tracking-[0.24px] text-white transition-opacity hover:opacity-90"
-            >
-              VIEW PRODUCT
-            </Link>
-          </div>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <p className="text-[16px] font-semibold text-black">&#8358;{item.price}</p>
+          <PillButton
+            {...action}
+            className="h-7 w-[149px] px-4 text-[12px] tracking-[0.24px]"
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function TrackOrder() {
+function TrackOrder({ status = "shipped" }) {
   const navigate = useNavigate();
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.shipped;
 
   return (
     <div className="flex flex-col gap-6 lg:px-8 lg:py-5">
@@ -119,32 +171,39 @@ function TrackOrder() {
 
       {/* Status */}
       <div className="flex flex-col gap-3">
-        <span className="inline-flex w-fit items-center bg-[#fbf4e8] px-3 py-1 text-[14px] font-semibold text-[#b87b13]">
-          SHIPPED
+        <span
+          className={`inline-flex w-fit items-center px-3 py-1 text-[14px] font-semibold ${config.badge.bg} ${config.badge.text}`}
+        >
+          {config.badge.label}
         </span>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="text-[24px] font-semibold leading-[1.4] text-[#206f16]">
-              YOUR ORDER IS ON THE WAY
+            <h2
+              className={`text-[24px] font-semibold leading-[1.4] ${config.headingColor}`}
+            >
+              {config.heading}
             </h2>
-            <p className="text-[14px] font-medium text-[#575f71]">
-              Estimated delivery: 15&ndash;17 June
-            </p>
+            <p className="text-[14px] font-medium text-[#575f71]">{config.subtext}</p>
           </div>
-          <button
-            type="button"
-            className="flex h-10 w-full shrink-0 items-center justify-center whitespace-nowrap bg-(--primary-color) px-4 text-[14px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[207px]"
-          >
-            CONTACT SUPPORT
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
+            {config.actions.map((action) => (
+              <PillButton
+                key={action.label}
+                {...action}
+                className="h-10 w-full px-4 text-[14px] tracking-[0.28px] sm:w-auto sm:min-w-[150px]"
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Tracking */}
-      <div className="flex flex-col gap-4 rounded border border-[#dadde2] bg-[#fcfcfc] px-5 py-4">
-        <h3 className="text-[16px] font-semibold text-black">Tracking Details</h3>
-        <Stepper />
-      </div>
+      {/* Tracking (hidden for cancelled orders) */}
+      {config.showTracking && (
+        <div className="flex flex-col gap-4 rounded border border-[#dadde2] bg-[#fcfcfc] px-5 py-4">
+          <h3 className="text-[16px] font-semibold text-black">Tracking Details</h3>
+          <Stepper reached={config.reached} />
+        </div>
+      )}
 
       {/* Items + Address/Payment */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
@@ -152,7 +211,7 @@ function TrackOrder() {
           <h3 className="text-[16px] font-semibold text-black">Items in this order</h3>
           <div className="flex flex-col gap-3">
             {ITEMS.map((item, i) => (
-              <ItemRow key={i} item={item} />
+              <ItemRow key={i} item={item} action={config.itemAction} />
             ))}
           </div>
         </div>

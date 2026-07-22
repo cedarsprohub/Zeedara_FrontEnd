@@ -45,6 +45,7 @@ function AppRoutes() {
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route path="/skincare-clinic" element={<Skincare />} />
           <Route path="/account" element={<AccountLayout />}>
             <Route index element={<AccountOverview />} />
             <Route path="overview" element={<AccountOverview />} />

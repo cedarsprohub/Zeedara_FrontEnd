@@ -11,7 +11,7 @@ import userAddIcon from "../../../assets/navbar/user-add-02.svg";
 import loginIcon from "../../../assets/navbar/login-02.svg";
 
 const accountMenu = [
-  { label: "My Orders", icon: Package, to: "/orders" },
+  { label: "My Orders", icon: Package, to: "/account/orders" },
   { label: "Messages", icon: MessageCircleMore, to: "/register" },
   { label: "Payments", icon: Truck, to: "/payments" },
 ];

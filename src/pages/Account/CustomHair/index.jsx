@@ -50,8 +50,8 @@ function StatCard({ label, value, tint }) {
   return (
     <div className="flex items-start justify-between gap-3 border border-[#dadde2] bg-white p-[17px]">
       <div className="flex flex-col gap-6">
-        <p className="text-[14px] font-medium text-[#48505e]">{label}</p>
-        <p className="text-[30px] font-semibold leading-none text-[#262626]">
+        <p className="text-[13px] font-medium text-[#48505e]">{label}</p>
+        <p className="text-[24px] font-semibold leading-none text-[#262626]">
           {value}
         </p>
       </div>
@@ -77,28 +77,28 @@ function RequestCard({ request, paid }) {
         </div>
 
         <div className="flex flex-1 flex-col gap-3">
-          <div className="flex items-center justify-between gap-4 text-[14px] font-medium text-[#48505e]">
+          <div className="flex items-center justify-between gap-4 text-[13px] font-medium text-[#48505e]">
             <p>Request #{request.id}</p>
             <p className="text-right">Submitted on {request.submitted}</p>
           </div>
 
-          <h3 className="text-[24px] font-bold leading-[1.4] text-[#3a404c]">
+          <h3 className="text-[20px] font-bold leading-[1.4] text-[#3a404c]">
             {request.title}
           </h3>
 
           <span className="h-px w-full bg-[#dadde2]" />
 
-          <div className="flex flex-col gap-2 text-[14px] font-medium text-[#48505e]">
+          <div className="flex flex-col gap-2 text-[13px] font-medium text-[#48505e]">
             <p>Type: {request.type}</p>
             <p>{request.specs}</p>
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <p className="text-[16px] font-semibold text-black">
+            <p className="text-[14px] font-semibold text-black">
               Budget: {request.budget}
             </p>
             {paid && (
-              <span className="text-[14px] font-semibold text-[#0f9959]">
+              <span className="text-[13px] font-semibold text-[#0f9959]">
                 PAYMENT SUCCESSFUL
               </span>
             )}
@@ -112,14 +112,14 @@ function RequestCard({ request, paid }) {
 function QuoteSection({ request, paid, onPay }) {
   return (
     <div className="flex flex-col gap-6">
-      <span className="inline-flex w-fit items-center bg-[#f0f1f3] px-2 py-1 text-[20px] font-bold text-[#3a404c]">
+      <span className="inline-flex w-fit items-center bg-[#f0f1f3] px-2 py-1 text-[16px] font-bold text-[#3a404c]">
         QUOTE RECEIVED {naira(request.quoteAmount)}
       </span>
-      <p className="text-[14px] font-medium text-[#48505e]">{request.note}</p>
+      <p className="text-[13px] font-medium text-[#48505e]">{request.note}</p>
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
         <button
           type="button"
-          className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) px-4 text-[14px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[225px]"
+          className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) px-4 text-[13px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[225px]"
         >
           DOWNLOAD QUOTE
           <Download className="size-5 shrink-0" strokeWidth={2} />
@@ -128,7 +128,7 @@ function QuoteSection({ request, paid, onPay }) {
           <button
             type="button"
             onClick={() => onPay(request)}
-            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[14px] font-semibold tracking-[0.28px] text-(--primary-color) transition-colors hover:bg-[#f3e7d2] sm:w-[224px]"
+            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[13px] font-semibold tracking-[0.28px] text-(--primary-color) transition-colors hover:bg-[#f3e7d2] sm:w-[224px]"
           >
             MAKE PAYMENT
           </button>
@@ -181,16 +181,16 @@ function CustomHair() {
       <div className="flex flex-col gap-[25px]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="text-[24px] font-semibold leading-[1.4] text-black">
+            <h1 className="text-[20px] font-semibold leading-[1.4] text-black">
               Custom Hair Requests
             </h1>
-            <p className="text-[16px] text-[#48505e]">
+            <p className="text-[14px] text-[#48505e]">
               View your submitted requests, quotes, and updates.
             </p>
           </div>
           <Link
             to="/account/custom-hair/new"
-            className="flex h-10 w-full cursor-pointer items-center justify-center bg-(--primary-color) px-4 text-[14px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[231px]"
+            className="flex h-10 w-full cursor-pointer items-center justify-center bg-(--primary-color) px-4 text-[13px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[231px]"
           >
             NEW REQUEST
           </Link>
@@ -205,7 +205,7 @@ function CustomHair() {
 
       {/* Requests */}
       <div className="flex flex-col gap-5">
-        <h2 className="text-[24px] font-semibold leading-[1.4] text-black">
+        <h2 className="text-[20px] font-semibold leading-[1.4] text-black">
           Custom Hair Requests
         </h2>
         {REQUESTS.map((request) => {

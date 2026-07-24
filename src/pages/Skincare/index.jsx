@@ -435,7 +435,7 @@ function Understand() {
   return (
     <section className="px-[clamp(1rem,4.5vw,144px)]">
       <div className="relative flex flex-col gap-6 overflow-hidden bg-[#efe0c8] px-6 py-12 lg:min-h-[359px] lg:flex-row lg:items-center lg:px-[86px] lg:py-0">
-        <div className="flex flex-col gap-6 lg:w-[650px]">
+        <div className="flex flex-col gap-6 lg:w-1/2">
           <div className="flex flex-col">
             <h2 className="font-['Anton'] text-[clamp(2.25rem,5vw,60px)] leading-[1.2] tracking-[-0.02em] text-black">
               UNDERSTAND YOUR
@@ -454,7 +454,7 @@ function Understand() {
         <img
           src={understandImg}
           alt=""
-          className="w-full object-cover lg:absolute lg:right-[52px] lg:top-0 lg:h-full lg:w-[720px]"
+          className="w-full object-cover lg:absolute lg:right-[52px] lg:top-0 lg:h-full lg:w-[calc(50%-52px)]"
         />
       </div>
     </section>

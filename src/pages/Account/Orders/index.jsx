@@ -93,7 +93,7 @@ function OrderCard({ order }) {
       {/* Details */}
       <div className="flex min-w-0 flex-1 flex-col gap-3 px-3 py-5">
         {/* Order id + date */}
-        <div className="flex items-start justify-between gap-4 text-[14px] font-medium text-[#48505e]">
+        <div className="flex items-start justify-between gap-4 text-[13px] font-medium text-[#48505e]">
           <p>
             Order ID: <span>{order.id}</span>
           </p>
@@ -106,10 +106,10 @@ function OrderCard({ order }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-col gap-2">
-              <h3 className="text-[16px] font-semibold text-black">
+              <h3 className="text-[14px] font-semibold text-black">
                 {order.name}
               </h3>
-              <div className="flex gap-2 whitespace-nowrap text-[14px] font-medium text-[#667085]">
+              <div className="flex gap-2 whitespace-nowrap text-[13px] font-medium text-[#667085]">
                 <span>
                   Color: {order.color}/Size: {order.size}
                 </span>
@@ -120,7 +120,7 @@ function OrderCard({ order }) {
           </div>
 
           <div className="flex flex-col items-start gap-4 sm:items-end">
-            <p className="text-[20px] font-semibold text-black">
+            <p className="text-[16px] font-semibold text-black">
               &#8358;{order.price}
             </p>
             <div className="flex flex-row gap-2 sm:justify-end">
@@ -146,7 +146,7 @@ function Pagination() {
           <button
             key={`${page}-${i}`}
             type="button"
-            className={`flex h-8 items-center justify-center text-[14px] font-medium transition-colors ${
+            className={`flex h-8 items-center justify-center text-[13px] font-medium transition-colors ${
               wide ? "px-3" : "size-8"
             } ${
               active
@@ -183,7 +183,7 @@ function Orders() {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`relative -mb-px cursor-pointer px-4 py-3 text-[14px] font-semibold uppercase tracking-[0.28px] transition-colors ${
+              className={`relative -mb-px cursor-pointer px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.28px] transition-colors ${
                 active
                   ? "text-(--primary-color) after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color)"
                   : "text-[#667085] hover:text-(--primary-color)"
@@ -202,7 +202,7 @@ function Orders() {
             <OrderCard key={`${order.id}-${i}`} order={order} />
           ))
         ) : (
-          <p className="py-16 text-center text-[14px] font-medium text-[#667085]">
+          <p className="py-16 text-center text-[13px] font-medium text-[#667085]">
             No {activeTab.toLowerCase()} orders yet.
           </p>
         )}

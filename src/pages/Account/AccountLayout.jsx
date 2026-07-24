@@ -66,7 +66,7 @@ function AccountSidebar({ isRoot }) {
         {primaryNav.map((item) => {
           const { label, icon: Icon, to } = item;
           const base =
-            "flex items-center gap-3 px-4 py-3 text-[14px] font-medium text-black transition-colors lg:border-l-4 lg:text-[16px]";
+            "flex items-center gap-3 px-4 py-3 text-[13px] font-medium text-black transition-colors lg:border-l-4 lg:text-[13px]";
           const content = (active) => (
             <>
               <Icon className="size-5 shrink-0" strokeWidth={2} />
@@ -113,7 +113,7 @@ function AccountSidebar({ isRoot }) {
           <button
             key={label}
             type="button"
-            className="flex items-center gap-3 px-4 py-3 text-left text-[14px] font-medium text-black transition-colors hover:text-(--primary-color) lg:text-[16px]"
+            className="flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium text-black transition-colors hover:text-(--primary-color) lg:text-[13px]"
           >
             <span className="flex-1">{label}</span>
             <ChevronRight className="size-5 shrink-0 text-[#667085] lg:hidden" />

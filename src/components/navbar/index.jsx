@@ -105,7 +105,7 @@ function Navbar() {
               <img
                 src={zeedaraLogo}
                 alt="Zeedara Logo"
-                className="h-[18px] lg:h-[44px] w-auto"
+                className="h-[18px] lg:h-[36px] w-auto"
               />
             </NavLink>
 

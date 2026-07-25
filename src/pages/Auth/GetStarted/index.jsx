@@ -1,13 +1,51 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/getstarted_hero.png";
 import nigeriaFlag from "../../../assets/auth/flag_nigeria.svg";
+import { completeProfile } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 
 function GetStarted() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const registrationToken = location.state?.registrationToken;
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!registrationToken) navigate("/register", { replace: true });
+  }, [registrationToken, navigate]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await completeProfile(
+        {
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phone,
+        },
+        registrationToken,
+      );
+      navigate("/create-password", {
+        state: { registrationToken: response.registration_token },
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="get-started">
@@ -19,7 +57,10 @@ function GetStarted() {
         style={{ backgroundImage: `url(${heroImage})` }}
       >
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="getstarted-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8">
+          <form
+            onSubmit={handleSubmit}
+            className="getstarted-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -51,6 +92,9 @@ function GetStarted() {
                 <input
                   id="first-name"
                   type="text"
+                  required
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
                   className="h-[52px] w-full border border-[#dadde2] px-[17px] text-[14px] text-black focus:border-(--primary-color) focus:outline-none"
                 />
               </div>
@@ -64,6 +108,9 @@ function GetStarted() {
                 <input
                   id="surname"
                   type="text"
+                  required
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
                   className="h-[52px] w-full border border-[#dadde2] px-[17px] text-[14px] text-black focus:border-(--primary-color) focus:outline-none"
                 />
               </div>
@@ -87,25 +134,25 @@ function GetStarted() {
                 <input
                   id="phone"
                   type="tel"
+                  required
                   placeholder="+234"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
                   className="h-full min-w-0 flex-1 bg-transparent px-3 text-[14px] text-black placeholder:text-[#9fa5b2] focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-5">
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+                disabled={isSubmitting}
+                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Verify and continue
+                {isSubmitting ? "Please wait..." : "Continue"}
               </button>
-              <p className="flex gap-2 text-[14px] font-semibold">
-                <span className="text-[#667085]">
-                  Didn&rsquo;t receive a code? Wait
-                </span>
-                <span className="text-(--primary-color)">1:99</span>
-              </p>
             </div>
           </form>
         </div>

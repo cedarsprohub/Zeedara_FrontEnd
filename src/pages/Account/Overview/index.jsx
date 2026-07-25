@@ -1,3 +1,5 @@
+import { useAuth } from "../../../context/AuthContext.js";
+
 const pendingActions = [
   { count: "12", text: "products waiting for review" },
   { count: "1", text: "return request under review" },
@@ -29,12 +31,19 @@ function DetailRow({ label, value }) {
 }
 
 function Overview() {
+  const { user } = useAuth();
+  const fullName = [user?.first_name, user?.last_name]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className="flex flex-col gap-6 lg:p-8">
       <div className="flex flex-col gap-1">
         <h1 className="flex flex-wrap items-center gap-2 text-[20px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
-          <span className="text-(--primary-color)">Desmond</span>
+          <span className="text-(--primary-color)">
+            {user?.first_name || "there"}
+          </span>
         </h1>
         <p className="text-[16px] text-[#667085]">
           Here&rsquo;s a quick look at your latest account activity.
@@ -45,9 +54,12 @@ function Overview() {
         {/* Account Details */}
         <Card title="Account Details" className="gap-4">
           <div className="mt-1 flex flex-col gap-3">
-            <DetailRow label="Name" value="Desmond Jumbo" />
-            <DetailRow label="Email" value="desmond@zeedara.com" />
-            <DetailRow label="Phone number" value="+234 xxx xxx xxxx" />
+            <DetailRow label="Name" value={fullName || "—"} />
+            <DetailRow label="Email" value={user?.email || "—"} />
+            <DetailRow
+              label="Phone number"
+              value={user?.phone_number || "—"}
+            />
           </div>
         </Card>
 

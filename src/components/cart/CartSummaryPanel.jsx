@@ -1,4 +1,4 @@
-import { Check, CreditCard, Wallet } from "lucide-react";
+import { Check } from "lucide-react";
 import { useId, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import CouponEntry from "../navbar/CartDrawer/CouponEntry";

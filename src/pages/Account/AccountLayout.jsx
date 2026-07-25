@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   User,
   Package,
@@ -7,6 +7,8 @@ import {
   Headphones,
   RotateCcw,
 } from "lucide-react";
+import { logout as logoutRequest } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext.js";
 
 // Nav items with a `to` are real routes; the rest are placeholders until
 // their screens are built.
@@ -22,6 +24,20 @@ const primaryNav = [
 const secondaryNav = ["Address Book", "Settings"];
 
 function AccountSidebar() {
+  const navigate = useNavigate();
+  const { accessToken, refreshToken, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      if (refreshToken) await logoutRequest(refreshToken, accessToken);
+    } catch {
+      // Ignore — we still clear the local session below regardless.
+    } finally {
+      logout();
+      navigate("/login");
+    }
+  };
+
   return (
     // `self-start` + `sticky` keeps the sidebar pinned while the page content
     // scrolls underneath it.
@@ -83,6 +99,7 @@ function AccountSidebar() {
       <div className="px-4">
         <button
           type="button"
+          onClick={handleLogout}
           className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#cf251f] px-4 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
         >
           Logout

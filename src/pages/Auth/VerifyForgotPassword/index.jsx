@@ -1,19 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/forgotpassword_hero.jpg";
+import { resendOtp, verifyOtp } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 function VerifyForgotPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
   const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputsRef = useRef([]);
+
+  useEffect(() => {
+    if (!email) navigate("/forgot-password", { replace: true });
+  }, [email, navigate]);
 
   // Countdown — tick down to zero, then the Resend link is revealed.
   useEffect(() => {
@@ -59,11 +69,32 @@ function VerifyForgotPassword() {
     focusInput(Math.min(digits.length, CODE_LENGTH - 1));
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setCode(Array(CODE_LENGTH).fill(""));
     setSeconds(RESEND_SECONDS);
+    setError("");
     focusInput(0);
-    // TODO: trigger the resend-code request here.
+    try {
+      await resendOtp(email, "FORGOT_PASSWORD");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await verifyOtp(email, "FORGOT_PASSWORD", code.join(""));
+      navigate("/change-password", {
+        state: { resetToken: response?.reset_token },
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const minutes = Math.floor(seconds / 60);
@@ -89,7 +120,10 @@ function VerifyForgotPassword() {
 
         {/* Verify-code card (left side) */}
         <div className="relative z-10 flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="verify-forgot-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]">
+          <form
+            onSubmit={handleSubmit}
+            className="verify-forgot-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -109,7 +143,7 @@ function VerifyForgotPassword() {
                 <p className="font-medium text-[#575f71]">
                   We emailed a confirmation code to
                 </p>
-                <p className="font-semibold text-black">zeedara@mail.com</p>
+                <p className="font-semibold text-black">{email}</p>
               </div>
             </div>
 
@@ -136,11 +170,14 @@ function VerifyForgotPassword() {
             </div>
 
             <div className="flex flex-col gap-5">
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+                disabled={isSubmitting || code.some((digit) => !digit)}
+                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Verify
+                {isSubmitting ? "Verifying..." : "Verify"}
               </button>
               <p className="flex gap-2 text-[14px] font-semibold">
                 <span className="text-[#667085]">Don&rsquo;t see a code?</span>

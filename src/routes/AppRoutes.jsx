@@ -16,6 +16,7 @@ import Skincare from "../pages/Skincare";
 import AccountLayout from "../pages/Account/AccountLayout";
 import AccountOverview from "../pages/Account/Overview";
 import Orders from "../pages/Account/Orders";
+import RequireAuth from "../components/auth/RequireAuth";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -42,9 +43,11 @@ function AppRoutes() {
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
-          <Route path="/account" element={<AccountLayout />}>
-            <Route index element={<AccountOverview />} />
-            <Route path="orders" element={<Orders />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/account" element={<AccountLayout />}>
+              <Route index element={<AccountOverview />} />
+              <Route path="orders" element={<Orders />} />
+            </Route>
           </Route>
         </Route>
         

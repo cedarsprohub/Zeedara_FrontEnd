@@ -51,12 +51,16 @@ function AppRoutes() {
               <Route index element={<AccountOverview />} />
               <Route path="orders" element={<Orders />} />
             </Route>
+          </Route>
           <Route path="/skincare-clinic" element={<Skincare />} />
           <Route path="/account" element={<AccountLayout />}>
             <Route index element={<AccountOverview />} />
             <Route path="overview" element={<AccountOverview />} />
             <Route path="orders" element={<Orders />} />
-            <Route path="orders/track" element={<TrackOrder status="shipped" />} />
+            <Route
+              path="orders/track"
+              element={<TrackOrder status="shipped" />}
+            />
             <Route
               path="orders/delivered"
               element={<TrackOrder status="delivered" />}
@@ -66,13 +70,9 @@ function AppRoutes() {
               element={<TrackOrder status="cancelled" />}
             />
             <Route path="custom-hair" element={<CustomHair />} />
-            <Route
-              path="custom-hair/new"
-              element={<CustomHairNewRequest />}
-            />
+            <Route path="custom-hair/new" element={<CustomHairNewRequest />} />
           </Route>
         </Route>
-        
 
         {/* Auth pages (standalone, no shared layout) */}
         <Route path="/register" element={<Register />} />
@@ -81,7 +81,10 @@ function AppRoutes() {
         <Route path="/get-started" element={<GetStarted />} />
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-forgot-password" element={<VerifyForgotPassword />} />
+        <Route
+          path="/verify-forgot-password"
+          element={<VerifyForgotPassword />}
+        />
         <Route path="/change-password" element={<ChangePassword />} />
 
         {/* Catch-all 404 Redirect */}

@@ -111,7 +111,7 @@ function AccountDropdown({ light = false }) {
                 className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
               >
                 <Icon className="size-5 shrink-0" strokeWidth={2} />
-                <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+                <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                   {label}
                 </span>
               </NavLink>
@@ -123,7 +123,7 @@ function AccountDropdown({ light = false }) {
               onClick={close}
               className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
-              <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+              <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                 Settings
               </span>
             </NavLink>
@@ -132,7 +132,7 @@ function AccountDropdown({ light = false }) {
               onClick={close}
               className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
-              <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+              <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                 Return & refund policy
               </span>
             </NavLink>

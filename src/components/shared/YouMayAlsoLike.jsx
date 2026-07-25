@@ -7,7 +7,7 @@ function YouMayAlsoLike({ excludeId }) {
 
   return (
     <div>
-      <h2 className="mb-8 text-center font-['Anton'] text-3xl uppercase text-black md:text-4xl">
+      <h2 className="mb-8 text-center font-['Anton'] text-2xl uppercase text-black md:text-3xl">
         You May Also Like
       </h2>
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -26,7 +26,7 @@ function YouMayAlsoLike({ excludeId }) {
       <div className="mt-8 flex justify-center">
         <Link
           to="/products"
-          className="bg-black px-10 py-3 text-sm font-bold uppercase text-white transition-opacity hover:opacity-90"
+          className="bg-black px-10 py-3 text-[13px] font-bold uppercase text-white transition-opacity hover:opacity-90"
         >
           Show All
         </Link>

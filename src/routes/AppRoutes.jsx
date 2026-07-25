@@ -17,6 +17,9 @@ import AccountLayout from "../pages/Account/AccountLayout";
 import AccountOverview from "../pages/Account/Overview";
 import Orders from "../pages/Account/Orders";
 import RequireAuth from "../components/auth/RequireAuth";
+import TrackOrder from "../pages/Account/TrackOrder";
+import CustomHair from "../pages/Account/CustomHair";
+import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -48,6 +51,25 @@ function AppRoutes() {
               <Route index element={<AccountOverview />} />
               <Route path="orders" element={<Orders />} />
             </Route>
+          <Route path="/skincare-clinic" element={<Skincare />} />
+          <Route path="/account" element={<AccountLayout />}>
+            <Route index element={<AccountOverview />} />
+            <Route path="overview" element={<AccountOverview />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="orders/track" element={<TrackOrder status="shipped" />} />
+            <Route
+              path="orders/delivered"
+              element={<TrackOrder status="delivered" />}
+            />
+            <Route
+              path="orders/cancelled"
+              element={<TrackOrder status="cancelled" />}
+            />
+            <Route path="custom-hair" element={<CustomHair />} />
+            <Route
+              path="custom-hair/new"
+              element={<CustomHairNewRequest />}
+            />
           </Route>
         </Route>
         

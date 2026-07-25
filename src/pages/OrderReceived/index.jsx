@@ -33,7 +33,7 @@ function OrderReceived() {
       <div className="mb-8 flex flex-col items-center gap-6 text-center">
         <div className="flex items-center gap-2 bg-green-50 px-6 py-4 text-green-700">
           <CircleCheck className="size-5 shrink-0" />
-          <p className="text-sm font-medium">
+          <p className="text-[13px] font-medium">
             Thank you. Your order has been received.
           </p>
         </div>
@@ -47,19 +47,19 @@ function OrderReceived() {
           <p className="mb-1 text-xs font-semibold uppercase text-gray-500">
             Order Number
           </p>
-          <p className="text-sm font-medium text-black">{orderNumber}</p>
+          <p className="text-[13px] font-medium text-black">{orderNumber}</p>
         </div>
         <div>
           <p className="mb-1 text-xs font-semibold uppercase text-gray-500">
             Date
           </p>
-          <p className="text-sm font-medium text-black">{orderDate}</p>
+          <p className="text-[13px] font-medium text-black">{orderDate}</p>
         </div>
         <div>
           <p className="mb-1 text-xs font-semibold uppercase text-gray-500">
             Total
           </p>
-          <p className="text-sm font-medium text-black">
+          <p className="text-[13px] font-medium text-black">
             {formatCurrency(total)}
           </p>
         </div>
@@ -67,12 +67,12 @@ function OrderReceived() {
           <p className="mb-1 text-xs font-semibold uppercase text-gray-500">
             Payment Method
           </p>
-          <p className="text-sm font-medium text-black">Cash on Delivery</p>
+          <p className="text-[13px] font-medium text-black">Cash on Delivery</p>
         </div>
       </div>
 
       <div className="mb-16">
-        <h2 className="mb-4 text-xl font-semibold text-black">
+        <h2 className="mb-4 text-[18px] font-semibold text-black">
           Order details
         </h2>
         <div className="border-t border-gray-200">
@@ -83,13 +83,13 @@ function OrderReceived() {
           {orderItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between border-b border-gray-100 py-3 text-sm"
+              className="flex items-center justify-between border-b border-gray-100 py-3 text-[13px]"
             >
               <span className="text-black">{item.name}</span>
               <span className="text-black">{formatCurrency(item.price)}</span>
             </div>
           ))}
-          <div className="flex items-center justify-between py-3 text-sm font-semibold">
+          <div className="flex items-center justify-between py-3 text-[13px] font-semibold">
             <span className="text-black">Total</span>
             <span className="text-black">{formatCurrency(total)}</span>
           </div>
@@ -98,16 +98,16 @@ function OrderReceived() {
 
       <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="border border-gray-200 p-6">
-          <h3 className="mb-2 text-lg font-semibold text-black">
+          <h3 className="mb-2 text-[16px] font-semibold text-black">
             Billing Address
           </h3>
-          <p className="text-sm text-gray-600">{ADDRESS}</p>
+          <p className="text-[13px] text-gray-600">{ADDRESS}</p>
         </div>
         <div className="border border-gray-200 p-6">
-          <h3 className="mb-2 text-lg font-semibold text-black">
+          <h3 className="mb-2 text-[16px] font-semibold text-black">
             Shipping Address
           </h3>
-          <p className="text-sm text-gray-600">{ADDRESS}</p>
+          <p className="text-[13px] text-gray-600">{ADDRESS}</p>
         </div>
       </div>
 

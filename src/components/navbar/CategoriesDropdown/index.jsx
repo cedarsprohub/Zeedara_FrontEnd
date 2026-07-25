@@ -75,7 +75,7 @@ const PROMOS = [
 function Column({ title, items, onNavigate }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex h-[15px] items-center border-b-[1.5px] border-[#9fa5b2]">
+      <div className="flex h-[18px] items-center border-b-[1.5px] border-[#9fa5b2]">
         <span className="whitespace-nowrap text-[13px] font-medium text-black">
           {title}
         </span>

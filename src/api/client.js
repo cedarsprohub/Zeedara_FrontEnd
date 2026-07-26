@@ -2,8 +2,13 @@ import { getTokens, setTokens, clearTokens } from "./tokenStore";
 
 // In dev, requests go through the Vite proxy (see vite.config.js) as
 // same-origin relative paths, avoiding the backend's CORS allowlist, which
-// doesn't include localhost. Production builds call the backend directly.
-const BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// doesn't include localhost. Production builds always call the backend
+// directly. Set VITE_USE_DEV_PROXY=false once the backend allowlists your
+// dev origin, to route dev traffic straight to it instead.
+const BASE_URL =
+  import.meta.env.DEV && import.meta.env.VITE_USE_DEV_PROXY !== "false"
+    ? ""
+    : import.meta.env.VITE_API_BASE_URL;
 
 export class ApiError extends Error {
   constructor(message, status, code, details) {

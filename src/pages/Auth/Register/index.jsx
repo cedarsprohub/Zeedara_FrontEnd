@@ -4,13 +4,16 @@ import { Mail } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
+import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
 import heroImage from "../../../assets/auth/signup_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
-import { registerEmail } from "../../../api/auth";
+import { registerEmail, googleAuth } from "../../../api/auth";
 import { ApiError } from "../../../api/client";
+import { useAuth } from "../../../context/AuthContext.js";
 
 function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,6 +29,28 @@ function Register() {
       setError(
         err instanceof ApiError ? err.message : "Something went wrong.",
       );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleCredential = async (idToken) => {
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await googleAuth(idToken);
+      if (response?.tokens) {
+        login(response.tokens);
+        navigate("/");
+      } else if (response?.registration_token) {
+        navigate("/complete-google-profile", {
+          state: { registrationToken: response.registration_token },
+        });
+      } else {
+        setError("Something went wrong with Google sign-in.");
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
@@ -50,16 +75,12 @@ function Register() {
               Create an Account
             </h1>
 
-            <button
-              type="button"
-              className="flex w-full items-center justify-between gap-2 border border-[#8c8c8c] px-[17px] py-[13px] cursor-pointer transition-colors hover:bg-[#f7f8fa]"
-            >
-              <img src={googleIcon} alt="" className="size-6 shrink-0" />
-              <span className="flex-1 text-center text-[14px] font-semibold text-black">
-                Sign up with Google
-              </span>
-              <span className="size-6 shrink-0" />
-            </button>
+            <GoogleAuthButton
+              label="Sign up with Google"
+              icon={googleIcon}
+              onCredential={handleGoogleCredential}
+              onError={setError}
+            />
 
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-[#dadde2]" />

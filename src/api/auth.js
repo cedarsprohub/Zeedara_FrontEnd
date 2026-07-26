@@ -44,6 +44,21 @@ export function login(email, password) {
   });
 }
 
+export function googleAuth(idToken) {
+  return request("/api/v1/auth/google", {
+    method: "POST",
+    body: { id_token: idToken },
+  });
+}
+
+export function completeGoogleProfile(phoneNumber, registrationToken, address) {
+  return request("/api/v1/auth/google/complete", {
+    method: "POST",
+    body: { phone_number: phoneNumber, address },
+    token: registrationToken,
+  });
+}
+
 export function forgotPassword(email) {
   return request("/api/v1/auth/password/forgot", {
     method: "POST",

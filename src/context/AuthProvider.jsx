@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext.js";
 import { getMe } from "../api/auth";
-
-const ACCESS_TOKEN_KEY = "zeedara_access_token";
-const REFRESH_TOKEN_KEY = "zeedara_refresh_token";
+import {
+  getTokens,
+  setTokens,
+  clearTokens,
+  subscribe,
+} from "../api/tokenStore";
 
 export function AuthProvider({ children }) {
-  const [accessToken, setAccessToken] = useState(
-    () => localStorage.getItem(ACCESS_TOKEN_KEY) || null,
-  );
-  const [refreshToken, setRefreshToken] = useState(
-    () => localStorage.getItem(REFRESH_TOKEN_KEY) || null,
-  );
+  const [{ accessToken, refreshToken }, setTokenState] = useState(getTokens);
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(() =>
-    Boolean(localStorage.getItem(ACCESS_TOKEN_KEY)),
+  const [isLoading, setIsLoading] = useState(() => Boolean(getTokens().accessToken));
+
+  // tokenStore is the source of truth — a silent refresh in client.js (after
+  // a 401) updates it directly, and this keeps React state in sync with that.
+  useEffect(
+    () =>
+      subscribe((tokens) => {
+        setTokenState(tokens);
+        if (!tokens.accessToken) setUser(null);
+      }),
+    [],
   );
 
   useEffect(() => {
@@ -23,27 +30,16 @@ export function AuthProvider({ children }) {
     getMe(accessToken)
       .then(setUser)
       .catch(() => {
-        setAccessToken(null);
-        setRefreshToken(null);
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        clearTokens();
       })
       .finally(() => setIsLoading(false));
   }, [accessToken]);
 
-  const login = (tokens) => {
-    setAccessToken(tokens.access_token);
-    setRefreshToken(tokens.refresh_token);
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
-  };
+  const login = (tokens) => setTokens(tokens);
 
   const logout = () => {
-    setAccessToken(null);
-    setRefreshToken(null);
     setUser(null);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    clearTokens();
   };
 
   const value = {

@@ -30,6 +30,7 @@ import CreatePassword from "../pages/Auth/CreatePassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import VerifyForgotPassword from "../pages/Auth/VerifyForgotPassword";
 import ChangePassword from "../pages/Auth/ChangePassword";
+import GoogleComplete from "../pages/Auth/GoogleComplete";
 
 function AppRoutes() {
   return (
@@ -86,6 +87,7 @@ function AppRoutes() {
           element={<VerifyForgotPassword />}
         />
         <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/complete-google-profile" element={<GoogleComplete />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

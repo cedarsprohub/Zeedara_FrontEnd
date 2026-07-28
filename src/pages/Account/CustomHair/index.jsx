@@ -93,7 +93,7 @@ function RequestCard({ request, paid }) {
             <p>{request.specs}</p>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <p className="text-[14px] font-semibold text-black">
               Budget: {request.budget}
             </p>

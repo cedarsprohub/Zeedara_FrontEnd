@@ -119,24 +119,25 @@ function Stepper({ reached }) {
 function ItemRow({ item, action }) {
   return (
     <div className="flex items-stretch bg-[#f5f5f5]">
-      <div className="w-[108px] shrink-0 overflow-hidden">
+      <div className="w-[88px] shrink-0 overflow-hidden sm:w-[108px]">
         <img src={productImg} alt={item.name} className="size-full object-cover" />
       </div>
-      <div className="flex flex-1 items-center justify-between gap-4 p-4">
+      {/* Stacked on phones (name → price → action); one row from sm up. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4">
         <div className="flex min-w-0 flex-col gap-2">
           <h4 className="text-[14px] font-semibold text-black">{item.name}</h4>
-          <div className="flex flex-wrap gap-2 whitespace-nowrap text-[13px] font-medium text-[#9fa5b2]">
+          <div className="flex flex-wrap gap-x-2 gap-y-1 text-[13px] font-medium text-[#9fa5b2] sm:whitespace-nowrap">
             <span>
               Color: {item.color}/Size: {item.size}
             </span>
             <span>Qty: {item.qty}</span>
           </div>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:items-end">
           <p className="text-[14px] font-semibold text-black">&#8358;{item.price}</p>
           <PillButton
             {...action}
-            className="h-7 w-[149px] px-4 text-[12px] tracking-[0.24px]"
+            className="h-7 w-full px-4 text-[12px] tracking-[0.24px] sm:w-[149px]"
           />
         </div>
       </div>
@@ -206,7 +207,9 @@ function TrackOrder({ status = "shipped" }) {
       )}
 
       {/* Items + Address/Payment */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+      {/* Side by side only from xl — at lg the 300px account rail leaves the
+          content column too narrow for a 482px summary beside the items. */}
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-stretch">
         <div className="flex flex-1 flex-col gap-4 border border-[#dadde2] p-4">
           <h3 className="text-[14px] font-semibold text-black">Items in this order</h3>
           <div className="flex flex-col gap-3">
@@ -216,7 +219,7 @@ function TrackOrder({ status = "shipped" }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 lg:w-[482px]">
+        <div className="flex flex-col gap-3 xl:w-[400px] 2xl:w-[482px]">
           {/* Address */}
           <div className="flex flex-col gap-4 border border-[#dadde2] p-4">
             <h3 className="text-[14px] font-semibold text-black">Address</h3>

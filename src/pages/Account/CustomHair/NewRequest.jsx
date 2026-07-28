@@ -58,7 +58,9 @@ function NewRequest() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Contact details + hair preference */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        {/* Side by side only from xl — at lg the account rail leaves too little
+            width for the two-column contact grid next to a 360px column. */}
+        <div className="flex flex-col gap-6 xl:flex-row xl:gap-10">
           <div className="flex flex-1 flex-col gap-4">
             <h2 className="text-[14px] font-semibold text-black">
               Contact Details
@@ -73,7 +75,7 @@ function NewRequest() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 lg:w-[360px]">
+          <div className="flex flex-col gap-4 xl:w-[320px] 2xl:w-[360px]">
             <h2 className="text-[14px] font-semibold text-black">
               Hair Preference
             </h2>

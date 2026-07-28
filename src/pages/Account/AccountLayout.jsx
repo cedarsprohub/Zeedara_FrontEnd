@@ -33,7 +33,12 @@ const primaryNav = [
   { label: "Returns and Refunds", icon: RotateCcw },
 ];
 
-const secondaryNav = ["Address Book", "Settings"];
+// Same shape as `primaryNav` minus the icons; items without a `to` are
+// placeholders until their screens exist.
+const secondaryNav = [
+  { label: "Address Book", to: "/account/address-book" },
+  { label: "Settings" },
+];
 
 function AccountSidebar({ isRoot }) {
   const stickyNavHeight = useStickyNavHeight();
@@ -113,16 +118,44 @@ function AccountSidebar({ isRoot }) {
       <span className="my-2 block h-px w-full bg-[#dadde2]" />
 
       <div className="flex flex-col gap-2">
-        {secondaryNav.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium text-black transition-colors hover:text-(--primary-color) lg:text-[13px]"
-          >
-            <span className="flex-1">{label}</span>
-            <ChevronRight className="size-5 shrink-0 text-[#667085] lg:hidden" />
-          </button>
-        ))}
+        {secondaryNav.map((item) => {
+          const { label, to } = item;
+          const active = to ? isItemActive(item) : false;
+          const base =
+            "flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition-colors lg:text-[13px]";
+          const content = (
+            <>
+              <span className="flex-1">{label}</span>
+              <ChevronRight
+                className={`size-5 shrink-0 lg:hidden ${
+                  active ? "text-(--primary-color)" : "text-[#667085]"
+                }`}
+              />
+            </>
+          );
+
+          return to ? (
+            <NavLink
+              key={label}
+              to={to}
+              className={`${base} lg:border-l-4 ${
+                active
+                  ? "text-(--primary-color) lg:border-(--primary-color) lg:bg-[#faf4eb]"
+                  : "text-black lg:border-transparent lg:hover:bg-[#faf4eb]"
+              }`}
+            >
+              {content}
+            </NavLink>
+          ) : (
+            <button
+              key={label}
+              type="button"
+              className={`${base} cursor-pointer text-black hover:text-(--primary-color)`}
+            >
+              {content}
+            </button>
+          );
+        })}
       </div>
 
       <span className="my-3 block h-px w-full bg-[#dadde2]" />

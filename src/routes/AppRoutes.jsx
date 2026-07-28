@@ -20,6 +20,8 @@ import TrackOrder from "../pages/Account/TrackOrder";
 import CustomHair from "../pages/Account/CustomHair";
 import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
 import SkincareConsultations from "../pages/Account/Skincare";
+import AddressBook from "../pages/Account/AddressBook";
+import NewAddress from "../pages/Account/AddressBook/NewAddress";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -69,6 +71,8 @@ function AppRoutes() {
               path="skincare-consultations"
               element={<SkincareConsultations />}
             />
+            <Route path="address-book" element={<AddressBook />} />
+            <Route path="address-book/new" element={<NewAddress />} />
           </Route>
         </Route>
         

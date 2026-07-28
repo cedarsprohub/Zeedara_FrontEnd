@@ -65,7 +65,7 @@ function AccountDropdown({ light = false }) {
             strokeWidth={2}
           />
           <span
-            className={`text-[14px] font-medium leading-[1.4] ${triggerColor}`}
+            className={`text-[12px] font-medium leading-[1.4] ${triggerColor}`}
           >
             {isAuthenticated && user?.first_name ? user.first_name : "Account"}
           </span>
@@ -86,7 +86,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/register"
               onClick={close}
-              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[14px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
+              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-2 text-center text-[12px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
             >
               Create an Account
               <img src={userAddIcon} alt="signup Icon" className="" />
@@ -94,7 +94,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/login"
               onClick={close}
-              className="w-full bg-(--primary-color) flex items-center justify-center gap-3 px-6 py-3 text-center text-[14px] font-medium capitalize text-white transition-colors hover:bg-[#573b0f]"
+              className="w-full bg-(--primary-color) flex items-center justify-center gap-3 px-6 py-2 text-center text-[12px] font-medium capitalize text-white transition-colors hover:bg-[#573b0f]"
             >
               sign In
               <img src={loginIcon} alt="" className="" />
@@ -106,7 +106,7 @@ function AccountDropdown({ light = false }) {
                 key={label}
                 to={to}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
+                className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
               >
                 <Icon className="size-5 shrink-0" strokeWidth={2} />
                 <span className="whitespace-nowrap text-[12px] font-semibold leading-[1.4]">
@@ -119,7 +119,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
+              className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
               <span className="whitespace-nowrap text-[12px] font-semibold leading-[1.4]">
                 Settings
@@ -128,7 +128,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/refund-policy"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
+              className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
               <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                 Return & refund policy

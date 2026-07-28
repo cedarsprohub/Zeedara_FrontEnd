@@ -25,7 +25,11 @@ const primaryNav = [
   { label: "Orders", icon: Package, to: "/account/orders" },
   { label: "Reviews", icon: Star },
   { label: "Custom Hair Requests", icon: MessageSquare, to: "/account/custom-hair" },
-  { label: "Skincare Consultations", icon: Headphones },
+  {
+    label: "Skincare Consultations",
+    icon: Headphones,
+    to: "/account/skincare-consultations",
+  },
   { label: "Returns and Refunds", icon: RotateCcw },
 ];
 

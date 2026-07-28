@@ -19,6 +19,7 @@ import Orders from "../pages/Account/Orders";
 import TrackOrder from "../pages/Account/TrackOrder";
 import CustomHair from "../pages/Account/CustomHair";
 import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
+import SkincareConsultations from "../pages/Account/Skincare";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -63,6 +64,10 @@ function AppRoutes() {
             <Route
               path="custom-hair/new"
               element={<CustomHairNewRequest />}
+            />
+            <Route
+              path="skincare-consultations"
+              element={<SkincareConsultations />}
             />
           </Route>
         </Route>

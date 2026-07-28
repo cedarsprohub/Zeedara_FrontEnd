@@ -10,6 +10,8 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useStickyNavHeight } from "../../context/NavbarHeightContext";
+import { useAuth } from "../../context/AuthContext.js";
+import { logout as logoutRequest } from "../../api/auth";
 
 // Nav items with a `to` are real routes; the rest are placeholders until
 // their screens are built. `match` lists extra pathnames that should mark the
@@ -80,11 +82,24 @@ function NavItem({ item, active }) {
 function AccountSidebar({ isRoot }) {
   const stickyNavHeight = useStickyNavHeight();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, accessToken, refreshToken, logout } = useAuth();
 
   const isItemActive = (item) =>
     item.match
       ? item.match.includes(pathname)
       : pathname === item.to || pathname.startsWith(`${item.to}/`);
+
+  const handleLogout = async () => {
+    try {
+      if (refreshToken) await logoutRequest(refreshToken, accessToken);
+    } catch {
+      // Ignore — we still clear the local session below regardless.
+    } finally {
+      logout();
+      navigate("/");
+    }
+  };
 
   return (
     // On mobile the sidebar becomes the full-width account menu, shown only at
@@ -101,7 +116,9 @@ function AccountSidebar({ isRoot }) {
       <div className="mb-6 flex flex-col gap-1 lg:hidden">
         <h1 className="flex flex-wrap items-center gap-2 text-[16px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
-          <span className="text-(--primary-color)">Desmond</span>
+          <span className="text-(--primary-color)">
+            {user?.first_name || "there"}
+          </span>
         </h1>
         <p className="text-[13px] text-[#667085]">
           Here&rsquo;s a quick look at your latest account activity.
@@ -131,7 +148,7 @@ function AccountSidebar({ isRoot }) {
       <div className="px-4">
         <button
           type="button"
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[13px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
         >
           Logout
         </button>

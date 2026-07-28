@@ -5,10 +5,28 @@ import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/forgotpassword_hero.jpg";
+import { forgotPassword } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 
 function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await forgotPassword(email);
+      navigate("/verify-forgot-password", { state: { email } });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="forgot-password">
@@ -30,7 +48,10 @@ function ForgotPassword() {
 
         {/* Reset-password card (left side) */}
         <div className="relative z-10 flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="forgot-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]">
+          <form
+            onSubmit={handleSubmit}
+            className="forgot-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -64,6 +85,7 @@ function ForgotPassword() {
                 <input
                   id="reset-email"
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-[14px] text-black placeholder:text-[#9fa5b2] focus:outline-none"
@@ -71,11 +93,14 @@ function ForgotPassword() {
               </div>
             </div>
 
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
             <button
               type="submit"
-              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+              disabled={isSubmitting}
+              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Send code
+              {isSubmitting ? "Sending..." : "Send code"}
             </button>
 
             <div className="flex gap-4 text-[14px] font-medium text-[#667085]">

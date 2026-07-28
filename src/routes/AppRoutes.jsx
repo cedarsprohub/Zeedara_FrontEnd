@@ -16,6 +16,7 @@ import Skincare from "../pages/Skincare";
 import AccountLayout from "../pages/Account/AccountLayout";
 import AccountOverview from "../pages/Account/Overview";
 import Orders from "../pages/Account/Orders";
+import RequireAuth from "../components/auth/RequireAuth";
 import TrackOrder from "../pages/Account/TrackOrder";
 import CustomHair from "../pages/Account/CustomHair";
 import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
@@ -32,6 +33,7 @@ import CreatePassword from "../pages/Auth/CreatePassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import VerifyForgotPassword from "../pages/Auth/VerifyForgotPassword";
 import ChangePassword from "../pages/Auth/ChangePassword";
+import GoogleComplete from "../pages/Auth/GoogleComplete";
 
 function AppRoutes() {
   return (
@@ -48,12 +50,21 @@ function AppRoutes() {
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/account" element={<AccountLayout />}>
+              <Route index element={<AccountOverview />} />
+              <Route path="orders" element={<Orders />} />
+            </Route>
+          </Route>
           <Route path="/skincare-clinic" element={<Skincare />} />
           <Route path="/account" element={<AccountLayout />}>
             <Route index element={<AccountOverview />} />
             <Route path="overview" element={<AccountOverview />} />
             <Route path="orders" element={<Orders />} />
-            <Route path="orders/track" element={<TrackOrder status="shipped" />} />
+            <Route
+              path="orders/track"
+              element={<TrackOrder status="shipped" />}
+            />
             <Route
               path="orders/delivered"
               element={<TrackOrder status="delivered" />}
@@ -75,7 +86,6 @@ function AppRoutes() {
             <Route path="address-book/new" element={<NewAddress />} />
           </Route>
         </Route>
-        
 
         {/* Auth pages (standalone, no shared layout) */}
         <Route path="/register" element={<Register />} />
@@ -84,8 +94,12 @@ function AppRoutes() {
         <Route path="/get-started" element={<GetStarted />} />
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-forgot-password" element={<VerifyForgotPassword />} />
+        <Route
+          path="/verify-forgot-password"
+          element={<VerifyForgotPassword />}
+        />
         <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/complete-google-profile" element={<GoogleComplete />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

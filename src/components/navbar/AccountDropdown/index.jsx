@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Package,
   Truck,
@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import userAddIcon from "../../../assets/navbar/user-add-02.svg";
 import loginIcon from "../../../assets/navbar/login-02.svg";
+import { logout as logoutRequest } from "../../../api/auth";
+import { useAuth } from "../../../context/AuthContext.js";
 
 const accountMenu = [
   { label: "My Orders", icon: Package, to: "/account/orders" },
@@ -19,6 +21,9 @@ const accountMenu = [
 function AccountDropdown({ light = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const navigate = useNavigate();
+  const { isAuthenticated, user, accessToken, refreshToken, logout } =
+    useAuth();
   const triggerColor = light ? "text-white" : "text-black";
 
   useEffect(() => {
@@ -30,6 +35,20 @@ function AccountDropdown({ light = false }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const close = () => setOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      if (refreshToken) await logoutRequest(refreshToken, accessToken);
+    } catch {
+      // Ignore — we still clear the local session below regardless.
+    } finally {
+      logout();
+      close();
+      navigate("/");
+    }
+  };
 
   return (
     <div className="account-dropdown relative hidden lg:block" ref={ref}>
@@ -48,7 +67,7 @@ function AccountDropdown({ light = false }) {
           <span
             className={`text-[14px] font-medium leading-[1.4] ${triggerColor}`}
           >
-            Account
+            {isAuthenticated && user?.first_name ? user.first_name : "Account"}
           </span>
         </div>
         <ChevronDown
@@ -67,7 +86,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/register"
               onClick={close}
-              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[12px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
+              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[14px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
             >
               Create an Account
               <img src={userAddIcon} alt="signup Icon" className="" />
@@ -87,7 +106,7 @@ function AccountDropdown({ light = false }) {
                 key={label}
                 to={to}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
+                className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
               >
                 <Icon className="size-5 shrink-0" strokeWidth={2} />
                 <span className="whitespace-nowrap text-[12px] font-semibold leading-[1.4]">
@@ -100,7 +119,7 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
+              className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
               <span className="whitespace-nowrap text-[12px] font-semibold leading-[1.4]">
                 Settings
@@ -109,12 +128,23 @@ function AccountDropdown({ light = false }) {
             <NavLink
               to="/refund-policy"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
+              className="flex items-center gap-2 px-2 py-3 text-[#667085] transition-colors hover:text-(--primary-color)"
             >
               <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                 Return & refund policy
               </span>
             </NavLink>
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex cursor-pointer items-center gap-2 px-2 py-3 text-left text-[#667085] transition-colors hover:text-(--primary-color)"
+              >
+                <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+                  Logout
+                </span>
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-import { Menu, X, Search, ChevronRight, ChevronLeft } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  Menu,
+  X,
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  Package,
+  LogOut,
+  CircleUser,
+} from "lucide-react";
 import userAddIcon from "../../../assets/navbar/user-add-02.svg";
 import loginIcon from "../../../assets/navbar/login-02.svg";
 import NavCard from "../NavCard";
+import { logout as logoutRequest } from "../../../api/auth";
+import { useAuth } from "../../../context/AuthContext.js";
 
 import navcardImg from "../../../assets/navbar/navcardImg.png";
 
@@ -46,8 +57,23 @@ function MobileNav({ navLinks = [], logo }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("main"); // "main" | "categories"
   const [openCategory, setOpenCategory] = useState(-1);
+  const navigate = useNavigate();
+  const { isAuthenticated, user, accessToken, refreshToken, logout } =
+    useAuth();
 
   const close = () => setOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      if (refreshToken) await logoutRequest(refreshToken, accessToken);
+    } catch {
+      // Ignore — we still clear the local session below regardless.
+    } finally {
+      logout();
+      close();
+      navigate("/");
+    }
+  };
 
   const openDrawer = () => {
     setView("main");
@@ -257,24 +283,53 @@ function MobileNav({ navLinks = [], logo }) {
             to="shop"
             alt="by-brand-Image"
           />
-          <div className="footer auth-links flex flex-col gap-3">
-            <NavLink
-              to="/register"
-              onClick={close}
-              className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[14px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
-            >
-              Create an Account
-              <img src={userAddIcon} alt="signup Icon" className="" />
-            </NavLink>
-            <NavLink
-              to="/login"
-              onClick={close}
-              className="w-full bg-(--primary-color) flex items-center justify-center gap-3 px-6 py-3 text-center text-[14px] font-medium capitalize text-white transition-colors hover:bg-[#573b0f]"
-            >
-              sign In
-              <img src={loginIcon} alt="" className="" />
-            </NavLink>
-          </div>
+          {isAuthenticated ? (
+            <div className="footer account-links flex flex-col gap-1 border-t border-[#dadde2] pt-3">
+              <NavLink
+                to="/account"
+                onClick={close}
+                className="flex items-center gap-2 py-2.5 text-[14px] font-semibold text-black"
+              >
+                <CircleUser className="size-5 shrink-0" strokeWidth={2} />
+                {user?.first_name ? `Hi, ${user.first_name}` : "My Account"}
+              </NavLink>
+              <NavLink
+                to="/account/orders"
+                onClick={close}
+                className="flex items-center gap-2 py-2.5 text-[14px] font-medium text-[#667085] transition-colors hover:text-(--primary-color)"
+              >
+                <Package className="size-5 shrink-0" strokeWidth={2} />
+                My Orders
+              </NavLink>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex cursor-pointer items-center gap-2 py-2.5 text-left text-[14px] font-medium text-[#667085] transition-colors hover:text-(--primary-color)"
+              >
+                <LogOut className="size-5 shrink-0" strokeWidth={2} />
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="footer auth-links flex flex-col gap-3">
+              <NavLink
+                to="/register"
+                onClick={close}
+                className="w-full text-(--primary-color) flex items-center justify-center gap-3 bg-[#faf4eb] border border-[#efe0c8] px-6 py-3 text-center text-[14px] font-medium capitalize transition-colors hover:bg-(--primary-color) hover:text-white"
+              >
+                Create an Account
+                <img src={userAddIcon} alt="signup Icon" className="" />
+              </NavLink>
+              <NavLink
+                to="/login"
+                onClick={close}
+                className="w-full bg-(--primary-color) flex items-center justify-center gap-3 px-6 py-3 text-center text-[14px] font-medium capitalize text-white transition-colors hover:bg-[#573b0f]"
+              >
+                sign In
+                <img src={loginIcon} alt="" className="" />
+              </NavLink>
+            </div>
+          )}
         </div>
       </div>
     </div>

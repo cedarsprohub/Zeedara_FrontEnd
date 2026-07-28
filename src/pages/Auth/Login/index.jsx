@@ -1,15 +1,69 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
+import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
 import heroImage from "../../../assets/auth/login_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
+import { login as loginRequest, googleAuth } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
+import { useAuth } from "../../../context/AuthContext.js";
 
 function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await loginRequest(email, password);
+      if (!response?.access_token) {
+        setError(
+          "This account requires additional verification. Please contact support.",
+        );
+        return;
+      }
+      login(response);
+      navigate(location.state?.from?.pathname || "/");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleCredential = async (idToken) => {
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await googleAuth(idToken);
+      if (response?.tokens) {
+        login(response.tokens);
+        navigate(location.state?.from?.pathname || "/");
+      } else if (response?.registration_token) {
+        navigate("/complete-google-profile", {
+          state: { registrationToken: response.registration_token },
+        });
+      } else {
+        setError("Something went wrong with Google sign-in.");
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="login">
@@ -22,21 +76,20 @@ function Login() {
       >
         {/* Sign-in card (right side) */}
         <div className="flex flex-1 items-center justify-center lg:justify-end px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="signin-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8">
+          <form
+            onSubmit={handleSubmit}
+            className="signin-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8"
+          >
             <h1 className="font-['Anton'] text-[26px] sm:text-[30px] leading-[1.4] tracking-[-0.72px] text-black">
               Sign in
             </h1>
 
-            <button
-              type="button"
-              className="flex w-full items-center justify-between gap-2 border border-[#8c8c8c] px-[17px] py-[13px] cursor-pointer transition-colors hover:bg-[#f7f8fa]"
-            >
-              <img src={googleIcon} alt="" className="size-6 shrink-0" />
-              <span className="flex-1 text-center text-[14px] font-semibold text-black">
-                Sign in with Google
-              </span>
-              <span className="size-6 shrink-0" />
-            </button>
+            <GoogleAuthButton
+              label="Sign in with Google"
+              icon={googleIcon}
+              onCredential={handleGoogleCredential}
+              onError={setError}
+            />
 
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-[#dadde2]" />
@@ -56,6 +109,9 @@ function Login() {
                 <input
                   id="login-email"
                   type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-[14px] text-black placeholder:text-[#9fa5b2] focus:outline-none"
                 />
               </div>
@@ -73,6 +129,9 @@ function Login() {
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   className="min-w-0 flex-1 bg-transparent text-[14px] text-black placeholder:text-[#9fa5b2] focus:outline-none"
                 />
                 <button
@@ -111,11 +170,14 @@ function Login() {
               </NavLink>
             </div>
 
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
             <button
               type="submit"
-              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+              disabled={isSubmitting}
+              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign in
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
 
             <div className="flex items-center gap-2 text-[14px]">

@@ -1,19 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/confirm_hero.png";
+import { resendOtp, verifyOtp } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 function ConfirmEmail() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
   const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputsRef = useRef([]);
+
+  useEffect(() => {
+    if (!email) navigate("/register", { replace: true });
+  }, [email, navigate]);
 
   // Countdown — tick down to zero, then the Resend link is revealed.
   useEffect(() => {
@@ -59,11 +69,32 @@ function ConfirmEmail() {
     focusInput(Math.min(digits.length, CODE_LENGTH - 1));
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setCode(Array(CODE_LENGTH).fill(""));
     setSeconds(RESEND_SECONDS);
+    setError("");
     focusInput(0);
-    // TODO: trigger the resend-code request here.
+    try {
+      await resendOtp(email, "EMAIL_VERIFICATION");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await verifyOtp(email, "EMAIL_VERIFICATION", code.join(""));
+      navigate("/get-started", {
+        state: { registrationToken: response?.registration_token },
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const minutes = Math.floor(seconds / 60);
@@ -80,7 +111,10 @@ function ConfirmEmail() {
       >
         {/* Confirm-email card */}
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="confirm-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8">
+          <form
+            onSubmit={handleSubmit}
+            className="confirm-card flex w-full max-w-[440px] flex-col gap-5 bg-white p-5 sm:p-8"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -97,7 +131,7 @@ function ConfirmEmail() {
                 Confirm your email
               </h1>
               <p className="text-[14px] font-medium leading-[1.4] text-black">
-                Enter the six digit code we just sent to zeedara@mail.com
+                Enter the six digit code we just sent to {email}
               </p>
             </div>
 
@@ -124,11 +158,14 @@ function ConfirmEmail() {
             </div>
 
             <div className="flex flex-col gap-5">
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+                disabled={isSubmitting || code.some((digit) => !digit)}
+                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Verify now
+                {isSubmitting ? "Verifying..." : "Verify now"}
               </button>
               <p className="flex gap-2 text-[14px] font-semibold">
                 {seconds > 0 ? (

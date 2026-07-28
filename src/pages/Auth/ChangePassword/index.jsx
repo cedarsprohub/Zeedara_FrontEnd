@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/forgotpassword_hero.jpg";
+import { resetPassword } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 
 const requirements = [
   { key: "length", label: "8 characters minimum", test: (v) => v.length >= 8 },
@@ -15,10 +17,37 @@ const requirements = [
 
 function ChangePassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const resetToken = location.state?.resetToken;
+
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!resetToken) navigate("/forgot-password", { replace: true });
+  }, [resetToken, navigate]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await resetPassword(password, resetToken);
+      navigate("/login");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const metCount = requirements.filter((r) => r.test(password)).length;
   const strength = metCount <= 2 ? "Weak" : metCount === 3 ? "Medium" : "Strong";
@@ -46,7 +75,10 @@ function ChangePassword() {
 
         {/* Change-password card (left side) */}
         <div className="relative z-10 flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="change-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]">
+          <form
+            onSubmit={handleSubmit}
+            className="change-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.08)]"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -62,12 +94,9 @@ function ChangePassword() {
               <h1 className="font-['Anton'] text-[26px] sm:text-[30px] leading-[1.4] tracking-[-0.72px] text-black">
                 Change your password
               </h1>
-              <div className="text-[14px] leading-[1.4]">
-                <p className="font-medium text-[#575f71]">
-                  We emailed a confirmation code to
-                </p>
-                <p className="font-semibold text-black">zeedara@mail.com</p>
-              </div>
+              <p className="text-[14px] font-medium leading-[1.4] text-[#575f71]">
+                Choose a new password for your account.
+              </p>
             </div>
 
             <div className="flex flex-col gap-5">
@@ -184,11 +213,14 @@ function ChangePassword() {
               </div>
             </div>
 
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
             <button
               type="submit"
-              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+              disabled={isSubmitting}
+              className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Change password
+              {isSubmitting ? "Please wait..." : "Change password"}
             </button>
 
             <div className="flex gap-4 text-[14px] font-medium text-[#667085]">

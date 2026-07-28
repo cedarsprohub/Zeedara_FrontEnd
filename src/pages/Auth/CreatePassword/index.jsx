@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
 import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import heroImage from "../../../assets/auth/getstarted_hero.png";
-
-const RESEND_SECONDS = 60;
+import { createPassword } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
+import { useAuth } from "../../../context/AuthContext.js";
 
 const requirements = [
   { key: "length", label: "8 characters minimum", test: (v) => v.length >= 8 },
@@ -17,26 +18,39 @@ const requirements = [
 
 function CreatePassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const registrationToken = location.state?.registrationToken;
+  const { login } = useAuth();
+
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Countdown — tick down to zero, then the Resend link is revealed.
   useEffect(() => {
-    if (seconds <= 0) return undefined;
-    const id = setTimeout(() => setSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(id);
-  }, [seconds]);
+    if (!registrationToken) navigate("/register", { replace: true });
+  }, [registrationToken, navigate]);
 
-  const handleResend = () => {
-    setSeconds(RESEND_SECONDS);
-    // TODO: trigger the resend-code request here.
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const tokens = await createPassword(password, registrationToken);
+      login(tokens);
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  const minutes = Math.floor(seconds / 60);
-  const secondsLabel = String(seconds % 60).padStart(2, "0");
 
   const metCount = requirements.filter((r) => r.test(password)).length;
   const strength = metCount <= 2 ? "Weak" : metCount === 3 ? "Medium" : "Strong";
@@ -55,7 +69,10 @@ function CreatePassword() {
       >
         {/* Create-password card (left side) */}
         <div className="flex flex-1 items-center justify-center lg:justify-start px-4 py-10 sm:px-8 lg:px-[clamp(3rem,8vw,10rem)]">
-          <form className="create-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8">
+          <form
+            onSubmit={handleSubmit}
+            className="create-password-card flex w-full max-w-[440px] flex-col gap-6 bg-white p-5 sm:p-8"
+          >
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -72,7 +89,7 @@ function CreatePassword() {
                 Create your password
               </h1>
               <p className="text-[14px] font-medium leading-[1.4] text-black">
-                Enter the six digit code we just sent to zeedara@mail.com
+                Choose a strong password to finish creating your account
               </p>
             </div>
 
@@ -191,37 +208,15 @@ function CreatePassword() {
             </div>
 
             <div className="flex flex-col gap-5">
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90"
+                disabled={isSubmitting}
+                className="w-full bg-(--primary-color) px-6 py-4 text-center text-[16px] font-bold text-white cursor-pointer transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create account
+                {isSubmitting ? "Please wait..." : "Create account"}
               </button>
-              <p className="flex gap-2 text-[14px] font-semibold">
-                {seconds > 0 ? (
-                  <>
-                    <span className="text-[#667085]">
-                      Didn&rsquo;t receive a code? Wait
-                    </span>
-                    <span className="text-(--primary-color)">
-                      {minutes}:{secondsLabel}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[#667085]">
-                      Didn&rsquo;t receive a code?
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      className="text-(--primary-color) cursor-pointer hover:underline"
-                    >
-                      Resend
-                    </button>
-                  </>
-                )}
-              </p>
             </div>
           </form>
         </div>

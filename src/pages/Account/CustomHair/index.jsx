@@ -48,17 +48,17 @@ function StatCard({ label, value, tint }) {
       ? "bg-[rgba(43,127,255,0.1)] text-[#2b7fff]"
       : "bg-[rgba(255,105,0,0.1)] text-[#ff6900]";
   return (
-    <div className="flex items-start justify-between gap-3 border border-[#dadde2] bg-white p-[17px]">
-      <div className="flex flex-col gap-6">
-        <p className="text-[13px] font-medium text-[#48505e]">{label}</p>
-        <p className="text-[24px] font-semibold leading-none text-[#262626]">
+    <div className="flex items-start justify-between gap-2 border border-[#dadde2] bg-white px-2 py-3">
+      <div className="flex flex-col gap-5">
+        <p className="text-[12px] font-medium text-[#48505e]">{label}</p>
+        <p className="text-[18px] font-semibold leading-none text-[#262626]">
           {value}
         </p>
       </div>
       <div
-        className={`flex size-10 shrink-0 items-center justify-center shadow-[inset_0px_3.333px_6.667px_0px_rgba(0,0,0,0.05)] ${tintStyles}`}
+        className={`flex size-6 shrink-0 items-center justify-center shadow-[inset_0px_3.333px_6.667px_0px_rgba(0,0,0,0.05)] ${tintStyles}`}
       >
-        <ShoppingCart className="size-[22px]" strokeWidth={2} />
+        <ShoppingCart className="size-[16px]" strokeWidth={2} />
       </div>
     </div>
   );
@@ -112,7 +112,7 @@ function RequestCard({ request, paid }) {
 function QuoteSection({ request, paid, onPay }) {
   return (
     <div className="flex flex-col gap-6">
-      <span className="inline-flex w-fit items-center bg-[#f0f1f3] px-2 py-1 text-[16px] font-bold text-[#3a404c]">
+      <span className="inline-flex w-fit items-center bg-[#f0f1f3] px-2 py-1 text-[12px] font-bold text-[#3a404c]">
         QUOTE RECEIVED {naira(request.quoteAmount)}
       </span>
       <p className="text-[13px] font-medium text-[#48505e]">{request.note}</p>

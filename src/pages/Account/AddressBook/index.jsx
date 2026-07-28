@@ -58,14 +58,14 @@ function AddressCard({ address, onMakeDefault, onDelete }) {
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <p className="text-[14px] font-semibold text-black">{address.name}</p>
           {address.isDefault ? (
-            <span className="flex h-8 shrink-0 items-center bg-[#f0f0f0] px-3 text-[12px] font-semibold tracking-[0.24px] text-[#bdc2cb]">
+            <span className="flex h-8 shrink-0 items-center bg-[#f0f0f0] px-3 text-[10px] font-semibold tracking-[0.24px] text-[#bdc2cb]">
               DEFAULT ADDRESS
             </span>
           ) : (
             <button
               type="button"
               onClick={() => onMakeDefault(address.id)}
-              className="flex h-8 shrink-0 cursor-pointer items-center bg-[#faf4eb] px-3 text-[12px] font-semibold tracking-[0.24px] text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
+              className="flex h-8 shrink-0 cursor-pointer items-center bg-[#faf4eb] px-3 text-[10px] font-semibold tracking-[0.24px] text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
             >
               MAKE DEFAULT ADDRESS
             </button>
@@ -186,7 +186,7 @@ function AddressBook() {
     <div className="flex flex-col gap-6 lg:p-8">
       <Link
         to="/account/address-book/new"
-        className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) px-4 text-[13px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-auto sm:self-end"
+        className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) px-4 text-[12px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-auto sm:self-end"
       >
         ADD NEW ADDRESS
         <Plus className="size-4 shrink-0" strokeWidth={2.5} />

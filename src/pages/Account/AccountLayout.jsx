@@ -40,6 +40,43 @@ const secondaryNav = [
   { label: "Settings" },
 ];
 
+// One active treatment for every rail item: amber label and icon, plus the
+// amber left border and tint on desktop.
+const itemClasses = (active) =>
+  `flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition-colors lg:border-l-4 lg:text-[13px] ${
+    active
+      ? "text-(--primary-color) lg:border-(--primary-color) lg:bg-[#faf4eb]"
+      : "text-black lg:border-transparent lg:hover:bg-[#faf4eb]"
+  }`;
+
+// Rail entry. Items with a `to` navigate; the rest are placeholders until
+// their screens are built.
+function NavItem({ item, active }) {
+  const { label, icon: Icon, to } = item;
+  const content = (
+    <>
+      {Icon && <Icon className="size-5 shrink-0" strokeWidth={2} />}
+      <span className="flex-1">{label}</span>
+      {/* Right chevron only on the mobile menu */}
+      <ChevronRight
+        className={`size-5 shrink-0 lg:hidden ${
+          active ? "text-(--primary-color)" : "text-[#667085]"
+        }`}
+      />
+    </>
+  );
+
+  return to ? (
+    <NavLink to={to} className={itemClasses(active)}>
+      {content}
+    </NavLink>
+  ) : (
+    <button type="button" className={`${itemClasses(false)} cursor-pointer`}>
+      {content}
+    </button>
+  );
+}
+
 function AccountSidebar({ isRoot }) {
   const stickyNavHeight = useStickyNavHeight();
   const { pathname } = useLocation();
@@ -62,100 +99,31 @@ function AccountSidebar({ isRoot }) {
       {/* Welcome heading — only on the mobile menu page; on desktop it lives in
           the Overview content instead. */}
       <div className="mb-6 flex flex-col gap-1 lg:hidden">
-        <h1 className="flex flex-wrap items-center gap-2 text-[20px] font-semibold leading-[1.4]">
+        <h1 className="flex flex-wrap items-center gap-2 text-[16px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">Desmond</span>
         </h1>
-        <p className="text-[14px] text-[#667085]">
+        <p className="text-[13px] text-[#667085]">
           Here&rsquo;s a quick look at your latest account activity.
         </p>
       </div>
 
       <nav className="flex flex-col gap-2">
-        {primaryNav.map((item) => {
-          const { label, icon: Icon, to } = item;
-          const base =
-            "flex items-center gap-3 px-4 py-3 text-[13px] font-medium text-black transition-colors lg:border-l-4 lg:text-[13px]";
-          const content = (active) => (
-            <>
-              <Icon className="size-5 shrink-0" strokeWidth={2} />
-              <span className="flex-1">{label}</span>
-              {/* Right chevron only on the mobile menu */}
-              <ChevronRight
-                className={`size-5 shrink-0 lg:hidden ${
-                  active ? "text-(--primary-color)" : "text-[#667085]"
-                }`}
-              />
-            </>
-          );
-
-          return to ? (
-            <NavLink
-              key={label}
-              to={to}
-              className={() =>
-                `${base} ${
-                  isItemActive(item)
-                    ? "lg:border-(--primary-color) lg:bg-[#faf4eb]"
-                    : "lg:border-transparent lg:hover:bg-[#faf4eb]"
-                }`
-              }
-            >
-              {content(isItemActive(item))}
-            </NavLink>
-          ) : (
-            <button
-              key={label}
-              type="button"
-              className={`${base} cursor-pointer text-left lg:border-transparent lg:hover:bg-[#faf4eb]`}
-            >
-              {content(false)}
-            </button>
-          );
-        })}
+        {primaryNav.map((item) => (
+          <NavItem key={item.label} item={item} active={isItemActive(item)} />
+        ))}
       </nav>
 
       <span className="my-2 block h-px w-full bg-[#dadde2]" />
 
       <div className="flex flex-col gap-2">
-        {secondaryNav.map((item) => {
-          const { label, to } = item;
-          const active = to ? isItemActive(item) : false;
-          const base =
-            "flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition-colors lg:text-[13px]";
-          const content = (
-            <>
-              <span className="flex-1">{label}</span>
-              <ChevronRight
-                className={`size-5 shrink-0 lg:hidden ${
-                  active ? "text-(--primary-color)" : "text-[#667085]"
-                }`}
-              />
-            </>
-          );
-
-          return to ? (
-            <NavLink
-              key={label}
-              to={to}
-              className={`${base} lg:border-l-4 ${
-                active
-                  ? "text-(--primary-color) lg:border-(--primary-color) lg:bg-[#faf4eb]"
-                  : "text-black lg:border-transparent lg:hover:bg-[#faf4eb]"
-              }`}
-            >
-              {content}
-            </NavLink>
-          ) : (
-            <button
-              key={label}
-              type="button"
-              className={`${base} cursor-pointer text-black hover:text-(--primary-color)`}
-            >
-              {content}
-            </button>
-          );
-        })}
+        {secondaryNav.map((item) => (
+          <NavItem
+            key={item.label}
+            item={item}
+            active={item.to ? isItemActive(item) : false}
+          />
+        ))}
       </div>
 
       <span className="my-3 block h-px w-full bg-[#dadde2]" />
@@ -163,7 +131,7 @@ function AccountSidebar({ isRoot }) {
       <div className="px-4">
         <button
           type="button"
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[13px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
         >
           Logout
         </button>

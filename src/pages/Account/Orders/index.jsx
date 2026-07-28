@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import productImg from "../../../assets/ui/sampleImg.png";
+import { useStickyNavHeight } from "../../../context/NavbarHeightContext";
 
 // Detail page each order status opens when its card is clicked.
 const DETAIL_ROUTE = {
@@ -164,6 +165,7 @@ function Pagination() {
 
 function Orders() {
   const [activeTab, setActiveTab] = useState("All");
+  const stickyNavHeight = useStickyNavHeight();
 
   const visibleOrders = useMemo(() => {
     if (activeTab === "All") return ORDERS;
@@ -174,25 +176,32 @@ function Orders() {
 
   return (
     <div className="flex flex-col gap-5 lg:p-8">
-      {/* Filter tabs */}
-      <div className="flex flex-wrap border-b border-[#dadde2]">
-        {TABS.map((tab) => {
-          const active = tab === activeTab;
-          return (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`relative -mb-px cursor-pointer px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.28px] transition-colors ${
-                active
-                  ? "text-(--primary-color) after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color)"
-                  : "text-[#667085] hover:text-(--primary-color)"
-              }`}
-            >
-              {tab}
-            </button>
-          );
-        })}
+      {/* Filter tabs — pinned below the main nav so the status filters stay
+          reachable while the order list scrolls under them. `pb-5 -mb-5`
+          keeps the visual gap while extending the white backdrop over it. */}
+      <div
+        className="sticky z-10 -mb-5 bg-white pb-5"
+        style={{ top: `${stickyNavHeight}px` }}
+      >
+        <div className="flex flex-wrap border-b border-[#dadde2]">
+          {TABS.map((tab) => {
+            const active = tab === activeTab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`relative -mb-px cursor-pointer px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.28px] transition-colors ${
+                  active
+                    ? "text-(--primary-color) after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color)"
+                    : "text-[#667085] hover:text-(--primary-color)"
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Order list */}

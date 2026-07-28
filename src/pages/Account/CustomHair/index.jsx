@@ -82,7 +82,7 @@ function RequestCard({ request, paid }) {
             <p className="text-right">Submitted on {request.submitted}</p>
           </div>
 
-          <h3 className="text-[20px] font-bold leading-[1.4] text-[#3a404c]">
+          <h3 className="text-[14px] font-semibold leading-[1.4] text-[#3a404c]">
             {request.title}
           </h3>
 
@@ -181,10 +181,10 @@ function CustomHair() {
       <div className="flex flex-col gap-[25px]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="text-[20px] font-semibold leading-[1.4] text-black">
+            <h1 className="text-[16px] font-semibold leading-[1.4] text-black">
               Custom Hair Requests
             </h1>
-            <p className="text-[14px] text-[#48505e]">
+            <p className="text-[13px] text-[#48505e]">
               View your submitted requests, quotes, and updates.
             </p>
           </div>
@@ -205,7 +205,7 @@ function CustomHair() {
 
       {/* Requests */}
       <div className="flex flex-col gap-5">
-        <h2 className="text-[20px] font-semibold leading-[1.4] text-black">
+        <h2 className="text-[14px] font-semibold leading-[1.4] text-black">
           Custom Hair Requests
         </h2>
         {REQUESTS.map((request) => {

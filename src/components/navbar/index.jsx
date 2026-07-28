@@ -52,8 +52,8 @@ function Navbar() {
   return (
     <div className="navbar">
       {/* Top bar */}
-      <div className={`navbar-banner bg-black py-4 ${sidePadding}`}>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <div className={`navbar-banner bg-black py-2 ${sidePadding}`}>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           {/* Left: socials + call */}
           <div className="nav-contact-left hidden lg:flex items-center gap-4">
             <div className="socials flex items-center gap-[10px]">

@@ -98,7 +98,7 @@ function Navbar() {
       </div>
 
       {/* Main nav */}
-      <div className={`navbar-main relative bg-white py-6 ${sidePadding}`}>
+      <div className={`navbar-main relative bg-white py-4 ${sidePadding}`}>
         <div className="navbar-main-inner mx-auto max-w-[1920px]">
           <div className="head flex flex-wrap items-center gap-4 lg:gap-8">
             <NavLink to="/" className="navbar-logo shrink-0">

@@ -45,7 +45,7 @@ function AccountSidebar({ isRoot }) {
     // the `/account` root. On desktop it's the pinned side rail (`lg:sticky`),
     // always visible. `top` sits just below the pinned main nav.
     <aside
-      className={`w-full shrink-0 bg-white lg:sticky lg:block lg:w-[318px] lg:self-start ${
+      className={`w-full shrink-0 bg-white lg:sticky lg:block lg:w-[300px] lg:self-start ${
         isRoot ? "block" : "hidden"
       }`}
       style={{ top: `${stickyNavHeight + 24}px` }}
@@ -53,7 +53,7 @@ function AccountSidebar({ isRoot }) {
       {/* Welcome heading — only on the mobile menu page; on desktop it lives in
           the Overview content instead. */}
       <div className="mb-6 flex flex-col gap-1 lg:hidden">
-        <h1 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold leading-[1.4]">
+        <h1 className="flex flex-wrap items-center gap-2 text-[20px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">Desmond</span>
         </h1>
@@ -143,7 +143,7 @@ function AccountLayout() {
 
   return (
     <section className="account mb-16 bg-white">
-      <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-10">
+      <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-2">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-[16px]">
           <AccountSidebar isRoot={isRoot} />
 

@@ -4,7 +4,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.js";
 import { resendOtp as sendOtp, verifyOtp } from "../../../api/auth";
 import { ApiError } from "../../../api/client";
-import emailChangedImg from "../../../assets/account/email_changed.svg";
+import SuccessPanel from "./SuccessPanel";
 
 const CODE_LENGTH = 6;
 
@@ -358,23 +358,10 @@ function ChangeEmail() {
       )}
 
       {step === STEPS.DONE && (
-        <div className="flex flex-col items-center gap-8 py-16">
-          <img
-            src={emailChangedImg}
-            alt=""
-            className="h-[181px] w-[260px] max-w-full"
-          />
-          <p className="max-w-[296px] text-center text-[16px] font-semibold leading-[1.4] text-black">
-            Email address successfully changed
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate("/account/settings")}
-            className={primaryBtn}
-          >
-            CLOSE
-          </button>
-        </div>
+        <SuccessPanel
+          message="Email address successfully changed"
+          onClose={() => navigate("/account/settings")}
+        />
       )}
     </div>
   );

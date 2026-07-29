@@ -17,7 +17,19 @@ const settingsGroups = [
       },
     ],
   },
-  { label: "Security", icon: ShieldCheck, items: [] },
+  {
+    label: "Security",
+    icon: ShieldCheck,
+    items: [
+      {
+        label: "Change Password",
+        to: "/account/settings/change-password",
+      },
+      // Destructive, and the design gives it no chevron since it opens a
+      // confirmation rather than navigating to another screen.
+      { label: "Delete Account", danger: true, chevron: false },
+    ],
+  },
 ];
 
 // Shared row shape for both columns: optional leading icon, label, chevron.
@@ -31,21 +43,27 @@ function SettingsRow({
   onClick,
   to,
   detail = false,
+  danger = false,
+  chevron = true,
 }) {
   const Element = to ? Link : "button";
   const elementProps = to ? { to } : { type: "button", onClick };
 
   const tint = detail
-    ? ""
+    ? danger
+      ? "hover:bg-[#fae9e9]"
+      : ""
     : active
       ? "bg-[#faf4eb]"
       : "hover:bg-[#faf4eb]";
 
-  const ink = active
-    ? "text-(--primary-color)"
-    : detail
-      ? "text-black group-hover:text-(--primary-color)"
-      : "text-black";
+  const ink = danger
+    ? "text-[#cf251f]"
+    : active
+      ? "text-(--primary-color)"
+      : detail
+        ? "text-black group-hover:text-(--primary-color)"
+        : "text-black";
 
   return (
     <Element
@@ -54,7 +72,9 @@ function SettingsRow({
     >
       {Icon && <Icon className={`size-5 shrink-0 ${ink}`} strokeWidth={2} />}
       <span className={`flex-1 text-[13px] font-medium ${ink}`}>{label}</span>
-      <ChevronRight className={`size-5 shrink-0 ${ink}`} strokeWidth={2} />
+      {chevron && (
+        <ChevronRight className={`size-5 shrink-0 ${ink}`} strokeWidth={2} />
+      )}
     </Element>
   );
 }
@@ -94,18 +114,18 @@ function Settings() {
           <span className="h-px w-full shrink-0 bg-[#dadde2] lg:h-[495px] lg:w-px" />
 
           <div className="flex w-full flex-col gap-3 lg:max-w-[495px]">
-            {activeGroup.items.length > 0 ? (
-              activeGroup.items.map((item, index) => (
-                <div key={item.label} className="flex flex-col gap-3">
-                  {index > 0 && <span className="h-px w-full bg-[#dadde2]" />}
-                  <SettingsRow label={item.label} to={item.to} detail />
-                </div>
-              ))
-            ) : (
-              <p className="px-4 py-3 text-[13px] font-medium text-[#667085]">
-                {activeGroup.label} settings are coming soon.
-              </p>
-            )}
+            {activeGroup.items.map((item, index) => (
+              <div key={item.label} className="flex flex-col gap-3">
+                {index > 0 && <span className="h-px w-full bg-[#dadde2]" />}
+                <SettingsRow
+                  label={item.label}
+                  to={item.to}
+                  danger={item.danger}
+                  chevron={item.chevron}
+                  detail
+                />
+              </div>
+            ))}
           </div>
         </>
       )}

@@ -26,6 +26,7 @@ import NewAddress from "../pages/Account/AddressBook/NewAddress";
 import Settings from "../pages/Account/Settings";
 import BasicDetails from "../pages/Account/Settings/BasicDetails";
 import ChangeEmail from "../pages/Account/Settings/ChangeEmail";
+import AccountChangePassword from "../pages/Account/Settings/ChangePassword";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -93,6 +94,10 @@ function AppRoutes() {
               <Route
                 path="settings/change-email"
                 element={<ChangeEmail />}
+              />
+              <Route
+                path="settings/change-password"
+                element={<AccountChangePassword />}
               />
             </Route>
           </Route>

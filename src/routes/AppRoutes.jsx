@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
 import Layout from "../layout/Layout";
+import ScrollToTop from "../components/ScrollToTop";
 
 // Pages
 import Home from "../pages/Home";
@@ -42,6 +43,7 @@ import GoogleComplete from "../pages/Auth/GoogleComplete";
 function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Main Site Branch (Shares MainLayout navbar) */}
         <Route element={<Layout />}>

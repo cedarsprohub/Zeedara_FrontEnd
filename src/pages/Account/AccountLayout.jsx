@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   User,
@@ -84,13 +85,19 @@ function AccountSidebar({ isRoot }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, accessToken, refreshToken, logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const isItemActive = (item) =>
     item.match
       ? item.match.includes(pathname)
       : pathname === item.to || pathname.startsWith(`${item.to}/`);
 
+  // Revoking the refresh token is a network round-trip, so guard against a
+  // second click landing before we navigate away.
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
     try {
       if (refreshToken) await logoutRequest(refreshToken, accessToken);
     } catch {
@@ -148,9 +155,11 @@ function AccountSidebar({ isRoot }) {
       <div className="px-4">
         <button
           type="button"
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Logout
+          {loggingOut ? "Logging out…" : "Logout"}
         </button>
       </div>
     </aside>

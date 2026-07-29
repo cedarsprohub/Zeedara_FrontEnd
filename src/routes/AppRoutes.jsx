@@ -24,6 +24,8 @@ import SkincareConsultations from "../pages/Account/Skincare";
 import AddressBook from "../pages/Account/AddressBook";
 import NewAddress from "../pages/Account/AddressBook/NewAddress";
 import Settings from "../pages/Account/Settings";
+import BasicDetails from "../pages/Account/Settings/BasicDetails";
+import ChangeEmail from "../pages/Account/Settings/ChangeEmail";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -51,41 +53,48 @@ function AppRoutes() {
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
+          <Route path="/skincare-clinic" element={<Skincare />} />
+
+          {/* Every account screen needs a session — they all read `user` from
+              AuthContext and call the account API. */}
           <Route element={<RequireAuth />}>
             <Route path="/account" element={<AccountLayout />}>
               <Route index element={<AccountOverview />} />
+              <Route path="overview" element={<AccountOverview />} />
               <Route path="orders" element={<Orders />} />
+              <Route
+                path="orders/track"
+                element={<TrackOrder status="shipped" />}
+              />
+              <Route
+                path="orders/delivered"
+                element={<TrackOrder status="delivered" />}
+              />
+              <Route
+                path="orders/cancelled"
+                element={<TrackOrder status="cancelled" />}
+              />
+              <Route path="custom-hair" element={<CustomHair />} />
+              <Route
+                path="custom-hair/new"
+                element={<CustomHairNewRequest />}
+              />
+              <Route
+                path="skincare-consultations"
+                element={<SkincareConsultations />}
+              />
+              <Route path="address-book" element={<AddressBook />} />
+              <Route path="address-book/new" element={<NewAddress />} />
+              <Route path="settings" element={<Settings />} />
+              <Route
+                path="settings/basic-details"
+                element={<BasicDetails />}
+              />
+              <Route
+                path="settings/change-email"
+                element={<ChangeEmail />}
+              />
             </Route>
-          </Route>
-          <Route path="/skincare-clinic" element={<Skincare />} />
-          <Route path="/account" element={<AccountLayout />}>
-            <Route index element={<AccountOverview />} />
-            <Route path="overview" element={<AccountOverview />} />
-            <Route path="orders" element={<Orders />} />
-            <Route
-              path="orders/track"
-              element={<TrackOrder status="shipped" />}
-            />
-            <Route
-              path="orders/delivered"
-              element={<TrackOrder status="delivered" />}
-            />
-            <Route
-              path="orders/cancelled"
-              element={<TrackOrder status="cancelled" />}
-            />
-            <Route path="custom-hair" element={<CustomHair />} />
-            <Route
-              path="custom-hair/new"
-              element={<CustomHairNewRequest />}
-            />
-            <Route
-              path="skincare-consultations"
-              element={<SkincareConsultations />}
-            />
-            <Route path="address-book" element={<AddressBook />} />
-            <Route path="address-book/new" element={<NewAddress />} />
-            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

@@ -94,3 +94,14 @@ export function getMe(accessToken) {
     token: accessToken,
   });
 }
+
+// PATCH is partial — only send the keys that changed. Accepts first_name,
+// last_name, phone_number and address (see UserProfileUpdate in the API docs);
+// returns the full updated UserPublic.
+export function updateMe(profile, accessToken) {
+  return request("/api/v1/users/me", {
+    method: "PATCH",
+    body: profile,
+    token: accessToken,
+  });
+}

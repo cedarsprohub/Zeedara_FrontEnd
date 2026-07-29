@@ -105,12 +105,13 @@ function CartItem({
   return (
     <Link
       to={`/products/${id}`}
-      className="cart-item w-full flex flex-col h-[251px] sm:h-[300px] md:h-[310px] lg:h-[350px] xl:h-[370px] items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2 transition-colors duration-300 hover:border-(--primary-color)"
+      className="cart-item w-full flex h-full flex-col items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2 transition-colors duration-300 hover:border-(--primary-color)"
     >
-      <div className="cart-img bg-(--grey-color) mb-1 w-full h-full flex items-center justify-center overflow-hidden">
-        <img src={img} alt={name} className="object-cover" />
+      {/* Fixed 8:7 image box (as designed) so cards stay aligned at every width */}
+      <div className="cart-img bg-(--grey-color) mb-1 w-full aspect-[8/7] flex items-center justify-center overflow-hidden">
+        <img src={img} alt={name} className="size-full object-cover" />
       </div>
-      <div className="cart-details w-full flex flex-col space-y-0 lg:space-y-1">
+      <div className="cart-details w-full flex flex-1 flex-col space-y-0 lg:space-y-1">
         <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold">
           {discount}% OFF
         </span>
@@ -129,7 +130,7 @@ function CartItem({
           </div>
         </div>
 
-        <div className="mt-2">{cartAction}</div>
+        <div className="mt-auto pt-2">{cartAction}</div>
       </div>
     </Link>
   );

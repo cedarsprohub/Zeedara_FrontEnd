@@ -63,6 +63,14 @@ const tabs = [
         newPrice: "72,000",
         discount: 20,
       },
+      {
+        id: 8,
+        img: sampleImg,
+        name: "Water Wave Closure Wig",
+        oldPrice: "130,000",
+        newPrice: "104,000",
+        discount: 20,
+      },
     ],
   },
   {
@@ -100,6 +108,38 @@ const tabs = [
         oldPrice: "22,000",
         newPrice: "16,000",
         discount: 27,
+      },
+      {
+        id: 5,
+        img: sampleImg,
+        name: "Niacinamide Serum",
+        oldPrice: "24,000",
+        newPrice: "17,500",
+        discount: 27,
+      },
+      {
+        id: 6,
+        img: sampleImg,
+        name: "Retinol Night Cream",
+        oldPrice: "32,000",
+        newPrice: "24,000",
+        discount: 25,
+      },
+      {
+        id: 7,
+        img: sampleImg,
+        name: "Clay Purifying Mask",
+        oldPrice: "16,000",
+        newPrice: "12,000",
+        discount: 25,
+      },
+      {
+        id: 8,
+        img: sampleImg,
+        name: "Hyaluronic Acid Toner",
+        oldPrice: "19,000",
+        newPrice: "14,000",
+        discount: 26,
       },
     ],
   },
@@ -139,6 +179,38 @@ const tabs = [
         newPrice: "4,000",
         discount: 33,
       },
+      {
+        id: 5,
+        img: sampleImg,
+        name: "Satin Hair Bonnet",
+        oldPrice: "9,000",
+        newPrice: "6,500",
+        discount: 28,
+      },
+      {
+        id: 6,
+        img: sampleImg,
+        name: "Wig Styling Stand",
+        oldPrice: "15,000",
+        newPrice: "11,000",
+        discount: 27,
+      },
+      {
+        id: 7,
+        img: sampleImg,
+        name: "Edge Control Brush Set",
+        oldPrice: "7,500",
+        newPrice: "5,000",
+        discount: 33,
+      },
+      {
+        id: 8,
+        img: sampleImg,
+        name: "Silk Pillowcase",
+        oldPrice: "18,000",
+        newPrice: "13,000",
+        discount: 28,
+      },
     ],
   },
 ];
@@ -157,10 +229,10 @@ function PopularProducts() {
       >
         {/* Heading */}
         <div className="popular-products-content flex flex-col gap-4 w-[100%] lg:w-[70%] xl:w-[65%] items-center">
-          <span className="popular-products-badge bg-transparent text-[12px] lg:text-[16px] w-fit text-black font-bold py-2 px-4 text-center uppercase border border-2 border-black">
+          <span className="popular-products-badge bg-transparent text-[12px] lg:text-[16px] w-fit text-black font-bold py-2 px-4 text-center uppercase border-2 border-black">
             Shop What Works
           </span>
-          <h2 className="popular-products-title text-[40px] text-center lg:text-[48px] uppercase font-medium leading-tight font-['Anton'] text-black">
+          <h2 className="popular-products-title text-[32px] sm:text-[40px] text-center lg:text-[48px] uppercase font-medium leading-tight font-['Anton'] text-black">
             Popular Products
           </h2>
         </div>
@@ -186,8 +258,8 @@ function PopularProducts() {
           })}
         </div>
 
-        {/* Catalog */}
-        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+        {/* Catalog — 2 per row on phones, 4 from lg (as designed) */}
+        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {currentTab.products.map((product) => (
             <CartItem
               key={product.id}

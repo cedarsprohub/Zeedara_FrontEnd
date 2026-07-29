@@ -23,6 +23,7 @@ import CustomHairNewRequest from "../pages/Account/CustomHair/NewRequest";
 import SkincareConsultations from "../pages/Account/Skincare";
 import AddressBook from "../pages/Account/AddressBook";
 import NewAddress from "../pages/Account/AddressBook/NewAddress";
+import Settings from "../pages/Account/Settings";
 
 // Auth Pages
 import Register from "../pages/Auth/Register";
@@ -84,6 +85,7 @@ function AppRoutes() {
             />
             <Route path="address-book" element={<AddressBook />} />
             <Route path="address-book/new" element={<NewAddress />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

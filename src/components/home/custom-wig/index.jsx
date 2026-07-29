@@ -26,26 +26,28 @@ function CustomWig() {
               alt="Zeedara Logo"
             />
           </div>
-          <h1 className="text-black uppercase leading-tight text-[40px] md:text-[60px] xl:text-[80px] font-medium font-[Anton]">
+          <h1 className="text-black uppercase leading-tight text-[36px] sm:text-[48px] md:text-[60px] xl:text-[80px] font-medium font-[Anton]">
             Custom Wigs
+            {/* "MADE 4 YOU" — the script 4 overlaps the gap between the words,
+                so it is positioned as a share of the row width, not fixed px. */}
             <div className="flex text-black relative">
               <span>Made</span>
               <img
                 src={fourImg}
-                className="object-fit w-[60px] left-20 md:w-[90px] xl:w-[120px] absolute md:left-30 xl:left-39 -bottom-0"
-                alt="Four Image"
+                className="absolute -bottom-0 left-[45%] w-[26%] max-w-[120px] -translate-x-1/2 object-contain"
+                alt=""
               />
-              <span className="ms-10 md:ms-20">You</span>
+              <span className="ms-[22%]">You</span>
             </div>
           </h1>
-          <p className="text-[14px] lg:text-[16px] text-black">
+          <p className="text-[13px] sm:text-[14px] lg:text-[16px] text-black">
             The concentration of a perfume is the percentage of pure fragrance
             oil to stabilizing ingredients, which determines lasting power.
           </p>
 
           <NavLink
             to="/custom-wig"
-            className="text-center uppercase text-[14px] lg:text-[16px] lg:text-start bg-(--primary-color) cursor-pointer text-white font-semibold py-2 lg:py-3 px-6 w-fit hover:bg-[#573b0f] transition-colors duration-300"
+            className="text-center uppercase text-[12px] sm:text-[13px] lg:text-[14px] lg:text-start bg-(--primary-color) cursor-pointer text-white font-semibold tracking-[0.28px] py-2.5 lg:py-3 px-6 w-fit hover:bg-[#573b0f] transition-colors duration-300"
           >
             Make A Request
           </NavLink>

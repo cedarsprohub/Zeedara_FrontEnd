@@ -39,7 +39,7 @@ const primaryNav = [
 // placeholders until their screens exist.
 const secondaryNav = [
   { label: "Address Book", to: "/account/address-book" },
-  { label: "Settings" },
+  { label: "Settings", to: "/account/settings" },
 ];
 
 // One active treatment for every rail item: amber label and icon, plus the

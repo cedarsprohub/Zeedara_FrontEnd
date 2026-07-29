@@ -117,7 +117,7 @@ function AccountDropdown({ light = false }) {
           </div>
           <div className="flex flex-col">
             <NavLink
-              to="/settings"
+              to="/account/settings"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-2 py-2 text-[#667085] transition-colors hover:text-(--primary-color)"
             >

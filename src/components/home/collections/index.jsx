@@ -47,7 +47,7 @@ function Collections() {
   const sidePadding =
     "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
   return (
-    <div className="collections bg-[#]">
+    <div className="collections bg-white">
       <div
         className={`collections-inner mx-auto max-w-[1920px] ${sidePadding} flex flex-col gap-8 items-center`}
       >

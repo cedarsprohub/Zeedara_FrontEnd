@@ -154,7 +154,10 @@ function CartItem({ product, viewMode = "grid" }) {
             src={image}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-cover"
+            decoding="async"
+            width="160"
+            height="160"
+            className="media-in h-full w-full object-cover"
           />
         </div>
 
@@ -190,7 +193,10 @@ function CartItem({ product, viewMode = "grid" }) {
           src={image}
           alt={product.name}
           loading="lazy"
-          className="size-full object-cover"
+          decoding="async"
+          width="400"
+          height="350"
+          className="media-in size-full object-cover"
         />
       </div>
       {/* Layout breakpoints are the incoming grid work (2xl/3xl tiers); the

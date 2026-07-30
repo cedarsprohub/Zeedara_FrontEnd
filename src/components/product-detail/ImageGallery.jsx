@@ -34,6 +34,10 @@ function ImageGallery({ images, name }) {
             <img
               src={image}
               alt={`${name} thumbnail ${index + 1}`}
+              loading="lazy"
+              decoding="async"
+              width="80"
+              height="80"
               className="h-full w-full object-cover"
             />
           </button>
@@ -41,10 +45,15 @@ function ImageGallery({ images, name }) {
       </div>
 
       <div className="h-[320px] flex-1 overflow-hidden bg-gray-100 sm:h-[420px] lg:h-full">
+        {/* The detail page's largest paint — fetched eagerly and at high
+            priority, and keyed so switching thumbnails re-runs the fade. */}
         <img
+          key={images[activeIndex]}
           src={images[activeIndex]}
           alt={name}
-          className="h-full w-full object-cover"
+          decoding="async"
+          fetchPriority="high"
+          className="media-in h-full w-full object-cover"
         />
       </div>
     </div>

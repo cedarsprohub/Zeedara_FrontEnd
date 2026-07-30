@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Open the TCP+TLS handshake to the third parties the first screen needs
+         while the bundle is still parsing. Fonts are @imported from CSS, so the
+         browser only discovers them after the stylesheet arrives; the API and
+         product-image hosts aren't discoverable until React runs. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://lionfish-app-z6rt7.ondigitalocean.app" />
+    <link rel="dns-prefetch" href="https://picsum.photos" />
+
     <title>zeedara-frontend</title>
   </head>
   <body>

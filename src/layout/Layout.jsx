@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import PageTransition from "../components/shared/PageTransition";
 import { Outlet } from "react-router-dom";
 import {
   NavbarHeightContext,
@@ -49,7 +50,11 @@ function Layout() {
       <NavbarHeightContext.Provider value={navbarHeight}>
         <StickyNavHeightContext.Provider value={stickyNavHeight}>
           <main>
-            <Outlet />
+            {/* Navigations fade the new page in; the navbar and footer stay put
+                so the chrome doesn't flicker between routes. */}
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </main>
         </StickyNavHeightContext.Provider>
       </NavbarHeightContext.Provider>

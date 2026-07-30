@@ -1,6 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Anton&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&display=swap');
+/* One request instead of three: the browser can't start any of these until the
+   stylesheet lands, so combining them removes two serial round trips on the
+   critical path. Montserrat is narrowed from the full 100..900 variable range
+   to the weights actually used (400/500/600/700), which is a large chunk of
+   font bytes saved. */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Anton&family=Abhaya+Libre:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -16,4 +19,121 @@ body {
   background-color: var(--primary-background-color);
   font-family: "Montserrat", sans-serif;
   overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+   Every animation below is disabled wholesale for anyone who asks for reduced
+   motion (see the media query at the end of this block) — that preference is
+   an accessibility need, not a nicety, so it's handled once rather than per
+   component.
+   --------------------------------------------------------------------------- */
+
+/* Smooth anchor/scroll-to-section jumps. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Route content settles in with a short rise-and-fade. Keyed on the pathname in
+   `PageTransition`, so it replays on every navigation. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-enter {
+  animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Panels, drawers and inline messages that appear in place. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 200ms ease-out both;
+}
+
+/* Loading placeholders. The sweep is a background-position animation on a
+   gradient — cheap enough to run on a grid of them without touching layout. */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    #f0f1f3 25%,
+    #f7f8fa 50%,
+    #f0f1f3 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+/* Holds a skeleton invisible for a beat, so a chunk that resolves quickly never
+   flashes a placeholder on screen. */
+@keyframes skeleton-reveal {
+  0%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.skeleton-delayed {
+  animation: skeleton-reveal 1ms linear 160ms both;
+}
+
+/* Images fade up as they decode instead of popping in. Paired with explicit
+   dimensions on the img so nothing reflows around them. */
+@keyframes media-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.media-in {
+  animation: media-in 320ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Kill motion everywhere, including the carousel and any Tailwind
+     `transition-*` utility, without unsetting final states. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none;
+    background-image: none;
+    background-color: #f0f1f3;
+  }
 }

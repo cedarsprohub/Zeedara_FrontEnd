@@ -111,16 +111,16 @@ function CartItem({
       <div className="cart-img bg-(--grey-color) mb-1 w-full aspect-[8/7] flex items-center justify-center overflow-hidden">
         <img src={img} alt={name} className="size-full object-cover" />
       </div>
-      <div className="cart-details w-full flex flex-1 flex-col space-y-0 lg:space-y-1">
+      <div className="cart-details w-full flex flex-1 flex-col space-y-0 2xl:space-y-1">
         <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold">
           {discount}% OFF
         </span>
-        <div className="flex flex-col lg:flex-row gap-1 lg:gap-0 items-start">
-          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 lg:line-clamp-2">
+        <div className="flex flex-col 3xl:flex-row gap-1 3xl:gap-0 items-start">
+          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 3xl:line-clamp-2">
             {name}
           </h3>
 
-          <div className="price-container flex items-center space-x-1 lg:space-x-2 ml-0 lg:ml-2">
+          <div className="price-container flex items-center space-x-1 3xl:space-x-2 ml-0 3xl:ml-2">
             <span className="text-gray-500 text-[10px] sm:text-[12px] md:text-[14px] line-through">
               N{oldPrice}
             </span>

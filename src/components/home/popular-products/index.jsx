@@ -259,7 +259,7 @@ function PopularProducts() {
         </div>
 
         {/* Catalog — 2 per row on phones, 4 from lg (as designed) */}
-        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
           {currentTab.products.map((product) => (
             <CartItem
               key={product.id}

@@ -1,24 +1,23 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.js";
-import { resendOtp as sendOtp, verifyOtp } from "../../../api/auth";
+import { requestEmailChange, confirmEmailChange } from "../../../api/auth";
 import { ApiError } from "../../../api/client";
 import SuccessPanel from "./SuccessPanel";
 
 const CODE_LENGTH = 6;
 
-// The API has no dedicated email-change event — EMAIL_VERIFICATION is the only
-// OTPEvent that fits sending a code to an address. See the note on `commit`.
-const OTP_EVENT = "EMAIL_VERIFICATION";
-
+// The API re-authenticates the caller with their current password rather than
+// by mailing a code to the old address, so the flow is two steps: request the
+// change, then confirm the code sent to the new address.
 const STEPS = {
-  CURRENT: "current",
-  VERIFY_OLD: "verify-old",
-  NEW: "new",
-  VERIFY_NEW: "verify-new",
+  REQUEST: "request",
+  VERIFY: "verify",
   DONE: "done",
 };
+
+const WRONG_PASSWORD = "The password you entered is incorrect.";
 
 const inputCls =
   "h-[52px] w-full border border-[#dadde2] pl-11 pr-[17px] text-[13px] font-medium text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none disabled:cursor-not-allowed disabled:bg-[#f7f8fa]";
@@ -43,12 +42,20 @@ function StepHeader({ title, children }) {
   );
 }
 
-// Email field with the leading mail icon from the design. Read-only on the
-// first step (it shows the address already on file), editable on the third.
-function EmailField({ value, onChange, disabled, readOnly, placeholder }) {
+// Email field with the leading mail icon from the design. Used twice on the
+// first step: read-only for the address already on file, editable for the new
+// one.
+function EmailField({
+  label = "Email",
+  value,
+  onChange,
+  disabled,
+  readOnly,
+  placeholder,
+}) {
   return (
     <label className="flex w-full max-w-[421px] flex-col gap-2">
-      <span className="text-[13px] font-medium text-[#667085]">Email</span>
+      <span className="text-[13px] font-medium text-[#667085]">{label}</span>
       <div className="relative">
         <Mail
           className="pointer-events-none absolute left-[17px] top-1/2 size-5 -translate-y-1/2 text-[#667085]"
@@ -70,6 +77,52 @@ function EmailField({ value, onChange, disabled, readOnly, placeholder }) {
           />
         )}
       </div>
+    </label>
+  );
+}
+
+// Current-password field — the API requires it to re-authenticate the caller
+// before it will mail a code to a new address.
+function PasswordField({ value, onChange, disabled, error }) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <label className="flex w-full max-w-[421px] flex-col gap-2">
+      <span className="text-[13px] font-medium text-[#667085]">
+        Current Password
+      </span>
+      <div className="relative">
+        <Lock
+          className="pointer-events-none absolute left-[17px] top-1/2 size-5 -translate-y-1/2 text-[#667085]"
+          strokeWidth={2}
+        />
+        <input
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          disabled={disabled}
+          aria-invalid={Boolean(error)}
+          autoComplete="current-password"
+          className={`${inputCls} pr-11 ${error ? "border-[#cf251f]" : ""}`}
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? "Hide password" : "Show password"}
+          className="absolute right-[17px] top-1/2 -translate-y-1/2 cursor-pointer text-[#9fa5b2] transition-colors hover:text-[#667085]"
+        >
+          {visible ? (
+            <Eye className="size-5" strokeWidth={2} />
+          ) : (
+            <EyeOff className="size-5" strokeWidth={2} />
+          )}
+        </button>
+      </div>
+      {error && (
+        <p className="text-[13px] font-medium italic leading-[1.4] text-[#cf251f]">
+          {error}
+        </p>
+      )}
     </label>
   );
 }
@@ -141,14 +194,20 @@ function OtpFields({ code, setCode, disabled }) {
 
 function ChangeEmail() {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, accessToken, logout } = useAuth();
   const currentEmail = user?.email ?? "";
 
-  const [step, setStep] = useState(STEPS.CURRENT);
+  // Google-only accounts have no password for the backend to check, so the
+  // field is theirs to skip (current_password is nullable for exactly this).
+  const needsPassword = user?.auth_provider !== "GOOGLE";
+
+  const [step, setStep] = useState(STEPS.REQUEST);
   const [newEmail, setNewEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const resetCode = () => setCode(Array(CODE_LENGTH).fill(""));
   const codeComplete = code.every(Boolean);
@@ -156,41 +215,53 @@ function ChangeEmail() {
   const describe = (err) =>
     err instanceof ApiError ? err.message : "Something went wrong.";
 
-  // Ask the backend to mail a code to `email`, then move to `nextStep`.
-  const requestCode = async (email, nextStep) => {
+  // Step 1 — mail an EMAIL_CHANGE code to the new address. The account isn't
+  // modified until the code comes back.
+  const submitRequest = async () => {
     setError("");
+    setPasswordError("");
     setBusy(true);
     try {
-      await sendOtp(email, OTP_EVENT);
+      await requestEmailChange(
+        newEmail.trim(),
+        needsPassword ? password : null,
+        accessToken,
+      );
       resetCode();
-      setStep(nextStep);
+      setStep(STEPS.VERIFY);
     } catch (err) {
-      setError(describe(err));
+      // A rejected password gets the field slot; everything else — address
+      // already in use, rate limits — reads as a banner.
+      const rejected =
+        err instanceof ApiError && [400, 401, 403].includes(err.status);
+      if (rejected && needsPassword) {
+        setPasswordError(WRONG_PASSWORD);
+      } else {
+        setError(describe(err));
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  const confirmCode = async (email, onVerified) => {
+  // Step 2 — confirm the code and move the account across. The response is the
+  // updated UserPublic, so context takes it verbatim.
+  const submitConfirm = async () => {
     setError("");
     setBusy(true);
     try {
-      await verifyOtp(email, OTP_EVENT, code.join(""));
-      onVerified();
+      const updated = await confirmEmailChange(
+        newEmail.trim(),
+        code.join(""),
+        accessToken,
+      );
+      setUser(updated);
+      setStep(STEPS.DONE);
     } catch (err) {
       setError(describe(err));
     } finally {
       setBusy(false);
     }
-  };
-
-  // TODO(api): there is no endpoint that commits an email change — the account
-  // API exposes no email-change route, and PATCH /users/me (UserProfileUpdate)
-  // accepts only first_name/last_name/phone_number/address. Once one exists,
-  // call it here and use its response instead of patching context locally.
-  const commit = () => {
-    if (user) setUser({ ...user, email: newEmail });
-    setStep(STEPS.DONE);
   };
 
   const goBack = (target) => {
@@ -219,114 +290,56 @@ function ChangeEmail() {
         </p>
       )}
 
-      {step === STEPS.CURRENT && (
+      {step === STEPS.REQUEST && (
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            requestCode(currentEmail, STEPS.VERIFY_OLD);
+            submitRequest();
           }}
           className="flex flex-col gap-9"
         >
           <StepHeader title="Change Email Address">
-            The email address below is currently associated to your profile. You
-            can change it by clicking on the button below
+            {needsPassword
+              ? "The email address below is currently associated to your profile. Enter the address you would like to move to, confirm your password, and we will send a six digit code to the new address."
+              : "The email address below is currently associated to your profile. Enter the address you would like to move to and we will send a six digit code to the new address."}
           </StepHeader>
 
-          <EmailField value={currentEmail} readOnly />
+          <div className="flex flex-col gap-6">
+            <EmailField label="Current Email" value={currentEmail} readOnly />
 
-          <button type="submit" disabled={busy} className={primaryBtn}>
+            <EmailField
+              label="New Email"
+              value={newEmail}
+              onChange={setNewEmail}
+              disabled={busy}
+              placeholder="you@example.com"
+            />
+
+            {needsPassword && (
+              <PasswordField
+                value={password}
+                onChange={setPassword}
+                disabled={busy}
+                error={passwordError}
+              />
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={busy || !newEmail.trim() || (needsPassword && !password)}
+            className={primaryBtn}
+          >
             {busy ? "SENDING…" : "SEND OTP"}
           </button>
         </form>
       )}
 
-      {step === STEPS.VERIFY_OLD && (
+      {step === STEPS.VERIFY && (
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            confirmCode(currentEmail, () => {
-              resetCode();
-              setStep(STEPS.NEW);
-            });
-          }}
-          className="flex flex-col gap-9"
-        >
-          <StepHeader title="Verify old email">
-            Enter the six digit code sent to{" "}
-            <span className="text-(--primary-color) underline">
-              {currentEmail}
-            </span>
-          </StepHeader>
-
-          <OtpFields code={code} setCode={setCode} disabled={busy} />
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:gap-9">
-            <button
-              type="button"
-              onClick={() => goBack(STEPS.CURRENT)}
-              disabled={busy}
-              className={secondaryBtn}
-            >
-              BACK
-            </button>
-            <button
-              type="submit"
-              disabled={busy || !codeComplete}
-              className={primaryBtn}
-            >
-              {busy ? "VERIFYING…" : "VERIFY"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {step === STEPS.NEW && (
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            requestCode(newEmail, STEPS.VERIFY_NEW);
-          }}
-          className="flex flex-col gap-9"
-        >
-          {/* The design reuses the OTP subtitle here; this step collects an
-              address, so it gets copy that matches what it asks for. */}
-          <StepHeader title="Enter your new email address">
-            Enter the new email address you would like associated to your
-            profile. We will send a six digit code to confirm it.
-          </StepHeader>
-
-          <EmailField
-            value={newEmail}
-            onChange={setNewEmail}
-            disabled={busy}
-            placeholder="you@example.com"
-          />
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:gap-9">
-            <button
-              type="button"
-              onClick={() => goBack(STEPS.VERIFY_OLD)}
-              disabled={busy}
-              className={secondaryBtn}
-            >
-              BACK
-            </button>
-            <button
-              type="submit"
-              disabled={busy || !newEmail.trim()}
-              className={primaryBtn}
-            >
-              {busy ? "SENDING…" : "SEND OTP"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {step === STEPS.VERIFY_NEW && (
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            confirmCode(newEmail, commit);
+            submitConfirm();
           }}
           className="flex flex-col gap-9"
         >
@@ -340,7 +353,7 @@ function ChangeEmail() {
           <div className="flex flex-col gap-4 sm:flex-row sm:gap-9">
             <button
               type="button"
-              onClick={() => goBack(STEPS.NEW)}
+              onClick={() => goBack(STEPS.REQUEST)}
               disabled={busy}
               className={secondaryBtn}
             >
@@ -357,10 +370,16 @@ function ChangeEmail() {
         </form>
       )}
 
+      {/* Changing the recovery address revokes every refresh token, so this
+          session is spent — end it here rather than letting it die mid-browse. */}
       {step === STEPS.DONE && (
         <SuccessPanel
-          message="Email address successfully changed"
-          onClose={() => navigate("/account/settings")}
+          message="Email address successfully changed. Please sign in again with your new email."
+          closeLabel="SIGN IN"
+          onClose={() => {
+            logout();
+            navigate("/login", { replace: true });
+          }}
         />
       )}
     </div>

@@ -73,6 +73,40 @@ export function resetPassword(password, resetToken) {
   });
 }
 
+// Authenticated change — proves possession of the current password rather than
+// an emailed code. The backend revokes every refresh token on success (SEC-04),
+// so the caller has to sign in again afterwards.
+export function changePassword(currentPassword, newPassword, accessToken) {
+  return request("/api/v1/users/me/password", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+    token: accessToken,
+  });
+}
+
+// Step 1 of an email change — mails an EMAIL_CHANGE code to the new address.
+// The account isn't touched until the code is confirmed. `currentPassword`
+// re-authenticates the caller and is required for any account that has one;
+// Google-only accounts pass null.
+export function requestEmailChange(newEmail, currentPassword, accessToken) {
+  return request("/api/v1/users/me/email/request", {
+    method: "POST",
+    body: { new_email: newEmail, current_password: currentPassword ?? null },
+    token: accessToken,
+  });
+}
+
+// Step 2 — confirms the code and moves the account over. Returns the updated
+// UserPublic. Revokes every refresh token (SEC-04), so the caller has to sign
+// in again afterwards.
+export function confirmEmailChange(newEmail, code, accessToken) {
+  return request("/api/v1/users/me/email/confirm", {
+    method: "POST",
+    body: { new_email: newEmail, code },
+    token: accessToken,
+  });
+}
+
 export function refreshTokens(refreshToken) {
   return request("/api/v1/auth/refresh", {
     method: "POST",

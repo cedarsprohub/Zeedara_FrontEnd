@@ -1,38 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
-
-const ADDRESSES = [
-  {
-    id: 1,
-    name: "Desmond Jumbo",
-    street: "No. 64 Park Community,",
-    city: "Bonny Island, Rivers State.",
-    phone: "+234 xxx xxx xxxx",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    name: "Desmond Jumbo",
-    street: "No. 64 Park Community,",
-    city: "Bonny Island, Rivers State.",
-    phone: "+234 xxx xxx xxxx",
-  },
-  {
-    id: 3,
-    name: "Desmond Jumbo",
-    street: "No. 64 Park Community,",
-    city: "Bonny Island, Rivers State.",
-    phone: "+234 xxx xxx xxxx",
-  },
-  {
-    id: 4,
-    name: "Desmond Jumbo",
-    street: "No. 64 Park Community,",
-    city: "Bonny Island, Rivers State.",
-    phone: "+234 xxx xxx xxxx",
-  },
-];
+import { useAuth } from "../../../context/AuthContext.js";
+import { updateMe } from "../../../api/auth";
 
 function IconButton({ label, icon: Icon, onClick, danger = false }) {
   return (
@@ -50,46 +20,49 @@ function IconButton({ label, icon: Icon, onClick, danger = false }) {
   );
 }
 
-function AddressCard({ address, onMakeDefault, onDelete }) {
+// The account carries a single address string (see NewAddress's
+// `composeAddress`), so the first line is the recipient and the rest is the
+// address itself. It's the only address on file, hence always the default.
+function AddressCard({ lines, onDelete }) {
+  const [name, ...rest] = lines;
+
   return (
     <div className="flex flex-col gap-5 border border-[#dadde2] bg-white p-4 sm:px-5">
       <div className="flex flex-col gap-3">
         {/* Name + default state — wraps on narrow cards */}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <p className="text-[14px] font-semibold text-black">{address.name}</p>
-          {address.isDefault ? (
-            <span className="flex h-8 shrink-0 items-center bg-[#f0f0f0] px-3 text-[10px] font-semibold tracking-[0.24px] text-[#bdc2cb]">
-              DEFAULT ADDRESS
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onMakeDefault(address.id)}
-              className="flex h-8 shrink-0 cursor-pointer items-center bg-[#faf4eb] px-3 text-[10px] font-semibold tracking-[0.24px] text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
-            >
-              MAKE DEFAULT ADDRESS
-            </button>
-          )}
+          <p className="text-[14px] font-semibold text-black">{name}</p>
+          <span className="flex h-8 shrink-0 items-center bg-[#f0f0f0] px-3 text-[10px] font-semibold tracking-[0.24px] text-[#bdc2cb]">
+            DEFAULT ADDRESS
+          </span>
         </div>
         <span className="h-px w-full bg-[#dadde2]" />
       </div>
 
       <div className="flex items-end justify-between gap-4">
         <p className="text-[13px] font-medium leading-[1.4] text-[#48505e]">
-          {address.street}
-          <br />
-          {address.city}
-          <br />
-          {address.phone}
+          {rest.map((line, index) => (
+            <span key={index} className="block">
+              {line}
+            </span>
+          ))}
         </p>
         <div className="flex shrink-0 items-center gap-3">
           <IconButton
             label="Delete address"
             icon={Trash2}
             danger
-            onClick={() => onDelete(address.id)}
+            onClick={onDelete}
           />
-          <IconButton label="Edit address" icon={Pencil} />
+          {/* Editing replaces the one stored address, so it reuses the form */}
+          <Link
+            to="/account/address-book/new"
+            aria-label="Edit address"
+            title="Edit address"
+            className="flex cursor-pointer items-center justify-center p-1 text-[#48505e] transition-colors hover:text-(--primary-color)"
+          >
+            <Pencil className="size-[18px] shrink-0" strokeWidth={2} />
+          </Link>
         </div>
       </div>
     </div>
@@ -98,7 +71,7 @@ function AddressCard({ address, onMakeDefault, onDelete }) {
 
 // Confirmation shown before an address is removed. Locks page scroll and
 // closes on Escape, same as the cart drawer.
-function DeleteDialog({ onCancel, onConfirm }) {
+function DeleteDialog({ busy, onCancel, onConfirm }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -149,16 +122,18 @@ function DeleteDialog({ onCancel, onConfirm }) {
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#f0f0f0] px-3 text-[13px] font-semibold tracking-[0.28px] text-[#bdc2cb] transition-colors hover:text-[#667085] sm:w-[133px]"
+            disabled={busy}
+            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#f0f0f0] px-3 text-[13px] font-semibold tracking-[0.28px] text-[#bdc2cb] transition-colors hover:text-[#667085] disabled:cursor-not-allowed disabled:opacity-60 sm:w-[133px]"
           >
             CANCEL
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#cf251f] px-3 text-[13px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-[133px]"
+            disabled={busy}
+            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#cf251f] px-3 text-[13px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[133px]"
           >
-            CONFIRM
+            {busy ? "DELETING…" : "CONFIRM"}
           </button>
         </div>
       </div>
@@ -167,19 +142,31 @@ function DeleteDialog({ onCancel, onConfirm }) {
 }
 
 function AddressBook() {
-  const [addresses, setAddresses] = useState(ADDRESSES);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  // `RequireAuth` gates this route, so `user` is already loaded by now.
+  const { user, accessToken, setUser } = useAuth();
 
-  const makeDefault = (id) =>
-    setAddresses((prev) =>
-      prev.map((address) => ({ ...address, isDefault: address.id === id })),
-    );
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
 
-  const confirmDelete = () => {
-    setAddresses((prev) =>
-      prev.filter((address) => address.id !== pendingDeleteId),
-    );
-    setPendingDeleteId(null);
+  const lines = (user?.address ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const confirmDelete = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const updated = await updateMe({ address: null }, accessToken);
+      setUser(updated);
+      setConfirmingDelete(false);
+    } catch (err) {
+      setError(err.message);
+      setConfirmingDelete(false);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -188,22 +175,24 @@ function AddressBook() {
         to="/account/address-book/new"
         className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) px-4 text-[12px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 sm:w-auto sm:self-end"
       >
-        ADD NEW ADDRESS
+        {lines.length ? "CHANGE ADDRESS" : "ADD NEW ADDRESS"}
         <Plus className="size-4 shrink-0" strokeWidth={2.5} />
       </Link>
 
+      {error && (
+        <p className="bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+          {error}
+        </p>
+      )}
+
       {/* Two per row only from xl — at lg the 300px account rail leaves each
           card too narrow for the name and the default-address button. */}
-      {addresses.length > 0 ? (
+      {lines.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
-          {addresses.map((address) => (
-            <AddressCard
-              key={address.id}
-              address={address}
-              onMakeDefault={makeDefault}
-              onDelete={setPendingDeleteId}
-            />
-          ))}
+          <AddressCard
+            lines={lines}
+            onDelete={() => setConfirmingDelete(true)}
+          />
         </div>
       ) : (
         <p className="py-16 text-center text-[13px] font-medium text-[#667085]">
@@ -211,9 +200,10 @@ function AddressBook() {
         </p>
       )}
 
-      {pendingDeleteId !== null && (
+      {confirmingDelete && (
         <DeleteDialog
-          onCancel={() => setPendingDeleteId(null)}
+          busy={busy}
+          onCancel={() => setConfirmingDelete(false)}
           onConfirm={confirmDelete}
         />
       )}

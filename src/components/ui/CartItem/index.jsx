@@ -105,7 +105,7 @@ function CartItem({
   return (
     <Link
       to={`/products/${id}`}
-      className="cart-item w-full flex flex-col h-[251px] sm:h-[300px] md:h-[310px] lg:h-[350px] xl:h-[370px] items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2 transition-colors duration-300 hover:border-(--primary-color)"
+      className="cart-item w-full flex flex-col h-[230px] sm:h-[270px] md:h-[290px] lg:h-[310px] xl:h-[330px] items-center border border-gray-300 py-1 px-1 md:px-2 md:py-2 transition-colors duration-300 hover:border-(--primary-color)"
     >
       <div className="cart-img bg-(--grey-color) mb-1 w-full h-full flex items-center justify-center overflow-hidden">
         <img src={img} alt={name} className="object-cover" />

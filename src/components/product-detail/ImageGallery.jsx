@@ -1,10 +1,22 @@
 import { useState } from "react";
+import { useNavbarHeight } from "../../context/NavbarHeightContext";
+
+// Breadcrumb row + page vertical padding above the gallery on the product
+// detail page — subtracted along with the navbar so the gallery fits the
+// remaining viewport on large screens instead of overflowing it.
+const CHROME_ALLOWANCE = 150;
 
 function ImageGallery({ images, name }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const navbarHeight = useNavbarHeight();
 
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row lg:h-full">
+    <div
+      className="flex flex-col-reverse gap-3 sm:flex-row lg:h-[var(--pdp-gallery-h)] lg:min-h-[420px]"
+      style={{
+        "--pdp-gallery-h": `calc(100vh - ${navbarHeight + CHROME_ALLOWANCE}px)`,
+      }}
+    >
       <div className="flex gap-3 overflow-x-auto sm:flex-col sm:overflow-visible lg:h-full lg:justify-between lg:overflow-y-auto">
         {images.map((image, index) => (
           <button

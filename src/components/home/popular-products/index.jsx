@@ -187,7 +187,7 @@ function PopularProducts() {
         </div>
 
         {/* Catalog */}
-        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
           {currentTab.products.map((product) => (
             <CartItem
               key={product.id}

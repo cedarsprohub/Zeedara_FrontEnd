@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.js";
 
 const pendingActions = [
@@ -72,12 +73,12 @@ function Overview() {
             <br />
             Add an address to checkout faster next time.
           </p>
-          <button
-            type="button"
+          <Link
+            to="/account/address-book/new"
             className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[13px] font-semibold text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
           >
             ADD ADDRESS
-          </button>
+          </Link>
         </Card>
 
         {/* Most Recent Order */}

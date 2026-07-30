@@ -54,7 +54,7 @@ function Testimonials() {
   const sidePadding =
     "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
   return (
-    <div className="testimonials bg-[#f8ebfa]">
+    <div className="testimonials bg-white">
       <div
         className={`testimonials-inner mx-auto max-w-[1920px] ${sidePadding} flex flex-col gap-8 items-center`}
       >

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { MessageCircle, ChevronDown, ArrowRight } from "lucide-react";
 import Faq from "../../components/faq";
 import { payWithPaystack } from "../../utils/paystack";
@@ -41,7 +41,14 @@ const COVERS = [
   },
 ];
 
-const SKIN_TYPES = ["Oily", "Dry", "Combination", "Sensitive", "Normal", "Acne-prone"];
+const SKIN_TYPES = [
+  "Oily",
+  "Dry",
+  "Combination",
+  "Sensitive",
+  "Normal",
+  "Acne-prone",
+];
 
 const CONCERNS = [
   "Acne and breakouts",
@@ -115,7 +122,11 @@ function Hero() {
           className="hidden w-[24%] shrink-0 object-cover xl:block"
         />
         <div className="flex flex-1 flex-col items-center gap-[18px] px-6 py-14 text-center lg:py-24">
-          <img src={zeedaraLogo} alt="Zeedara" className="h-[36px] w-auto lg:h-[43px]" />
+          <img
+            src={zeedaraLogo}
+            alt="Zeedara"
+            className="h-[36px] w-auto lg:h-[43px]"
+          />
           <div className="relative flex flex-col items-center">
             <h1 className="font-['Anton'] text-[clamp(2.75rem,8vw,93px)] leading-[1.04] tracking-[-0.02em] text-black">
               PERSONALIZED
@@ -127,9 +138,9 @@ function Hero() {
             </span>
           </div>
           <p className="max-w-[729px] text-[16px] leading-[1.48] text-black lg:text-[18px]">
-            Get expert guidance on your skin concerns, product choices, and daily
-            routine with a one-on-one skincare consultation tailored to your skin
-            type.
+            Get expert guidance on your skin concerns, product choices, and
+            daily routine with a one-on-one skincare consultation tailored to
+            your skin type.
           </p>
           <div className="flex flex-col gap-[18px] sm:flex-row">
             <a
@@ -209,181 +220,181 @@ function Covers() {
   );
 }
 
-function Chip({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`border px-[17px] py-[9px] text-[14px] font-semibold transition-colors ${
-        active
-          ? "border-(--primary-color) bg-[#faf4eb] text-(--primary-color)"
-          : "border-[#575f71] text-[#575f71] hover:border-(--primary-color)"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
+// function Chip({ label, active, onClick }) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       className={`border px-[17px] py-[9px] text-[14px] font-semibold transition-colors ${
+//         active
+//           ? "border-(--primary-color) bg-[#faf4eb] text-(--primary-color)"
+//           : "border-[#575f71] text-[#575f71] hover:border-(--primary-color)"
+//       }`}
+//     >
+//       {label}
+//     </button>
+//   );
+// }
 
-function BookConsultation() {
-  const [concerns, setConcerns] = useState([]);
-  const [availability, setAvailability] = useState("");
-  const [agreed, setAgreed] = useState(true);
-  const [booked, setBooked] = useState(false);
+// function BookConsultation() {
+//   const [concerns, setConcerns] = useState([]);
+//   const [availability, setAvailability] = useState("");
+//   const [agreed, setAgreed] = useState(true);
+//   const [booked, setBooked] = useState(false);
 
-  const toggleConcern = (c) =>
-    setConcerns((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
+//   const toggleConcern = (c) =>
+//     setConcerns((prev) =>
+//       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
+//     );
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!agreed) return;
-    payWithPaystack({
-      amount: 10000,
-      email: "customer@zeedara.com",
-      reference: `SKN-${Date.now()}`,
-      onSuccess: () => setBooked(true),
-    });
-  };
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     if (!agreed) return;
+//     payWithPaystack({
+//       amount: 10000,
+//       email: "customer@zeedara.com",
+//       reference: `SKN-${Date.now()}`,
+//       onSuccess: () => setBooked(true),
+//     });
+//   };
 
-  const fieldLabel = "text-[14px] font-medium text-[#48505e]";
-  const inputCls =
-    "w-full border border-[#bdc2cb] p-[17px] text-[14px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
+//   const fieldLabel = "text-[14px] font-medium text-[#48505e]";
+//   const inputCls =
+//     "w-full border border-[#bdc2cb] p-[17px] text-[14px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
 
-  return (
-    <section id="book" className={`${SIDE} scroll-mt-24 bg-white py-16`}>
-      <div className="flex flex-col gap-9">
-        <h2 className="font-['Anton'] text-[clamp(2rem,4vw,52px)] leading-[1.21] tracking-[-0.02em] text-black">
-          Book Your Skin Care Consultation
-        </h2>
+//   return (
+//     <section id="book" className={`${SIDE} scroll-mt-24 bg-white py-16`}>
+//       <div className="flex flex-col gap-9">
+//         <h2 className="font-['Anton'] text-[clamp(2rem,4vw,52px)] leading-[1.21] tracking-[-0.02em] text-black">
+//           Book Your Skin Care Consultation
+//         </h2>
 
-        <div className="flex flex-col gap-9 lg:flex-row lg:items-stretch">
-          <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-9">
-            {/* Contact row */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <label className="flex flex-col gap-2">
-                <span className={fieldLabel}>Full Name</span>
-                <input type="text" className={inputCls} />
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className={fieldLabel}>Phone/WhatsApp Number</span>
-                <input type="tel" className={inputCls} />
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className="text-[14px] font-medium text-[#575f71]">
-                  Skin type
-                </span>
-                <div className="relative">
-                  <select
-                    defaultValue=""
-                    className={`${inputCls} cursor-pointer appearance-none border-[#dadde2] pr-10`}
-                  >
-                    <option value="" disabled>
-                      Select
-                    </option>
-                    {SKIN_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-6 -translate-y-1/2 text-[#48505e]" />
-                </div>
-              </label>
-            </div>
+//         <div className="flex flex-col gap-9 lg:flex-row lg:items-stretch">
+//           <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-9">
+//             {/* Contact row */}
+//             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+//               <label className="flex flex-col gap-2">
+//                 <span className={fieldLabel}>Full Name</span>
+//                 <input type="text" className={inputCls} />
+//               </label>
+//               <label className="flex flex-col gap-2">
+//                 <span className={fieldLabel}>Phone/WhatsApp Number</span>
+//                 <input type="tel" className={inputCls} />
+//               </label>
+//               <label className="flex flex-col gap-2">
+//                 <span className="text-[14px] font-medium text-[#575f71]">
+//                   Skin type
+//                 </span>
+//                 <div className="relative">
+//                   <select
+//                     defaultValue=""
+//                     className={`${inputCls} cursor-pointer appearance-none border-[#dadde2] pr-10`}
+//                   >
+//                     <option value="" disabled>
+//                       Select
+//                     </option>
+//                     {SKIN_TYPES.map((t) => (
+//                       <option key={t} value={t}>
+//                         {t}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-6 -translate-y-1/2 text-[#48505e]" />
+//                 </div>
+//               </label>
+//             </div>
 
-            {/* Concerns + availability */}
-            <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
-              <div className="flex flex-1 flex-col gap-4">
-                <h3 className="text-[16px] font-semibold text-[#2e323c]">
-                  Main Skin Concern
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {CONCERNS.map((c) => (
-                    <Chip
-                      key={c}
-                      label={c}
-                      active={concerns.includes(c)}
-                      onClick={() => toggleConcern(c)}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-4 lg:w-[371px]">
-                <h3 className="text-[16px] font-semibold text-[#2e323c]">
-                  Preferred availability
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {AVAILABILITY.map((a) => (
-                    <Chip
-                      key={a}
-                      label={a}
-                      active={availability === a}
-                      onClick={() => setAvailability(a)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+//             {/* Concerns + availability */}
+//             <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
+//               <div className="flex flex-1 flex-col gap-4">
+//                 <h3 className="text-[16px] font-semibold text-[#2e323c]">
+//                   Main Skin Concern
+//                 </h3>
+//                 <div className="flex flex-wrap gap-4">
+//                   {CONCERNS.map((c) => (
+//                     <Chip
+//                       key={c}
+//                       label={c}
+//                       active={concerns.includes(c)}
+//                       onClick={() => toggleConcern(c)}
+//                     />
+//                   ))}
+//                 </div>
+//               </div>
+//               <div className="flex flex-col gap-4 lg:w-[371px]">
+//                 <h3 className="text-[16px] font-semibold text-[#2e323c]">
+//                   Preferred availability
+//                 </h3>
+//                 <div className="flex flex-wrap gap-3">
+//                   {AVAILABILITY.map((a) => (
+//                     <Chip
+//                       key={a}
+//                       label={a}
+//                       active={availability === a}
+//                       onClick={() => setAvailability(a)}
+//                     />
+//                   ))}
+//                 </div>
+//               </div>
+//             </div>
 
-            {/* Describe */}
-            <label className="flex flex-col gap-2">
-              <span className={fieldLabel}>Describe your concern</span>
-              <textarea rows={5} className={`${inputCls} resize-none`} />
-            </label>
+//             {/* Describe */}
+//             <label className="flex flex-col gap-2">
+//               <span className={fieldLabel}>Describe your concern</span>
+//               <textarea rows={5} className={`${inputCls} resize-none`} />
+//             </label>
 
-            {/* Upload */}
-            <div className="flex flex-col gap-4">
-              <input
-                type="file"
-                accept="image/*"
-                className="block w-full text-[14px] font-semibold text-[#48505e] file:mr-3 file:cursor-pointer file:border file:border-[#48505e] file:bg-white file:px-[17px] file:py-[9px] file:text-[14px] file:font-semibold file:text-[#48505e]"
-              />
-              <p className="text-[12px] italic text-[#575f71]">
-                Upload a clear photo in good lighting. Avoid filters or heavy
-                makeup.
-              </p>
-            </div>
+//             {/* Upload */}
+//             <div className="flex flex-col gap-4">
+//               <input
+//                 type="file"
+//                 accept="image/*"
+//                 className="block w-full text-[14px] font-semibold text-[#48505e] file:mr-3 file:cursor-pointer file:border file:border-[#48505e] file:bg-white file:px-[17px] file:py-[9px] file:text-[14px] file:font-semibold file:text-[#48505e]"
+//               />
+//               <p className="text-[12px] italic text-[#575f71]">
+//                 Upload a clear photo in good lighting. Avoid filters or heavy
+//                 makeup.
+//               </p>
+//             </div>
 
-            {/* Consent */}
-            <label className="flex items-start gap-3 text-[14px] font-semibold text-[#575f71]">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5 size-5 shrink-0 cursor-pointer rounded-[6px] accent-[#bf8322]"
-              />
-              <span>
-                I understand that the ₦10,000 consultation fee must be paid before
-                my request is submitted, and Zeedara will send my confirmed date
-                and time after reviewing my request.
-              </span>
-            </label>
+//             {/* Consent */}
+//             <label className="flex items-start gap-3 text-[14px] font-semibold text-[#575f71]">
+//               <input
+//                 type="checkbox"
+//                 checked={agreed}
+//                 onChange={(e) => setAgreed(e.target.checked)}
+//                 className="mt-0.5 size-5 shrink-0 cursor-pointer rounded-[6px] accent-[#bf8322]"
+//               />
+//               <span>
+//                 I understand that the ₦10,000 consultation fee must be paid before
+//                 my request is submitted, and Zeedara will send my confirmed date
+//                 and time after reviewing my request.
+//               </span>
+//             </label>
 
-            {booked ? (
-              <p className="bg-[#eefeec] px-6 py-4 text-center text-[16px] font-bold text-[#298d1c]">
-                PAYMENT SUCCESSFUL — WE&rsquo;LL BE IN TOUCH SHORTLY
-              </p>
-            ) : (
-              <button
-                type="submit"
-                disabled={!agreed}
-                className="w-full cursor-pointer bg-(--primary-color) px-6 py-4 text-[16px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                PROCEED TO PAYMENT — ₦10,000
-              </button>
-            )}
-          </form>
+//             {booked ? (
+//               <p className="bg-[#eefeec] px-6 py-4 text-center text-[16px] font-bold text-[#298d1c]">
+//                 PAYMENT SUCCESSFUL — WE&rsquo;LL BE IN TOUCH SHORTLY
+//               </p>
+//             ) : (
+//               <button
+//                 type="submit"
+//                 disabled={!agreed}
+//                 className="w-full cursor-pointer bg-(--primary-color) px-6 py-4 text-[16px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+//               >
+//                 PROCEED TO PAYMENT — ₦10,000
+//               </button>
+//             )}
+//           </form>
 
-          <div className="hidden shrink-0 overflow-hidden bg-[#ece0d3] lg:block lg:w-[40%]">
-            <img src={bookingImg} alt="" className="size-full object-cover" />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+//           <div className="hidden shrink-0 overflow-hidden bg-[#ece0d3] lg:block lg:w-[40%]">
+//             <img src={bookingImg} alt="" className="size-full object-cover" />
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
 
 function Products() {
   return (
@@ -434,7 +445,7 @@ function Products() {
 function Understand() {
   return (
     <section className="px-[clamp(1rem,4.5vw,144px)]">
-      <div className="relative flex flex-col gap-6 overflow-hidden bg-[#efe0c8] px-6 py-12 lg:min-h-[359px] lg:flex-row lg:items-center lg:px-[86px] lg:py-0">
+      <div className="relative flex flex-col gap-6 overflow-hidden bg-[#efe0c8] px-6 py-12 lg:flex-row lg:items-center lg:px-[86px] lg:py-5">
         <div className="flex flex-col gap-6 lg:w-1/2">
           <div className="flex flex-col">
             <h2 className="font-['Anton'] text-[clamp(2.25rem,5vw,60px)] leading-[1.2] tracking-[-0.02em] text-black">
@@ -450,6 +461,13 @@ function Understand() {
             causes of your concerns, and build a simple routine that works for
             you.
           </p>
+
+          <NavLink
+            to="/account"
+            className="cta-button text-center uppercase text-[12px] sm:text-[13px] lg:text-[14px] lg:text-start bg-(--primary-color) cursor-pointer text-white font-semibold tracking-[0.28px] py-2.5 lg:py-3 px-6 w-fit hover:bg-[#573b0f] transition-colors duration-300"
+          >
+            Book a Consultation
+          </NavLink>
         </div>
         <img
           src={understandImg}
@@ -466,7 +484,7 @@ function Skincare() {
     <div className="skincare-clinic bg-white">
       <Hero />
       <Covers />
-      <BookConsultation />
+      {/* <BookConsultation /> */}
       <Products />
       <Understand />
       <Faq faqs={SKINCARE_FAQS} />

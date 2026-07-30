@@ -183,6 +183,7 @@ function CartItem({ product, viewMode = "grid" }) {
           className="size-full object-cover"
         />
       </div>
+<<<<<<< HEAD
       <div className="cart-details w-full flex flex-1 flex-col space-y-0 lg:space-y-1">
         {subtitle && (
           <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold uppercase truncate">
@@ -195,6 +196,21 @@ function CartItem({ product, viewMode = "grid" }) {
           </h3>
 
           <div className="price-container flex items-center space-x-1 lg:space-x-2 ml-0 lg:ml-2">
+=======
+      <div className="cart-details w-full flex flex-1 flex-col space-y-0 2xl:space-y-1">
+        <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold">
+          {discount}% OFF
+        </span>
+        <div className="flex flex-col 3xl:flex-row gap-1 3xl:gap-0 items-start">
+          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 3xl:line-clamp-2">
+            {name}
+          </h3>
+
+          <div className="price-container flex items-center space-x-1 3xl:space-x-2 ml-0 3xl:ml-2">
+            <span className="text-gray-500 text-[10px] sm:text-[12px] md:text-[14px] line-through">
+              N{oldPrice}
+            </span>
+>>>>>>> c789c611fb7c7fb08f20fa94f26c7e655f262e06
             <span className="text-(--primary-color) text-[10px] sm:text-[12px] md:text-[14px] font-bold">
               {price}
             </span>

@@ -109,6 +109,7 @@ function PopularProducts() {
         )}
 
         {/* Catalog — 2 per row on phones, 4 from lg (as designed) */}
+<<<<<<< HEAD
         {isLoading ? (
           <p className="py-8 text-sm text-gray-500">Loading products…</p>
         ) : products.length === 0 ? (
@@ -122,6 +123,21 @@ function PopularProducts() {
             ))}
           </div>
         )}
+=======
+        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+          {currentTab.products.map((product) => (
+            <CartItem
+              key={product.id}
+              id={product.id}
+              img={product.img}
+              name={product.name}
+              oldPrice={product.oldPrice}
+              newPrice={product.newPrice}
+              discount={product.discount}
+            />
+          ))}
+        </div>
+>>>>>>> c789c611fb7c7fb08f20fa94f26c7e655f262e06
 
         {/* Show All */}
         <Link

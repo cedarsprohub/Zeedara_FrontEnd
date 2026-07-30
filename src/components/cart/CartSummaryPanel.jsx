@@ -1,20 +1,23 @@
 import { Check } from "lucide-react";
 import { useId, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import CouponEntry from "../navbar/CartDrawer/CouponEntry";
 import { formatCurrency } from "../../utils/formatCurrency";
 import visaIcon from "../../assets/ui/visaIcon.svg";
 import mastercardIcon from "../../assets/ui/masterCardIcon.svg";
 
-const SHIPPING_FEE = 12000;
-const FREE_SHIPPING_THRESHOLD = 80000;
-
-function CartSummaryPanel({ subtotal, address }) {
+/**
+ * Cart-page order summary.
+ *
+ * Shows the server's subtotal and nothing it would have to invent. The delivery
+ * fee and any discount are set by the API when the order is created, so they're
+ * named here but not guessed at — the real figures appear on the checkout review
+ * step, before payment.
+ */
+function CartSummaryPanel({ subtotal, hasIssues = false }) {
   const checkboxId = useId();
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
-  const hasFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const total = subtotal + (hasFreeShipping ? 0 : SHIPPING_FEE);
+  const blocked = !agreedToTerms || hasIssues;
 
   return (
     <section
@@ -28,48 +31,22 @@ function CartSummaryPanel({ subtotal, address }) {
         </output>
       </div>
 
-      <CouponEntry />
-
-      <div className="flex flex-col gap-2 border-t border-b border-gray-200 py-4 text-sm">
+      <div className="flex flex-col gap-2 border-b border-gray-200 pb-4 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Shipping fee</span>
-          <div className="flex items-center gap-2">
-            <span
-              className={
-                hasFreeShipping ? "text-gray-400 line-through" : "text-black"
-              }
-            >
-              {formatCurrency(SHIPPING_FEE)}
-            </span>
-            {hasFreeShipping && (
-              <span className="font-semibold text-green-600">
-                Free shipping
-              </span>
-            )}
-          </div>
+          <span className="text-gray-600">Delivery fee</span>
+          <span className="text-gray-500">Calculated at checkout</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Local pickup:</span>
-          <span className="text-black">{formatCurrency(subtotal)}</span>
+          <span className="text-gray-600">Discount</span>
+          <span className="text-gray-500">Coupon applied at checkout</span>
         </div>
       </div>
 
-      <p className="text-sm text-gray-500">
-        Shipping to {address}{" "}
-        <button
-          type="button"
-          className="cursor-pointer font-semibold text-(--primary-color) underline"
-        >
-          Change address
-        </button>
-      </p>
-
-      <div className="flex w-full items-center justify-between border-t border-gray-200 pt-4">
-        <h2 className="text-base font-semibold text-black">Total</h2>
-        <output className="text-lg font-semibold text-black">
-          {formatCurrency(total)}
-        </output>
-      </div>
+      {hasIssues && (
+        <p className="bg-[#fae9e9] px-3 py-2 text-xs font-medium text-[#cf251f]">
+          Some items need attention before you can check out.
+        </p>
+      )}
 
       <div className="inline-flex items-center gap-2">
         <div className="relative inline-flex items-center justify-center">
@@ -104,9 +81,9 @@ function CartSummaryPanel({ subtotal, address }) {
 
       <Link
         to="/checkout"
-        aria-disabled={!agreedToTerms}
+        aria-disabled={blocked}
         onClick={(event) => {
-          if (!agreedToTerms) event.preventDefault();
+          if (blocked) event.preventDefault();
         }}
         className="flex h-[52px] w-full items-center justify-center bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:opacity-90 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
       >
@@ -118,8 +95,8 @@ function CartSummaryPanel({ subtotal, address }) {
           Guaranteed Safe And Secure Checkout
         </p>
         <div className="flex items-center gap-3 text-gray-400">
-          <img src={visaIcon} alt="Visa Icon" className="object-cover" />
-          <img src={mastercardIcon} alt="Visa Icon" className="object-cover" />
+          <img src={visaIcon} alt="Visa" className="object-cover" />
+          <img src={mastercardIcon} alt="Mastercard" className="object-cover" />
         </div>
       </div>
     </section>

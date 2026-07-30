@@ -10,6 +10,8 @@ import Categories from "../pages/Categories";
 import Products from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
+import PaymentCallback from "../pages/PaymentCallback";
 import OrderReceived from "../pages/OrderReceived";
 import CustomWig from "../pages/CustomWig";
 import Consultation from "../pages/Consultation";
@@ -50,17 +52,28 @@ function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
+          {/* Products are addressed by slug — that's the key `GET
+              /products/{slug}` takes. */}
+          <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<OrderReceived />} />
+          {/* Paystack returns here; the page verifies the reference server-side
+              before anything is treated as paid. */}
+          <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/custom-wig" element={<CustomWig />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/skincare" element={<Skincare />} />
           <Route path="/skincare-clinic" element={<Skincare />} />
 
           {/* Every account screen needs a session — they all read `user` from
-              AuthContext and call the account API. */}
+              AuthContext and call the account API. Checkout and the order
+              receipt sit here too: /checkout, /cart and /orders are all
+              token-only on the API, so there's no guest path to support. */}
           <Route element={<RequireAuth />}>
+            <Route path="/checkout" element={<Checkout />} />
+            <Route
+              path="/order-received/:orderNumber"
+              element={<OrderReceived />}
+            />
             <Route path="/account" element={<AccountLayout />}>
               <Route index element={<AccountOverview />} />
               <Route path="overview" element={<AccountOverview />} />
@@ -87,7 +100,13 @@ function AppRoutes() {
                 element={<SkincareConsultations />}
               />
               <Route path="address-book" element={<AddressBook />} />
+              {/* One form, two modes — the edit route prefills from the saved
+                  address and PATCHes it. */}
               <Route path="address-book/new" element={<NewAddress />} />
+              <Route
+                path="address-book/:addressId/edit"
+                element={<NewAddress />}
+              />
               <Route path="settings" element={<Settings />} />
               <Route
                 path="settings/basic-details"

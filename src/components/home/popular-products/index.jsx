@@ -1,226 +1,74 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import CartItem from "../../ui/CartItem";
-import sampleImg from "../../../assets/ui/sampleImg.png";
+import { listCollections, listProducts } from "../../../api/catalog";
 
-const tabs = [
-  {
-    id: "luxury-hairs",
-    label: "Luxury Hairs",
-    products: [
-      {
-        id: 1,
-        img: sampleImg,
-        name: "Brazilian Body Wave Wig",
-        oldPrice: "120,000",
-        newPrice: "95,000",
-        discount: 20,
-      },
-      {
-        id: 2,
-        img: sampleImg,
-        name: "Deep Curl Frontal Wig",
-        oldPrice: "150,000",
-        newPrice: "120,000",
-        discount: 20,
-      },
-      {
-        id: 3,
-        img: sampleImg,
-        name: "Straight Bone Wig",
-        oldPrice: "100,000",
-        newPrice: "80,000",
-        discount: 20,
-      },
-      {
-        id: 4,
-        img: sampleImg,
-        name: "Kinky Curly Bundles",
-        oldPrice: "90,000",
-        newPrice: "72,000",
-        discount: 20,
-      },
-      {
-        id: 5,
-        img: sampleImg,
-        name: "Kinky Curly Bundles",
-        oldPrice: "90,000",
-        newPrice: "72,000",
-        discount: 20,
-      },
-      {
-        id: 6,
-        img: sampleImg,
-        name: "Kinky Curly Bundles Omega Fire Star",
-        oldPrice: "90,000",
-        newPrice: "72,000",
-        discount: 20,
-      },
-      {
-        id: 7,
-        img: sampleImg,
-        name: "Kinky Curly Bundles",
-        oldPrice: "90,000",
-        newPrice: "72,000",
-        discount: 20,
-      },
-      {
-        id: 8,
-        img: sampleImg,
-        name: "Water Wave Closure Wig",
-        oldPrice: "130,000",
-        newPrice: "104,000",
-        discount: 20,
-      },
-    ],
-  },
-  {
-    id: "skin-care",
-    label: "Skin Care",
-    products: [
-      {
-        id: 1,
-        img: sampleImg,
-        name: "Vitamin C Serum",
-        oldPrice: "25,000",
-        newPrice: "18,000",
-        discount: 28,
-      },
-      {
-        id: 2,
-        img: sampleImg,
-        name: "Hydrating Moisturizer",
-        oldPrice: "20,000",
-        newPrice: "15,000",
-        discount: 25,
-      },
-      {
-        id: 3,
-        img: sampleImg,
-        name: "Gentle Foaming Cleanser",
-        oldPrice: "18,000",
-        newPrice: "13,500",
-        discount: 25,
-      },
-      {
-        id: 4,
-        img: sampleImg,
-        name: "SPF 50 Sunscreen",
-        oldPrice: "22,000",
-        newPrice: "16,000",
-        discount: 27,
-      },
-      {
-        id: 5,
-        img: sampleImg,
-        name: "Niacinamide Serum",
-        oldPrice: "24,000",
-        newPrice: "17,500",
-        discount: 27,
-      },
-      {
-        id: 6,
-        img: sampleImg,
-        name: "Retinol Night Cream",
-        oldPrice: "32,000",
-        newPrice: "24,000",
-        discount: 25,
-      },
-      {
-        id: 7,
-        img: sampleImg,
-        name: "Clay Purifying Mask",
-        oldPrice: "16,000",
-        newPrice: "12,000",
-        discount: 25,
-      },
-      {
-        id: 8,
-        img: sampleImg,
-        name: "Hyaluronic Acid Toner",
-        oldPrice: "19,000",
-        newPrice: "14,000",
-        discount: 26,
-      },
-    ],
-  },
-  {
-    id: "accessories",
-    label: "Accessories",
-    products: [
-      {
-        id: 1,
-        img: sampleImg,
-        name: "Makeup Brush Set",
-        oldPrice: "30,000",
-        newPrice: "22,000",
-        discount: 26,
-      },
-      {
-        id: 2,
-        img: sampleImg,
-        name: "Beauty Blender Sponge",
-        oldPrice: "8,000",
-        newPrice: "5,500",
-        discount: 31,
-      },
-      {
-        id: 3,
-        img: sampleImg,
-        name: "LED Vanity Mirror",
-        oldPrice: "45,000",
-        newPrice: "35,000",
-        discount: 22,
-      },
-      {
-        id: 4,
-        img: sampleImg,
-        name: "Precision Tweezers",
-        oldPrice: "6,000",
-        newPrice: "4,000",
-        discount: 33,
-      },
-      {
-        id: 5,
-        img: sampleImg,
-        name: "Satin Hair Bonnet",
-        oldPrice: "9,000",
-        newPrice: "6,500",
-        discount: 28,
-      },
-      {
-        id: 6,
-        img: sampleImg,
-        name: "Wig Styling Stand",
-        oldPrice: "15,000",
-        newPrice: "11,000",
-        discount: 27,
-      },
-      {
-        id: 7,
-        img: sampleImg,
-        name: "Edge Control Brush Set",
-        oldPrice: "7,500",
-        newPrice: "5,000",
-        discount: 33,
-      },
-      {
-        id: 8,
-        img: sampleImg,
-        name: "Silk Pillowcase",
-        oldPrice: "18,000",
-        newPrice: "13,000",
-        discount: 28,
-      },
-    ],
-  },
-];
+const PER_TAB = 8;
 
+/**
+ * Home-page catalog strip. The tabs are the store's published collections, and
+ * each one's products come from `GET /products?collection=<slug>`.
+ */
 function PopularProducts() {
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
+  const [collections, setCollections] = useState([]);
+  const [activeSlug, setActiveSlug] = useState(null);
+  // Products are stored against the tab they belong to, so switching tabs shows
+  // the loading line without a flag to keep in step.
+  const [result, setResult] = useState({ key: null, products: [] });
+
+  const requestKey = `collection:${activeSlug ?? ""}`;
+  const isLoading = result.key !== requestKey;
+  const products = result.products;
+
+  useEffect(() => {
+    let active = true;
+    listCollections()
+      .then((rows) => {
+        if (!active) return;
+        const list = (Array.isArray(rows) ? rows : []).filter(
+          (collection) => collection.is_active,
+        );
+        setCollections(list);
+        setActiveSlug(list[0]?.slug ?? null);
+      })
+      .catch(() => {
+        if (active) setCollections([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    // With no collections configured, fall back to the newest products so the
+    // section still shows the catalog rather than nothing.
+    listProducts({
+      collection: activeSlug ?? undefined,
+      limit: PER_TAB,
+      sort: "newest",
+    })
+      .then((rows) => {
+        if (active) {
+          setResult({
+            key: requestKey,
+            products: Array.isArray(rows) ? rows : [],
+          });
+        }
+      })
+      .catch(() => {
+        if (active) setResult({ key: requestKey, products: [] });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeSlug, requestKey]);
 
   const sidePadding =
     "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
-  const currentTab = tabs.find((tab) => tab.id === activeTab);
 
   return (
     <div className="popular-products">
@@ -238,48 +86,50 @@ function PopularProducts() {
         </div>
 
         {/* Tabs */}
-        <div className="popular-products-tabs flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`text-[12px] sm:text-[14px] font-normal uppercase px-2 py-2 border-b-2 cursor-pointer transition-colors duration-300 ${
-                  isActive
-                    ? "border-(--primary-color) text-(--primary-color)"
-                    : "border-gray-300 text-[#667085] hover:text-(--primary-color)"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        {collections.length > 0 && (
+          <div className="popular-products-tabs flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            {collections.map((collection) => {
+              const isActive = collection.slug === activeSlug;
+              return (
+                <button
+                  key={collection.id}
+                  type="button"
+                  onClick={() => setActiveSlug(collection.slug)}
+                  className={`text-[12px] sm:text-[14px] font-normal uppercase px-2 py-2 border-b-2 cursor-pointer transition-colors duration-300 ${
+                    isActive
+                      ? "border-(--primary-color) text-(--primary-color)"
+                      : "border-gray-300 text-[#667085] hover:text-(--primary-color)"
+                  }`}
+                >
+                  {collection.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Catalog — 2 per row on phones, 4 from lg (as designed) */}
-        <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {currentTab.products.map((product) => (
-            <CartItem
-              key={product.id}
-              id={product.id}
-              img={product.img}
-              name={product.name}
-              oldPrice={product.oldPrice}
-              newPrice={product.newPrice}
-              discount={product.discount}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <p className="py-8 text-sm text-gray-500">Loading products…</p>
+        ) : products.length === 0 ? (
+          <p className="py-8 text-sm text-gray-500">
+            No products in this collection yet.
+          </p>
+        ) : (
+          <div className="popular-products-catalog w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {products.map((product) => (
+              <CartItem key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
         {/* Show All */}
-        <button
-          type="button"
+        <Link
+          to={activeSlug ? `/products?collection=${activeSlug}` : "/products"}
           className="popular-products-showall bg-black text-white text-[14px] font-bold uppercase px-10 py-3 cursor-pointer transition-opacity hover:opacity-90"
         >
           Show All
-        </button>
+        </Link>
       </div>
     </div>
   );

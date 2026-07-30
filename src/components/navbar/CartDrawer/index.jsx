@@ -1,33 +1,24 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import CartItemList from "./CartItemList";
-import CouponEntry from "./CouponEntry";
 import Summary from "./Summary";
-import sampleImg from "../../../assets/ui/sampleImg.png";
-
-const initialItems = [
-  {
-    id: 1,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 20ml",
-    quantity: 1,
-  },
-  {
-    id: 2,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 20ml",
-    quantity: 1,
-  },
-];
+import { useCart } from "../../../context/CartContext.js";
 
 function CartDrawer({ isOpen, onClose }) {
-  const [items, setItems] = useState(initialItems);
+  const location = useLocation();
+  const {
+    items,
+    itemCount,
+    subtotal,
+    hasIssues,
+    isLoading,
+    isMutating,
+    error,
+    isAuthenticated,
+    setItemQuantity,
+    removeItem,
+  } = useCart();
 
   // Disable main page scrollbar and allow Escape to close while drawer is open
   useEffect(() => {
@@ -47,32 +38,10 @@ function CartDrawer({ isOpen, onClose }) {
     };
   }, [isOpen, onClose]);
 
-  const incrementQuantity = (id) => {
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
-      ),
-    );
-  };
-
-  const decrementQuantity = (id) => {
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-          : item,
-      ),
-    );
-  };
-
-  const removeItem = (id) => {
-    setItems((currentItems) => currentItems.filter((item) => item.id !== id));
-  };
-
-  const subtotal = items.reduce(
-    (total, item) => total + item.salePrice * item.quantity,
-    0,
-  );
+  // Mutations report through the context; swallow the throw so an unhandled
+  // rejection doesn't escape the click handler.
+  const change = (itemId, quantity) => setItemQuantity(itemId, quantity).catch(() => {});
+  const remove = (itemId) => removeItem(itemId).catch(() => {});
 
   return (
     <div
@@ -98,7 +67,7 @@ function CartDrawer({ isOpen, onClose }) {
       >
         <div className="flex items-center justify-between border-b border-gray-100 p-6">
           <h3 className="text-xl font-semibold text-gray-900">
-            Your Cart ({items.length})
+            Your Cart ({itemCount})
           </h3>
           <button
             type="button"
@@ -111,18 +80,48 @@ function CartDrawer({ isOpen, onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <CartItemList
-            items={items}
-            onIncrement={incrementQuantity}
-            onDecrement={decrementQuantity}
-            onRemove={removeItem}
-          />
+          {error && (
+            <p className="mb-4 bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+              {error}
+            </p>
+          )}
+
+          {/* The API has no guest cart — every /cart route needs a token. */}
+          {!isAuthenticated ? (
+            <p className="py-12 text-center text-sm text-gray-500">
+              <Link
+                to="/login"
+                state={{ from: location }}
+                onClick={onClose}
+                className="font-semibold text-(--primary-color) underline"
+              >
+                Sign in
+              </Link>{" "}
+              to start a cart.
+            </p>
+          ) : isLoading ? (
+            <p className="py-12 text-center text-sm text-gray-500">
+              Loading your cart…
+            </p>
+          ) : (
+            <CartItemList
+              items={items}
+              onSetQuantity={change}
+              onRemove={remove}
+              disabled={isMutating}
+            />
+          )}
         </div>
 
-        <div className="flex flex-col gap-6 border-t border-gray-100 p-6">
-          <CouponEntry />
-          <Summary subtotal={subtotal} />
-        </div>
+        {isAuthenticated && items.length > 0 && (
+          <div className="flex flex-col gap-6 border-t border-gray-100 p-6">
+            <Summary
+              subtotal={subtotal}
+              hasIssues={hasIssues}
+              onNavigate={onClose}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

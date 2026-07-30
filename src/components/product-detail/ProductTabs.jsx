@@ -1,13 +1,25 @@
 import { useState } from "react";
 import ReviewsPanel from "./ReviewsPanel";
 
-function ProductTabs({ product }) {
+function ProductTabs({ product, reviews }) {
+  const reviewCount = reviews?.summary?.review_count ?? 0;
+
   const tabs = [
     { id: "description", label: "Description" },
-    { id: "reviews", label: `Reviews (${product.reviewCount})` },
+    { id: "reviews", label: `Reviews (${reviewCount})` },
     { id: "shipping", label: "Shipping and Return" },
   ];
-  const [activeTab, setActiveTab] = useState("reviews");
+  const [activeTab, setActiveTab] = useState("description");
+
+  // Care and authenticity notes are the product's own copy; they replace the
+  // invented feature bullets the mock data used to supply.
+  const notes = [
+    product.care_notes && { title: "Care", body: product.care_notes },
+    product.authenticity_note && {
+      title: "Authenticity",
+      body: product.authenticity_note,
+    },
+  ].filter(Boolean);
 
   return (
     <div className="flex flex-col gap-8">
@@ -32,20 +44,22 @@ function ProductTabs({ product }) {
       </div>
 
       {activeTab === "description" && (
-        <div className="flex flex-col gap-3 text-sm text-gray-600">
-          <p>{product.description}</p>
-          <ul className="flex flex-col gap-1.5">
-            {product.features.map((feature) => (
-              <li key={feature} className="flex gap-2">
-                <span aria-hidden="true">&bull;</span>
-                {feature}
-              </li>
-            ))}
-          </ul>
+        <div className="flex flex-col gap-4 text-sm text-gray-600">
+          <p className="whitespace-pre-line">
+            {product.description || "No description provided for this product."}
+          </p>
+          {notes.map((note) => (
+            <div key={note.title} className="flex flex-col gap-1">
+              <h4 className="text-sm font-semibold text-black">{note.title}</h4>
+              <p className="whitespace-pre-line">{note.body}</p>
+            </div>
+          ))}
         </div>
       )}
 
-      {activeTab === "reviews" && <ReviewsPanel product={product} />}
+      {activeTab === "reviews" && (
+        <ReviewsPanel product={product} reviews={reviews} />
+      )}
 
       {activeTab === "shipping" && (
         <div className="flex flex-col gap-3 text-sm text-gray-600">

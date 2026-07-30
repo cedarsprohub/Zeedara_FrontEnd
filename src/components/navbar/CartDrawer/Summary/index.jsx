@@ -3,9 +3,14 @@ import { useId, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { formatCurrency } from "../../../../utils/formatCurrency";
 
-function Summary({ subtotal }) {
+function Summary({ subtotal, hasIssues = false, onNavigate }) {
   const checkboxId = useId();
   const [agreedToTerms, setAgreedToTerms] = useState(true);
+
+  // A cart with an unavailable or repriced line can't be checked out — the
+  // server would reject it, and letting it through would send someone to a
+  // payment page for an amount that's about to change.
+  const blocked = !agreedToTerms || hasIssues;
 
   return (
     <section
@@ -23,6 +28,13 @@ function Summary({ subtotal }) {
         <p className="text-sm text-gray-500">
           Shipping, taxes and discount codes are calculated at checkout
         </p>
+
+        {hasIssues && (
+          <p className="w-full bg-[#fae9e9] px-3 py-2 text-xs font-medium text-[#cf251f]">
+            Review the flagged items above before checking out.
+          </p>
+        )}
+
         <div className="inline-flex items-center gap-2">
           <div className="relative inline-flex items-center justify-center">
             <input
@@ -55,15 +67,20 @@ function Summary({ subtotal }) {
       <div className="flex w-full items-center gap-3">
         <Link
           to="/cart"
+          onClick={onNavigate}
           className="flex h-[52px] flex-1 items-center justify-center border border-(--primary-color) text-sm font-semibold uppercase tracking-wide text-(--primary-color) transition-colors hover:bg-[#faf4eb]"
         >
           View Cart
         </Link>
         <Link
           to="/checkout"
-          aria-disabled={!agreedToTerms}
+          aria-disabled={blocked}
           onClick={(event) => {
-            if (!agreedToTerms) event.preventDefault();
+            if (blocked) {
+              event.preventDefault();
+              return;
+            }
+            onNavigate?.();
           }}
           className="flex h-[52px] flex-1 items-center justify-center bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:opacity-90 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >

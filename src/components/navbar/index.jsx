@@ -11,6 +11,7 @@ import facebookIcon from "../../assets/navbar/facebook_icon.svg";
 import twitterIcon from "../../assets/navbar/twitter_icon.svg";
 import { useState } from "react";
 import CartDrawer from "./CartDrawer";
+import { useCart } from "../../context/CartContext.js";
 
 const navLinks = [
   { name: "HOME", path: "/" },
@@ -48,7 +49,9 @@ const socialIcons = [
 const sidePadding = "px-[clamp(1rem,2.5vw,3rem)]";
 
 function Navbar() {
-   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { itemCount } = useCart();
+
   return (
     <div className="navbar">
       {/* Top bar */}
@@ -116,16 +119,19 @@ function Navbar() {
 
               <button
                 type="button"
-                aria-label="Shopping cart"
+                aria-label={`Shopping cart (${itemCount} ${
+                  itemCount === 1 ? "item" : "items"
+                })`}
+                onClick={() => setIsCartOpen(true)}
                 className="shopping_cart flex items-center gap-1 p-2 cursor-pointer"
               >
-                <ShoppingCart
-                  className="size-[22px] text-black"
-                  onClick={() => setIsCartOpen(true)}
-                />
-                <span className="min-w-[19px] rounded-[10px] bg-[#ca9949] px-1 py-px text-center text-[10px] font-semibold text-white leading-[1.4]">
-                  1
-                </span>
+                <ShoppingCart className="size-[22px] text-black" />
+                {/* The server's own tally — no client-side counting. */}
+                {itemCount > 0 && (
+                  <span className="min-w-[19px] rounded-[10px] bg-[#ca9949] px-1 py-px text-center text-[10px] font-semibold text-white leading-[1.4]">
+                    {itemCount}
+                  </span>
+                )}
               </button>
 
               <MobileNav navLinks={navLinks} logo={zeedaraLogo} />

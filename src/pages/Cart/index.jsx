@@ -1,131 +1,78 @@
-import { Check } from "lucide-react";
-import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import CartItemList from "../../components/navbar/CartDrawer/CartItemList";
 import CartSummaryPanel from "../../components/cart/CartSummaryPanel";
 import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
-import sampleImg from "../../assets/ui/sampleImg.png";
-
-const initialItems = [
-  {
-    id: 1,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 30ml",
-    quantity: 1,
-  },
-  {
-    id: 2,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 30ml",
-    quantity: 1,
-  },
-  {
-    id: 3,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 30ml",
-    quantity: 1,
-  },
-  {
-    id: 4,
-    image: sampleImg,
-    originalPrice: 150000,
-    salePrice: 122000,
-    name: "Bare Lace 13X6 Wig Lacefrontal",
-    description: "Color: Black / Size: 30ml",
-    quantity: 1,
-  },
-];
+import { useCart } from "../../context/CartContext.js";
 
 function Cart() {
-  const [items, setItems] = useState(initialItems);
-  const [selectedIds, setSelectedIds] = useState(
-    initialItems.map((item) => item.id),
-  );
+  const location = useLocation();
+  const {
+    items,
+    subtotal,
+    hasIssues,
+    isLoading,
+    isMutating,
+    error,
+    isAuthenticated,
+    setItemQuantity,
+    removeItem,
+  } = useCart();
 
   const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
-  const allSelected = selectedIds.length === items.length && items.length > 0;
 
-  const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? [] : items.map((item) => item.id));
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedIds((current) =>
-      current.includes(id)
-        ? current.filter((itemId) => itemId !== id)
-        : [...current, id],
-    );
-  };
-
-  const incrementQuantity = (id) => {
-    setItems((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
-      ),
-    );
-  };
-
-  const decrementQuantity = (id) => {
-    setItems((current) =>
-      current.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-          : item,
-      ),
-    );
-  };
-
-  const removeItem = (id) => {
-    setItems((current) => current.filter((item) => item.id !== id));
-    setSelectedIds((current) => current.filter((itemId) => itemId !== id));
-  };
-
-  const subtotal = items
-    .filter((item) => selectedIds.includes(item.id))
-    .reduce((total, item) => total + item.salePrice * item.quantity, 0);
+  const change = (itemId, quantity) =>
+    setItemQuantity(itemId, quantity).catch(() => {});
+  const remove = (itemId) => removeItem(itemId).catch(() => {});
 
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
       <h1 className="mb-4 text-2xl font-semibold text-black">Cart Summary</h1>
 
-      <label className="mb-6 flex w-fit cursor-pointer items-center gap-2 text-sm text-gray-700">
-        <span className="relative inline-flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={toggleSelectAll}
-            className="peer absolute h-5 w-5 cursor-pointer opacity-0"
-          />
-          <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md border border-gray-300 bg-white peer-checked:border-(--primary-color) peer-checked:bg-(--primary-color)">
-            {allSelected && <Check className="size-4 text-white" />}
-          </span>
-        </span>
-        Select all
-      </label>
+      {error && (
+        <p className="mb-6 bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+          {error}
+        </p>
+      )}
 
-      <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
-        <CartItemList
-          items={items}
-          onIncrement={incrementQuantity}
-          onDecrement={decrementQuantity}
-          onRemove={removeItem}
-          selectable
-          selectedIds={selectedIds}
-          onToggleSelect={toggleSelect}
-        />
-        <CartSummaryPanel
-          subtotal={subtotal}
-          address="Omma Mall, Moore Jackson street, Bonny Island, Rivers state, Nigeria."
-        />
-      </div>
+      {/* Checkout takes the whole cart — `CheckoutRequest` has no item subset —
+          so there are deliberately no per-line checkboxes here. A selection
+          that the order ignored would misstate what's being charged. */}
+      {!isAuthenticated ? (
+        <p className="mb-16 py-16 text-center text-sm text-gray-500">
+          <Link
+            to="/login"
+            state={{ from: location }}
+            className="font-semibold text-(--primary-color) underline"
+          >
+            Sign in
+          </Link>{" "}
+          to see your cart.
+        </p>
+      ) : isLoading ? (
+        <p className="mb-16 py-16 text-center text-sm text-gray-500">
+          Loading your cart…
+        </p>
+      ) : items.length === 0 ? (
+        <div className="mb-16 flex flex-col items-center gap-4 py-16">
+          <p className="text-sm text-gray-500">Your cart is empty.</p>
+          <Link
+            to="/products"
+            className="bg-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-white transition-opacity hover:opacity-90"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
+          <CartItemList
+            items={items}
+            onSetQuantity={change}
+            onRemove={remove}
+            disabled={isMutating}
+          />
+          <CartSummaryPanel subtotal={subtotal} hasIssues={hasIssues} />
+        </div>
+      )}
 
       <YouMayAlsoLike />
     </div>

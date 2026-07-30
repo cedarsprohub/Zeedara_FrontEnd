@@ -10,6 +10,20 @@ const BASE_URL =
     ? ""
     : import.meta.env.VITE_API_BASE_URL;
 
+// Query string builder for the catalog/cart/order endpoints. Blank values are
+// dropped rather than sent as empty params, and every value goes through
+// URLSearchParams so user input (search terms, coupon codes) can't break out of
+// the query and forge extra parameters.
+export function buildQuery(params) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    search.set(key, String(value));
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
 export class ApiError extends Error {
   constructor(message, status, code, details) {
     super(message);

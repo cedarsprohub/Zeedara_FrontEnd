@@ -1,23 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import sampleImg from "../../../assets/ui/sampleImg.png";
+import { listProducts, searchProducts } from "../../../api/catalog";
+import { primaryImageUrl } from "../../../utils/product";
 
-const placeholderSuggestions = [
-  "Bare Lace 13X6 Wig Lacefrontal",
-  "Glow Hydration Serum",
-  "Custom Wig Consultation",
-  "Vitamin C Serum",
-  "Skincare Clinic Package",
-];
-
-const recommendedProducts = [
-  { id: 1, name: "Bare Lace Wig Lacefrontal", image: sampleImg },
-  { id: 2, name: "Glow Hydration Serum", image: sampleImg },
-  { id: 3, name: "Vitamin C Serum", image: sampleImg },
-  { id: 4, name: "Custom Wig Bundle", image: sampleImg },
-  { id: 5, name: "SPF 50 Sunscreen", image: sampleImg },
-];
+const SUGGESTION_LIMIT = 5;
+const RECOMMENDED_LIMIT = 5;
+// Long enough that typing a word doesn't fire a request per keystroke.
+const DEBOUNCE_MS = 250;
 
 function highlightMatch(text, query) {
   const matchIndex = text.toLowerCase().indexOf(query.toLowerCase());
@@ -38,6 +28,10 @@ function highlightMatch(text, query) {
 function SearchBar() {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  // Both lists are tagged with the query they answer, so a stale response can't
+  // overwrite a newer one.
+  const [suggestions, setSuggestions] = useState({ key: "", items: [] });
+  const [recommended, setRecommended] = useState([]);
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -47,6 +41,50 @@ function SearchBar() {
     navigate(`/products?q=${encodeURIComponent(query.trim())}`);
     setIsOpen(false);
   };
+
+  const trimmedQuery = query.trim();
+
+  // Live suggestions from `GET /search`, debounced.
+  useEffect(() => {
+    if (!isOpen || trimmedQuery === "") return undefined;
+
+    let active = true;
+    const timer = setTimeout(() => {
+      searchProducts(trimmedQuery, { limit: SUGGESTION_LIMIT })
+        .then((rows) => {
+          if (active) {
+            setSuggestions({
+              key: trimmedQuery,
+              items: Array.isArray(rows) ? rows : [],
+            });
+          }
+        })
+        .catch(() => {
+          if (active) setSuggestions({ key: trimmedQuery, items: [] });
+        });
+    }, DEBOUNCE_MS);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isOpen, trimmedQuery]);
+
+  // Newest products, as the standing recommendation set.
+  useEffect(() => {
+    if (!isOpen || recommended.length > 0) return undefined;
+
+    let active = true;
+    listProducts({ limit: RECOMMENDED_LIMIT, sort: "newest" })
+      .then((rows) => {
+        if (active) setRecommended(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [isOpen, recommended.length]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -109,52 +147,63 @@ function SearchBar() {
 
         {isOpen && (
           <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[70vh] w-full overflow-y-auto border border-gray-100 bg-white shadow-lg">
-            {/* Suggestions container - empty until the user types, will be populated from an API later */}
+            {/* Live matches from the search endpoint */}
             {hasQuery && (
               <div className="border-b border-gray-100 p-4">
-                <ul className="flex flex-col gap-1">
-                  {placeholderSuggestions.map((suggestion) => (
-                    <li key={suggestion}>
-                      <button
-                        type="button"
-                        onClick={() => setQuery(suggestion)}
-                        className="flex w-full items-center px-2 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                      >
-                        {highlightMatch(suggestion, query)}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {suggestions.key !== trimmedQuery ? (
+                  <p className="px-2 py-2 text-sm text-gray-400">Searching…</p>
+                ) : suggestions.items.length === 0 ? (
+                  <p className="px-2 py-2 text-sm text-gray-400">
+                    No matches for “{trimmedQuery}”.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-1">
+                    {suggestions.items.map((product) => (
+                      <li key={product.id}>
+                        <NavLink
+                          to={`/products/${product.slug}`}
+                          onClick={() => setIsOpen(false)}
+                          className="flex w-full items-center px-2 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                        >
+                          {highlightMatch(product.name, trimmedQuery)}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 
             {/* Recommended products container */}
-            <div className="p-4">
-              <h4 className="mb-3 text-sm font-semibold uppercase text-gray-900">
-                Recommended Products
-              </h4>
-              <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
-                {recommendedProducts.map((product) => (
-                  <NavLink
-                    key={product.id}
-                    to={`/products/${product.id}`}
-                    onClick={() => setIsOpen(false)}
-                    className="flex flex-col items-center gap-1.5 border border-gray-200 px-1 pb-1 transition-colors hover:border-(--primary-color)"
-                  >
-                    <div className="h-[73px] w-full overflow-hidden bg-gray-100">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <span className="line-clamp-2 text-[9px] font-medium text-gray-800">
-                      {product.name}
-                    </span>
-                  </NavLink>
-                ))}
+            {recommended.length > 0 && (
+              <div className="p-4">
+                <h4 className="mb-3 text-sm font-semibold uppercase text-gray-900">
+                  Recommended Products
+                </h4>
+                <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
+                  {recommended.map((product) => (
+                    <NavLink
+                      key={product.id}
+                      to={`/products/${product.slug}`}
+                      onClick={() => setIsOpen(false)}
+                      className="flex flex-col items-center gap-1.5 border border-gray-200 px-1 pb-1 transition-colors hover:border-(--primary-color)"
+                    >
+                      <div className="h-[73px] w-full overflow-hidden bg-gray-100">
+                        <img
+                          src={primaryImageUrl(product.media)}
+                          alt={product.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="line-clamp-2 text-[9px] font-medium text-gray-800">
+                        {product.name}
+                      </span>
+                    </NavLink>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

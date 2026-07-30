@@ -151,16 +151,14 @@ function Overview() {
             </p>
           )}
 
-          {/* Same form either way — it prefills and PATCHes when given an id. */}
+          {/* Always the address book's add-new form, whether or not there's
+              already a default on file. Editing an existing address lives on the
+              address book itself, next to the address it belongs to. */}
           <Link
-            to={
-              address
-                ? `/account/address-book/${address.id}/edit`
-                : "/account/address-book/new"
-            }
+            to="/account/address-book/new"
             className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[13px] font-semibold text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
           >
-            {address ? "EDIT ADDRESS" : "ADD ADDRESS"}
+            ADD NEW ADDRESS
           </Link>
         </Card>
 

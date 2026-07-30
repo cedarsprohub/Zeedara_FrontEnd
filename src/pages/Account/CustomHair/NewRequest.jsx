@@ -18,12 +18,12 @@ const BUDGETS = [
 ];
 
 const inputCls =
-  "h-[52px] w-full border border-[#dadde2] px-[17px] text-[14px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
+  "h-[52px] w-full border border-[#dadde2] px-[17px] text-[13px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
 
 function Field({ label, children }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[14px] text-[#667085]">{label}</span>
+      <span className="text-[13px] text-[#667085]">{label}</span>
       {children}
     </label>
   );
@@ -52,15 +52,17 @@ function NewRequest() {
         Back
       </button>
 
-      <h1 className="text-[24px] font-semibold leading-[1.4] text-black">
+      <h1 className="text-[16px] font-semibold leading-[1.4] text-black">
         Custom Wig Request Form
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Contact details + hair preference */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        {/* Side by side only from xl — at lg the account rail leaves too little
+            width for the two-column contact grid next to a 360px column. */}
+        <div className="flex flex-col gap-6 xl:flex-row xl:gap-10">
           <div className="flex flex-1 flex-col gap-4">
-            <h2 className="text-[16px] font-semibold text-black">
+            <h2 className="text-[14px] font-semibold text-black">
               Contact Details
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -73,8 +75,8 @@ function NewRequest() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 lg:w-[360px]">
-            <h2 className="text-[16px] font-semibold text-black">
+          <div className="flex flex-col gap-4 xl:w-[320px] 2xl:w-[360px]">
+            <h2 className="text-[14px] font-semibold text-black">
               Hair Preference
             </h2>
             <Field label="What do you want?">
@@ -103,7 +105,7 @@ function NewRequest() {
 
         {/* Budget range */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-[16px] font-semibold text-black">Budget Range</h2>
+          <h2 className="text-[14px] font-semibold text-black">Budget Range</h2>
           <div className="flex flex-wrap gap-4">
             {BUDGETS.map((label, i) => {
               const active = i === budget;
@@ -112,7 +114,7 @@ function NewRequest() {
                   key={label}
                   type="button"
                   onClick={() => setBudget(i)}
-                  className={`h-10 cursor-pointer border px-4 text-[14px] font-medium transition-colors ${
+                  className={`h-10 cursor-pointer border px-4 text-[13px] font-medium transition-colors ${
                     active
                       ? "border-(--primary-color) bg-[#faf4eb] text-(--primary-color)"
                       : "border-[#dadde2] text-[#48505e] hover:border-(--primary-color)"
@@ -127,13 +129,13 @@ function NewRequest() {
 
         {/* Upload */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-[16px] font-semibold text-black">
+          <h2 className="text-[14px] font-semibold text-black">
             Upload Inspiration Image
           </h2>
           <input
             type="file"
             accept="image/*"
-            className="block w-full text-[14px] text-[#667085] file:mr-3 file:cursor-pointer file:border file:border-[#dadde2] file:bg-white file:px-4 file:py-2 file:text-[14px] file:text-black hover:file:border-(--primary-color)"
+            className="block w-full text-[13px] text-[#667085] file:mr-3 file:cursor-pointer file:border file:border-[#dadde2] file:bg-white file:px-4 file:py-2 file:text-[13px] file:text-black hover:file:border-(--primary-color)"
           />
         </div>
 
@@ -142,12 +144,12 @@ function NewRequest() {
           <textarea
             rows={4}
             placeholder="Please include more details like your hair texture, color, wig type, length, and any important information…"
-            className="w-full resize-none border border-[#dadde2] p-[17px] text-[14px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none"
+            className="w-full resize-none border border-[#dadde2] p-[17px] text-[13px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none"
           />
         </Field>
 
         {/* Consent */}
-        <label className="flex items-start gap-3 text-[14px] text-[#48505e]">
+        <label className="flex items-start gap-3 text-[13px] text-[#48505e]">
           <input
             type="checkbox"
             checked={agreed}
@@ -163,7 +165,7 @@ function NewRequest() {
         <button
           type="submit"
           disabled={!agreed}
-          className="h-[52px] w-full cursor-pointer bg-(--primary-color) text-[14px] font-semibold uppercase tracking-[0.28px] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-[52px] w-full cursor-pointer bg-(--primary-color) text-[13px] font-semibold uppercase tracking-[0.28px] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Submit Custom Request
         </button>

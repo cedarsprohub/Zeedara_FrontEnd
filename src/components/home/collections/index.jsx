@@ -47,15 +47,15 @@ function Collections() {
   const sidePadding =
     "px-[clamp(1rem,6.25vw,7.5rem)] py-[clamp(3rem,6.25vw,7.5rem)]";
   return (
-    <div className="collections">
+    <div className="collections bg-[#f8ebfa]">
       <div
         className={`collections-inner mx-auto max-w-[1920px] ${sidePadding} flex flex-col gap-8 items-center`}
       >
         <div className="collections-content flex flex-col gap-4 w-[100%] lg:w-[70%] xl:w-[65%] items-center">
-          <span className="collections-badge bg-transparent text-[12px] lg:text-[16px] w-fit text-black font-bold py-2 px-4 text-center uppercase border border-2 border-black">
+          <span className="collections-badge bg-transparent text-[12px] lg:text-[16px] w-fit text-black font-bold py-2 px-4 text-center uppercase border-2 border-black">
             Shop What Works
           </span>
-          <h2 className="collections-title text-[40px] text-center lg:text-[48px] uppercase font-medium leading-tight font-['Anton'] text-black">
+          <h2 className="collections-title text-[32px] sm:text-[40px] text-center lg:text-[48px] uppercase font-medium leading-tight font-['Anton'] text-black">
             2026 Top Collections
           </h2>
         </div>

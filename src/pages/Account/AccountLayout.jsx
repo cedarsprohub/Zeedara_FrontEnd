@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   User,
@@ -27,24 +28,76 @@ const primaryNav = [
   { label: "Orders", icon: Package, to: "/account/orders" },
   { label: "Reviews", icon: Star },
   { label: "Custom Hair Requests", icon: MessageSquare, to: "/account/custom-hair" },
-  { label: "Skincare Consultations", icon: Headphones },
+  {
+    label: "Skincare Consultations",
+    icon: Headphones,
+    to: "/account/skincare-consultations",
+  },
   { label: "Returns and Refunds", icon: RotateCcw },
 ];
 
-const secondaryNav = ["Address Book", "Settings"];
+// Same shape as `primaryNav` minus the icons; items without a `to` are
+// placeholders until their screens exist.
+const secondaryNav = [
+  { label: "Address Book", to: "/account/address-book" },
+  { label: "Settings", to: "/account/settings" },
+];
+
+// One active treatment for every rail item: amber label and icon, plus the
+// amber left border and tint on desktop.
+const itemClasses = (active) =>
+  `flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition-colors lg:border-l-4 lg:text-[13px] ${
+    active
+      ? "text-(--primary-color) lg:border-(--primary-color) lg:bg-[#faf4eb]"
+      : "text-black lg:border-transparent lg:hover:bg-[#faf4eb]"
+  }`;
+
+// Rail entry. Items with a `to` navigate; the rest are placeholders until
+// their screens are built.
+function NavItem({ item, active }) {
+  const { label, icon: Icon, to } = item;
+  const content = (
+    <>
+      {Icon && <Icon className="size-5 shrink-0" strokeWidth={2} />}
+      <span className="flex-1">{label}</span>
+      {/* Right chevron only on the mobile menu */}
+      <ChevronRight
+        className={`size-5 shrink-0 lg:hidden ${
+          active ? "text-(--primary-color)" : "text-[#667085]"
+        }`}
+      />
+    </>
+  );
+
+  return to ? (
+    <NavLink to={to} className={itemClasses(active)}>
+      {content}
+    </NavLink>
+  ) : (
+    <button type="button" className={`${itemClasses(false)} cursor-pointer`}>
+      {content}
+    </button>
+  );
+}
 
 function AccountSidebar({ isRoot }) {
   const stickyNavHeight = useStickyNavHeight();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, accessToken, refreshToken, logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const isItemActive = (item) =>
     item.match
       ? item.match.includes(pathname)
       : pathname === item.to || pathname.startsWith(`${item.to}/`);
 
+  // Revoking the refresh token is a network round-trip, so guard against a
+  // second click landing before we navigate away.
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
     try {
       if (refreshToken) await logoutRequest(refreshToken, accessToken);
     } catch {
@@ -60,7 +113,7 @@ function AccountSidebar({ isRoot }) {
     // the `/account` root. On desktop it's the pinned side rail (`lg:sticky`),
     // always visible. `top` sits just below the pinned main nav.
     <aside
-      className={`w-full shrink-0 bg-white lg:sticky lg:block lg:w-[318px] lg:self-start ${
+      className={`w-full shrink-0 bg-white lg:sticky lg:block lg:w-[300px] lg:self-start ${
         isRoot ? "block" : "hidden"
       }`}
       style={{ top: `${stickyNavHeight + 24}px` }}
@@ -68,73 +121,32 @@ function AccountSidebar({ isRoot }) {
       {/* Welcome heading — only on the mobile menu page; on desktop it lives in
           the Overview content instead. */}
       <div className="mb-6 flex flex-col gap-1 lg:hidden">
-        <h1 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold leading-[1.4]">
+        <h1 className="flex flex-wrap items-center gap-2 text-[16px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">
             {user?.first_name || "there"}
           </span>
         </h1>
-        <p className="text-[14px] text-[#667085]">
+        <p className="text-[13px] text-[#667085]">
           Here&rsquo;s a quick look at your latest account activity.
         </p>
       </div>
 
       <nav className="flex flex-col gap-2">
-        {primaryNav.map((item) => {
-          const { label, icon: Icon, to } = item;
-          const base =
-            "flex items-center gap-3 px-4 py-3 text-[13px] font-medium text-black transition-colors lg:border-l-4 lg:text-[13px]";
-          const content = (active) => (
-            <>
-              <Icon className="size-5 shrink-0" strokeWidth={2} />
-              <span className="flex-1">{label}</span>
-              {/* Right chevron only on the mobile menu */}
-              <ChevronRight
-                className={`size-5 shrink-0 lg:hidden ${
-                  active ? "text-(--primary-color)" : "text-[#667085]"
-                }`}
-              />
-            </>
-          );
-
-          return to ? (
-            <NavLink
-              key={label}
-              to={to}
-              className={() =>
-                `${base} ${
-                  isItemActive(item)
-                    ? "lg:border-(--primary-color) lg:bg-[#faf4eb]"
-                    : "lg:border-transparent lg:hover:bg-[#faf4eb]"
-                }`
-              }
-            >
-              {content(isItemActive(item))}
-            </NavLink>
-          ) : (
-            <button
-              key={label}
-              type="button"
-              className={`${base} cursor-pointer text-left lg:border-transparent lg:hover:bg-[#faf4eb]`}
-            >
-              {content(false)}
-            </button>
-          );
-        })}
+        {primaryNav.map((item) => (
+          <NavItem key={item.label} item={item} active={isItemActive(item)} />
+        ))}
       </nav>
 
       <span className="my-2 block h-px w-full bg-[#dadde2]" />
 
       <div className="flex flex-col gap-2">
-        {secondaryNav.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium text-black transition-colors hover:text-(--primary-color) lg:text-[13px]"
-          >
-            <span className="flex-1">{label}</span>
-            <ChevronRight className="size-5 shrink-0 text-[#667085] lg:hidden" />
-          </button>
+        {secondaryNav.map((item) => (
+          <NavItem
+            key={item.label}
+            item={item}
+            active={item.to ? isItemActive(item) : false}
+          />
         ))}
       </div>
 
@@ -144,9 +156,10 @@ function AccountSidebar({ isRoot }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6]"
+          disabled={loggingOut}
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#fae9e9] px-4 text-[14px] font-semibold text-[#cf251f] transition-colors hover:bg-[#f5d6d6] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Logout
+          {loggingOut ? "Logging out…" : "Logout"}
         </button>
       </div>
     </aside>
@@ -161,7 +174,7 @@ function AccountLayout() {
 
   return (
     <section className="account mb-16 bg-white">
-      <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-10">
+      <div className="mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-2">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-[16px]">
           <AccountSidebar isRoot={isRoot} />
 

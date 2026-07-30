@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import Fade from "embla-carousel-fade";
@@ -140,20 +141,20 @@ function Hero() {
                 className={`mx-auto max-w-[1920px] w-full flex justify-between items-center h-full ${sidePadding} relative z-20 pt-15 lg:pt-0 pb-0 flex flex-col gap-3 ${slide.alignClass}`}
               >
                 <h2
-                  className="hero-header uppercase font-medium font-[Anton] leading-11 md:leading-14 lg:leading-14 xl:leading-17 text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl data-[bg=true]:text-[#faf4eb] lg:data-[bg=true]:text-[#faf4eb]"
+                  className="hero-header uppercase font-medium font-[Anton] leading-[1.1] text-[32px] sm:text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl 2xl:text-[72px] data-[bg=true]:text-[#faf4eb] lg:data-[bg=true]:text-[#faf4eb]"
                   data-bg={slide.isFullBackground}
                 >
                   {slide.header}
                 </h2>
                 <p
-                  className="hero-desc text-[14px] lg:text-[18px] w-full sm:w-[80%] md:w-[60%] xl:w-[40%] text-black lg:data-[bg=true]:text-inherit"
+                  className="hero-desc text-[13px] sm:text-[14px] lg:text-[16px] max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] text-black lg:data-[bg=true]:text-inherit"
                   data-bg={slide.isFullBackground}
                 >
                   {slide.description}
                 </p>
                 <NavLink
                   to={slide.btnLink}
-                  className={`bg-(--footer-background-color) text-[14px] lg:text-[16px] font-semibold text-white ${index == 0 ? "block" : "hidden"} uppercase w-fit mt-2 text-center px-9 lg:px-7 py-2 lg:py-3`}
+                  className={`bg-(--footer-background-color) text-[12px] sm:text-[13px] lg:text-[14px] font-semibold text-white ${index == 0 ? "block" : "hidden"} uppercase w-fit mt-2 text-center px-8 lg:px-7 py-2.5 lg:py-3 tracking-[0.28px] transition-opacity hover:opacity-90`}
                 >
                   {slide.btnText}
                 </NavLink>
@@ -183,20 +184,21 @@ function Hero() {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation arrows — thin chevrons at the slide edges, desktop only
+          (the mobile design has no arrows; the carousel autoplays there). */}
       <button
         onClick={scrollPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 text-gray-800 lg:text-white rounded-full p-3 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute left-2 top-1/2 hidden -translate-y-1/2 z-30 cursor-pointer p-2 text-[#faf4eb] transition-opacity hover:opacity-70 lg:block"
         aria-label="Previous slide"
       >
-        ❮
+        <ChevronLeft className="size-8" strokeWidth={1.5} />
       </button>
       <button
         onClick={scrollNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 text-gray-800 lg:text-white rounded-full p-3 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute right-2 top-1/2 hidden -translate-y-1/2 z-30 cursor-pointer p-2 text-[#faf4eb] transition-opacity hover:opacity-70 lg:block"
         aria-label="Next slide"
       >
-        ❯
+        <ChevronRight className="size-8" strokeWidth={1.5} />
       </button>
     </div>
   );

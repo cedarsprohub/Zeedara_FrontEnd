@@ -4,7 +4,7 @@ function NavCard({ label, img, alt, to }) {
   return (
     <NavLink to={to} class="navcard w-full">
       <div className="flex items-center justify-between w-full bg-[#faf4eb] p-5">
-        <h2 className="uppercase text-(--footer-background-color) w-fit font-bold text-[16px]">
+        <h2 className="uppercase text-(--footer-background-color) w-fit font-bold text-[14px]">
           {label}
         </h2>
         <img src={img} className="object-fit w-[50%]" alt={alt} />

@@ -52,8 +52,8 @@ function Navbar() {
   return (
     <div className="navbar">
       {/* Top bar */}
-      <div className={`navbar-banner bg-black py-4 ${sidePadding}`}>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <div className={`navbar-banner bg-black py-1 ${sidePadding}`}>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           {/* Left: socials + call */}
           <div className="nav-contact-left hidden lg:flex items-center gap-4">
             <div className="socials flex items-center gap-[10px]">
@@ -98,7 +98,7 @@ function Navbar() {
       </div>
 
       {/* Main nav */}
-      <div className={`navbar-main relative bg-white py-6 ${sidePadding}`}>
+      <div className={`navbar-main relative bg-white py-4 ${sidePadding}`}>
         <div className="navbar-main-inner mx-auto max-w-[1920px]">
           <div className="head flex flex-wrap items-center gap-4 lg:gap-8">
             <NavLink to="/" className="navbar-logo shrink-0">
@@ -148,7 +148,7 @@ function Navbar() {
                     to={link.path}
                     end={link.path === "/"}
                     className={({ isActive }) =>
-                      `relative flex items-center gap-1.5 px-2 py-3 text-[13px] font-medium whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:bg-(--primary-color) after:transition-[transform,opacity] after:duration-300 after:ease-out hover:text-(--primary-color) hover:after:scale-x-100 hover:after:opacity-30 ${
+                      `relative flex items-center gap-1.5 px-2 py-3 text-[12px] font-medium whitespace-nowrap transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:bg-(--primary-color) after:transition-[transform,opacity] after:duration-300 after:ease-out hover:text-(--primary-color) hover:after:scale-x-100 hover:after:opacity-30 ${
                         isActive
                           ? "text-(--primary-color) after:scale-x-100"
                           : "text-[#667085] after:scale-x-0 after:opacity-100"

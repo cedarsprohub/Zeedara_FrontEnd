@@ -7,6 +7,7 @@ import Hero from "../../components/home/hero";
 import Collections from "../../components/home/collections";
 import PopularProducts from "../../components/home/popular-products";
 import CustomWig from "../../components/home/custom-wig";
+import WhatsappFab from "../../components/home/whatsapp-fab";
 
 function Home() {
   return (
@@ -25,9 +26,9 @@ function Home() {
         }
         sectionTitleColor="text-black"
         sectionDesc="The concentration of a perfume is the percentage of pure fragrance oil to stabilizing ingredients, which determines lasting power."
-        sectionBtnText="purchase now"
+        sectionBtnText="view product"
         sectionDescColor="text-black"
-        sectionBtnLink="/purchase"
+        sectionBtnLink="/products"
       />
       <Collections />
       <CustomWig />
@@ -49,6 +50,7 @@ function Home() {
       />
       <Testimonials />
       <Faq />
+      <WhatsappFab />
     </div>
   );
 }

@@ -43,6 +43,10 @@ export function CartProvider({ children }) {
   // new.)
   const [loaded, setLoaded] = useState({ token: null, cart: null, error: null });
   const [isMutating, setIsMutating] = useState(false);
+  // The drawer lives here rather than in the navbar so that adding from a
+  // product card or the detail page can open it — that panel sliding out is the
+  // confirmation the item landed.
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const isCurrent = Boolean(accessToken) && loaded.token === accessToken;
   const cart = isCurrent ? loaded.cart : null;
@@ -192,9 +196,19 @@ export function CartProvider({ children }) {
     removeItem,
     refresh,
     clearError: () => setLoaded((prev) => ({ ...prev, error: null })),
+    isDrawerOpen,
+    openDrawer: () => setIsDrawerOpen(true),
+    closeDrawer: () => setIsDrawerOpen(false),
     // Lets a product card show a stepper for a line it just added.
     findItemByVariant: (variantId) =>
       items.find((item) => item.variant_id === variantId) ?? null,
+    // Fallback for a card that has no variant id of its own — after a reload,
+    // for instance. `ProductListItem` carries no variants, and cart lines
+    // identify their product only by name, so that's the join. A product with
+    // two variants in the cart matches its first line; managing those belongs on
+    // the detail or cart page anyway.
+    findItemByProductName: (productName) =>
+      items.find((item) => item.product_name === productName) ?? null,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

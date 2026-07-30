@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, ShoppingCart } from "lucide-react";
 import productImg from "../../../assets/ui/sampleImg.png";
+import { useAuth } from "../../../context/AuthContext.js";
+import { payWithPaystack } from "../../../utils/paystack";
 
 const STATS = [
   { label: "All Requests", value: "3", tint: "orange" },
@@ -25,23 +27,6 @@ const REQUESTS = [
 
 const naira = (amount) => `₦${amount.toLocaleString("en-NG")}`;
 
-// Load the Paystack Inline script once, on demand.
-const PAYSTACK_SCRIPT = "https://js.paystack.co/v1/inline.js";
-function loadPaystack() {
-  return new Promise((resolve, reject) => {
-    if (window.PaystackPop) return resolve(window.PaystackPop);
-    let script = document.querySelector(`script[src="${PAYSTACK_SCRIPT}"]`);
-    if (!script) {
-      script = document.createElement("script");
-      script.src = PAYSTACK_SCRIPT;
-      script.async = true;
-      document.body.appendChild(script);
-    }
-    script.addEventListener("load", () => resolve(window.PaystackPop));
-    script.addEventListener("error", reject);
-  });
-}
-
 function StatCard({ label, value, tint }) {
   const tintStyles =
     tint === "blue"
@@ -64,7 +49,7 @@ function StatCard({ label, value, tint }) {
   );
 }
 
-function RequestCard({ request, paid }) {
+function RequestCard({ request, submitted }) {
   return (
     <div className="border border-[#dadde2] bg-white p-5">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -97,9 +82,10 @@ function RequestCard({ request, paid }) {
             <p className="text-[14px] font-semibold text-black">
               Budget: {request.budget}
             </p>
-            {paid && (
-              <span className="text-[13px] font-semibold text-[#0f9959]">
-                PAYMENT SUCCESSFUL
+            {/* Not "successful" — nothing has verified this payment yet. */}
+            {submitted && (
+              <span className="text-[13px] font-semibold text-[#d99116]">
+                PAYMENT SUBMITTED — AWAITING CONFIRMATION
               </span>
             )}
           </div>
@@ -109,7 +95,7 @@ function RequestCard({ request, paid }) {
   );
 }
 
-function QuoteSection({ request, paid, onPay }) {
+function QuoteSection({ request, submitted, onPay }) {
   return (
     <div className="flex flex-col gap-6">
       <span className="inline-flex w-fit items-center bg-[#f0f1f3] px-2 py-1 text-[12px] font-bold text-[#3a404c]">
@@ -124,7 +110,7 @@ function QuoteSection({ request, paid, onPay }) {
           DOWNLOAD QUOTE
           <Download className="size-5 shrink-0" strokeWidth={2} />
         </button>
-        {!paid && (
+        {!submitted && (
           <button
             type="button"
             onClick={() => onPay(request)}
@@ -139,40 +125,30 @@ function QuoteSection({ request, paid, onPay }) {
 }
 
 function CustomHair() {
-  const [paidIds, setPaidIds] = useState(() => new Set());
+  const { user } = useAuth();
 
-  const markPaid = (id) =>
-    setPaidIds((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
+  // Quotes whose popup reported a charge attempt. Deliberately NOT "paid":
+  // custom-hair requests have no API behind them, so there's no order number to
+  // hand to `/payments/paystack/verify`. Until one exists, the furthest this can
+  // honestly go is "submitted, awaiting confirmation" — a browser callback is
+  // not proof money moved.
+  const [submittedIds, setSubmittedIds] = useState(() => new Set());
+  const [payError, setPayError] = useState(null);
+
+  const markSubmitted = (id) =>
+    setSubmittedIds((prev) => new Set(prev).add(id));
+
+  const handlePay = (request) => {
+    setPayError(null);
+    payWithPaystack({
+      amount: request.quoteAmount,
+      email: user?.email,
+      reference: `${request.id}-${request.submitted}`,
+      onSuccess: () => markSubmitted(request.id),
+      // A missing key or a blocked script is a failure to charge, and now reads
+      // as one instead of quietly marking the quote paid.
+      onError: (error) => setPayError(error.message),
     });
-
-  const handlePay = async (request) => {
-    const key = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-
-    // Without a configured public key we can't open the real checkout, so
-    // fall back to marking the request paid to demonstrate the flow.
-    if (!key) {
-      markPaid(request.id);
-      return;
-    }
-
-    try {
-      const PaystackPop = await loadPaystack();
-      const handler = PaystackPop.setup({
-        key,
-        email: "desmond@zeedara.com",
-        amount: request.quoteAmount * 100, // Paystack expects the amount in kobo
-        currency: "NGN",
-        ref: `${request.id}-${Date.now()}`,
-        callback: () => markPaid(request.id),
-        onClose: () => {},
-      });
-      handler.openIframe();
-    } catch {
-      markPaid(request.id);
-    }
   };
 
   return (
@@ -208,12 +184,23 @@ function CustomHair() {
         <h2 className="text-[14px] font-semibold leading-[1.4] text-black">
           Custom Hair Requests
         </h2>
+
+        {payError && (
+          <p className="bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+            {payError}
+          </p>
+        )}
+
         {REQUESTS.map((request) => {
-          const paid = paidIds.has(request.id);
+          const submitted = submittedIds.has(request.id);
           return (
             <div key={request.id} className="flex flex-col gap-6">
-              <RequestCard request={request} paid={paid} />
-              <QuoteSection request={request} paid={paid} onPay={handlePay} />
+              <RequestCard request={request} submitted={submitted} />
+              <QuoteSection
+                request={request}
+                submitted={submitted}
+                onPay={handlePay}
+              />
             </div>
           );
         })}

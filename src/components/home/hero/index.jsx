@@ -71,7 +71,9 @@ function Hero() {
       description:
         "Explore curated beauty, skincare, and self-care essentials for your everyday glow.",
       btnText: "Shop Now",
-      btnLink: "/shop",
+      // `/shop` and `/collections` aren't routes — they fell through the
+      // catch-all to the homepage, so both now point at the catalog.
+      btnLink: "/products",
     },
     {
       isFullBackground: false,
@@ -107,7 +109,7 @@ function Hero() {
       description:
         "Premium self-care items curated exclusively to turn your bathroom into a luxury home spa.",
       btnText: "View Collection",
-      btnLink: "/collections",
+      btnLink: "/products",
     },
   ];
 
@@ -152,12 +154,15 @@ function Hero() {
                 >
                   {slide.description}
                 </p>
-                <NavLink
-                  to={slide.btnLink}
+                {/* Styled as a button but rendered as a span: the whole slide is
+                    already a link to this exact target, and an <a> inside an <a>
+                    is invalid HTML (React warns, and browsers recover
+                    unpredictably). The click still follows the slide's link. */}
+                <span
                   className={`bg-(--footer-background-color) text-[12px] sm:text-[13px] lg:text-[14px] font-semibold text-white ${index == 0 ? "block" : "hidden"} uppercase w-fit mt-2 text-center px-8 lg:px-7 py-2.5 lg:py-3 tracking-[0.28px] transition-opacity hover:opacity-90`}
                 >
                   {slide.btnText}
-                </NavLink>
+                </span>
               </div>
 
               {/* Standalone Right Image Element for Slides 2 and 3 (lg and up) */}

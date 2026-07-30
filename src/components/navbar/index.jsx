@@ -9,7 +9,6 @@ import instagramIcon from "../../assets/navbar/instagram_icon.svg";
 import youtubeIcon from "../../assets/navbar/youtube_icon.svg";
 import facebookIcon from "../../assets/navbar/facebook_icon.svg";
 import twitterIcon from "../../assets/navbar/twitter_icon.svg";
-import { useState } from "react";
 import CartDrawer from "./CartDrawer";
 import { useCart } from "../../context/CartContext.js";
 
@@ -49,8 +48,9 @@ const socialIcons = [
 const sidePadding = "px-[clamp(1rem,2.5vw,3rem)]";
 
 function Navbar() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { itemCount } = useCart();
+  // Drawer state comes from the cart context so an "add to cart" anywhere on the
+  // page can open it.
+  const { itemCount, isDrawerOpen, openDrawer, closeDrawer } = useCart();
 
   return (
     <div className="navbar">
@@ -122,7 +122,7 @@ function Navbar() {
                 aria-label={`Shopping cart (${itemCount} ${
                   itemCount === 1 ? "item" : "items"
                 })`}
-                onClick={() => setIsCartOpen(true)}
+                onClick={openDrawer}
                 className="shopping_cart flex items-center gap-1 p-2 cursor-pointer"
               >
                 <ShoppingCart className="size-[22px] text-black" />
@@ -136,10 +136,7 @@ function Navbar() {
 
               <MobileNav navLinks={navLinks} logo={zeedaraLogo} />
               {/* Cart Drawer Instance injection wrapper layer passing states */}
-              <CartDrawer
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-              />
+              <CartDrawer isOpen={isDrawerOpen} onClose={closeDrawer} />
             </div>
           </div>
 

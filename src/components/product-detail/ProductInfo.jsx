@@ -12,7 +12,7 @@ const FREE_SHIPPING_COPY_THRESHOLD = 80000;
 function ProductInfo({ product, summary }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addItem, isAuthenticated, isMutating } = useCart();
+  const { addItem, openDrawer, isAuthenticated, isMutating } = useCart();
 
   const variants = useMemo(
     () => (product.variants ?? []).filter((v) => v.status === "active"),
@@ -67,8 +67,14 @@ function ProductInfo({ product, summary }) {
     }
   };
 
+  const addAndShowCart = async () => {
+    const cart = await add();
+    if (cart) openDrawer();
+  };
+
   const buyNow = async () => {
     const cart = await add();
+    // Straight to checkout — no drawer in the way.
     if (cart) navigate("/checkout");
   };
 
@@ -240,7 +246,7 @@ function ProductInfo({ product, summary }) {
         </div>
         <button
           type="button"
-          onClick={add}
+          onClick={addAndShowCart}
           disabled={disabled}
           className="flex flex-1 cursor-pointer items-center justify-center gap-2 bg-black px-6 py-3 text-sm font-semibold uppercase text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[#f0f0f0] disabled:text-[#bdc2cb]"
         >

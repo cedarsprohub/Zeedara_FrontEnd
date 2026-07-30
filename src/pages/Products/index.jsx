@@ -204,28 +204,31 @@ function Products() {
               </p>
             )}
 
-            {/* Product grid / list */}
-            <div
-              className={
-                viewMode === "list"
-                  ? "flex flex-col gap-4"
-                  : "grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-              }
-            >
-              {visibleProducts.map((product) => (
-                <CartItem
-                  key={product.id}
-                  id={product.id}
-                  img={product.img}
-                  name={product.name}
-                  description={product.description}
-                  oldPrice={product.oldPrice}
-                  newPrice={product.newPrice}
-                  discount={product.discount}
-                  viewMode={viewMode}
-                />
-              ))}
-            </div>
+            {/* Product grid / list. Columns are the incoming grid adjustment
+                (4 from md, 5 at 2xl); the rows come from the catalog. */}
+            {!isLoading && products.length === 0 && !error ? (
+              <p className="py-16 text-center text-sm text-gray-500">
+                {query
+                  ? `No products match “${query}”.`
+                  : "No products available yet."}
+              </p>
+            ) : (
+              <div
+                className={
+                  viewMode === "list"
+                    ? "flex flex-col gap-4"
+                    : "grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5"
+                }
+              >
+                {products.map((product) => (
+                  <CartItem
+                    key={product.id}
+                    product={product}
+                    viewMode={viewMode}
+                  />
+                ))}
+              </div>
+            )}
 
             <Pagination
               currentPage={currentPage}

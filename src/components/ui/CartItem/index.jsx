@@ -19,6 +19,8 @@ function CartItem({ product, viewMode = "grid" }) {
     addItem,
     setItemQuantity,
     findItemByVariant,
+    findItemByProductName,
+    openDrawer,
     isAuthenticated,
     isMutating,
   } = useCart();
@@ -29,7 +31,13 @@ function CartItem({ product, viewMode = "grid" }) {
   const [busy, setBusy] = useState(false);
 
   const href = `/products/${product.slug}`;
-  const line = variantId ? findItemByVariant(variantId) : null;
+  // The variant this card added, or — on a fresh page load, where that's been
+  // forgotten — whatever line the cart already holds for this product. Without
+  // the fallback a card would offer "ADD TO CART" for something already in the
+  // cart, and adding again would silently stack a second unit.
+  const line =
+    (variantId ? findItemByVariant(variantId) : null) ??
+    findItemByProductName(product.name);
   const quantity = line?.quantity ?? 0;
 
   const handleAdd = async (event) => {
@@ -53,6 +61,8 @@ function CartItem({ product, viewMode = "grid" }) {
       }
       await addItem(options[0].id, 1);
       setVariantId(options[0].id);
+      // Slide the cart out — the card's stepper alone is easy to miss.
+      openDrawer();
     } catch {
       // The cart context surfaces its own failures; a catalog fetch that fails
       // just falls back to the detail page.
@@ -183,34 +193,22 @@ function CartItem({ product, viewMode = "grid" }) {
           className="size-full object-cover"
         />
       </div>
-<<<<<<< HEAD
-      <div className="cart-details w-full flex flex-1 flex-col space-y-0 lg:space-y-1">
+      {/* Layout breakpoints are the incoming grid work (2xl/3xl tiers); the
+          bindings are the catalog response. There's no "was" price on
+          `ProductListItem`, so the strikethrough and the % OFF badge that went
+          with the mock data have no data to render. */}
+      <div className="cart-details w-full flex flex-1 flex-col space-y-0 2xl:space-y-1">
         {subtitle && (
           <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold uppercase truncate">
             {subtitle}
           </span>
         )}
-        <div className="flex flex-col lg:flex-row gap-1 lg:gap-0 items-start">
-          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 lg:line-clamp-2">
+        <div className="flex flex-col 3xl:flex-row gap-1 3xl:gap-0 items-start">
+          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 3xl:line-clamp-2">
             {product.name}
           </h3>
 
-          <div className="price-container flex items-center space-x-1 lg:space-x-2 ml-0 lg:ml-2">
-=======
-      <div className="cart-details w-full flex flex-1 flex-col space-y-0 2xl:space-y-1">
-        <span className="text-(--primary-color) text-[8px] md:text-[12px] font-bold">
-          {discount}% OFF
-        </span>
-        <div className="flex flex-col 3xl:flex-row gap-1 3xl:gap-0 items-start">
-          <h3 className="text-[10px] sm:text-[12px] md:text-[14px] font-medium leading-tight line-clamp-1 3xl:line-clamp-2">
-            {name}
-          </h3>
-
           <div className="price-container flex items-center space-x-1 3xl:space-x-2 ml-0 3xl:ml-2">
-            <span className="text-gray-500 text-[10px] sm:text-[12px] md:text-[14px] line-through">
-              N{oldPrice}
-            </span>
->>>>>>> c789c611fb7c7fb08f20fa94f26c7e655f262e06
             <span className="text-(--primary-color) text-[10px] sm:text-[12px] md:text-[14px] font-bold">
               {price}
             </span>

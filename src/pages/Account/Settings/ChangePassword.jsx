@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, XCircle } from "lucide-react";
+import { useAuth } from "../../../context/AuthContext.js";
+import { changePassword } from "../../../api/auth";
+import { ApiError } from "../../../api/client";
 import SuccessPanel from "./SuccessPanel";
 
 // Same rules and thresholds as the auth screens (see Auth/ChangePassword) so a
@@ -76,11 +79,13 @@ function PasswordField({ id, label, value, onChange, disabled, errors = [] }) {
 
 function ChangePassword() {
   const navigate = useNavigate();
+  const { accessToken, logout } = useAuth();
 
   const [oldPassword, setOldPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState(noErrors);
+  const [failure, setFailure] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -111,28 +116,45 @@ function ChangePassword() {
     }
 
     setErrors(noErrors);
+    setFailure("");
     setBusy(true);
     try {
-      // TODO(api): no authenticated change-password endpoint exists. The API
-      // exposes only /auth/password/forgot and /auth/password/reset (the
-      // unauthenticated reset flow) and /auth/register/password. Call the real
-      // endpoint here once it lands; on a rejected current password set
-      // `{ old: [MESSAGES.wrongOld], confirm: [] }`.
+      await changePassword(oldPassword, password, accessToken);
       setOldPassword("");
       setPassword("");
       setConfirm("");
       setSaved(true);
+    } catch (err) {
+      if (!(err instanceof ApiError)) {
+        setFailure("Something went wrong. Please try again.");
+        return;
+      }
+      // A rejected current password is the one failure the design gives a field
+      // slot to; 422 is the backend re-running its own rules on the new one.
+      if (err.status === 422) {
+        setErrors({ old: [], confirm: [err.message] });
+      } else if ([400, 401, 403].includes(err.status)) {
+        setErrors({ old: [MESSAGES.wrongOld], confirm: [] });
+      } else {
+        setFailure(err.message);
+      }
     } finally {
       setBusy(false);
     }
   };
 
   // The design replaces the whole form with a confirmation panel on success.
+  // The backend revokes every refresh token on a password change, so this
+  // session is spent — end it here rather than letting it die mid-browse.
   if (saved) {
     return (
       <SuccessPanel
-        message="Password updated successfully"
-        onClose={() => navigate("/account/settings")}
+        message="Password updated successfully. Please sign in again with your new password."
+        closeLabel="SIGN IN"
+        onClose={() => {
+          logout();
+          navigate("/login", { replace: true });
+        }}
       />
     );
   }
@@ -148,6 +170,12 @@ function ChangePassword() {
         <ArrowLeft className="size-4 shrink-0" strokeWidth={2} />
         Back
       </button>
+
+      {failure && (
+        <p className="max-w-[699px] bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+          {failure}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-9">
         <div className="flex flex-col gap-3">

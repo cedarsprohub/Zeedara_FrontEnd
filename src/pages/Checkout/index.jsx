@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Lock } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { CircleCheck, ChevronDown, Lock } from "lucide-react";
 import CouponEntry from "../../components/navbar/CartDrawer/CouponEntry";
 import { useAuth } from "../../context/AuthContext.js";
 import { useCart } from "../../context/CartContext.js";
 import { listAddresses } from "../../api/addresses";
-import { checkout } from "../../api/orders";
+import { checkout, getOrder } from "../../api/orders";
 import { initializePayment } from "../../api/payments";
 import { formatAmount, formatCurrency } from "../../utils/formatCurrency";
 import {
   DELIVERY_METHODS,
   NIGERIAN_STATES,
 } from "../../utils/deliveryOptions";
+import { isPaidStatus, ORDER_STATUS_LABEL } from "../../utils/orderStatus";
 import { savePendingPayment } from "../../utils/pendingPayment";
 
 // Where the customer is sent to pay. Anything that isn't Paystack over TLS is
@@ -102,7 +103,15 @@ const ADDRESS_FIELDS = [
 function Checkout() {
   const navigate = useNavigate();
   const { user, accessToken } = useAuth();
-  const { cartId, items, subtotal, hasIssues, isLoading } = useCart();
+  const { cartId, items, subtotal, hasIssues, isLoading, refresh } = useCart();
+
+  // Which step we're on lives in the URL, not in state. An order that exists
+  // server-side survives a reload, a back/forward, and a re-mount, so
+  // `/checkout?order=…` is the review step and bare `/checkout` is the form —
+  // there's no way to be looking at a review whose order the page has forgotten.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const orderNumber = searchParams.get("order");
+  const step = orderNumber ? "review" : "details";
 
   // Only what the shopper typed lives in state; everything else is derived from
   // the account and the selected address, so there are no prefill effects that
@@ -111,14 +120,48 @@ function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [addresses, setAddresses] = useState([]);
   const [addressId, setAddressId] = useState("");
-  // "details" collects the delivery information; "review" shows the order the
-  // server priced, which is the only place a total is quoted.
-  const [step, setStep] = useState("details");
-  const [order, setOrder] = useState(null);
+  // Tagged with the order number it was loaded for, so the review step can never
+  // show one order's figures under another's number.
+  const [loadedOrder, setLoadedOrder] = useState({
+    orderNumber: null,
+    order: null,
+    error: null,
+  });
+  // An order the shopper stepped back from. It's still a real unpaid order, so
+  // the empty-cart state below points at it rather than dead-ending.
+  const [abandonedOrder, setAbandonedOrder] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
+  const isOrderCurrent = loadedOrder.orderNumber === orderNumber;
+  const order = isOrderCurrent ? loadedOrder.order : null;
+  const orderError = isOrderCurrent ? loadedOrder.error : null;
+  const isOrderLoading = Boolean(orderNumber) && !isOrderCurrent;
+
   const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
+
+  // Reads the order back when the page arrives at the review step without it in
+  // hand — a reload, or a link straight to `?order=…`. `createOrder` seeds this
+  // from its own response, so the common path doesn't refetch.
+  useEffect(() => {
+    if (!orderNumber || !accessToken || isOrderCurrent) return undefined;
+    let active = true;
+
+    getOrder(orderNumber, { accessToken })
+      .then(
+        (data) =>
+          active && setLoadedOrder({ orderNumber, order: data, error: null }),
+      )
+      .catch(
+        (err) =>
+          active &&
+          setLoadedOrder({ orderNumber, order: null, error: err.message }),
+      );
+
+    return () => {
+      active = false;
+    };
+  }, [orderNumber, accessToken, isOrderCurrent]);
 
   useEffect(() => {
     if (!accessToken) return undefined;
@@ -205,8 +248,18 @@ function Checkout() {
         },
         accessToken,
       );
-      setOrder(created);
-      setStep("review");
+      setLoadedOrder({
+        orderNumber: created.order_number,
+        order: created,
+        error: null,
+      });
+      setAbandonedOrder(null);
+      // The cart has been spent creating the order. Resync it so the navbar
+      // badge and the drawer stop offering lines that are now on an order.
+      refresh();
+      // Replaces rather than pushes: the form behind us can't be submitted again
+      // against a cart the order now holds, so Back should leave checkout.
+      setSearchParams({ order: created.order_number }, { replace: true });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message);
@@ -215,11 +268,29 @@ function Checkout() {
     }
   };
 
+  // Steps back to the form. The order isn't cancelled — there's no endpoint for
+  // that, and it's still payable from the order history — so it's remembered
+  // here and surfaced instead of vanishing.
+  const changeDetails = async () => {
+    setError(null);
+    setAbandonedOrder(orderNumber);
+    setBusy(true);
+    try {
+      // The cart may or may not have survived creating the order; read it back
+      // rather than showing a form built on what it held a moment ago.
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+    setSearchParams({}, { replace: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const pay = async () => {
     setError(null);
     setBusy(true);
     try {
-      const session = await initializePayment(order.order_number);
+      const session = await initializePayment(order.order_number, accessToken);
 
       if (!isTrustedPaymentUrl(session.authorization_url)) {
         setError(
@@ -241,16 +312,46 @@ function Checkout() {
     }
   };
 
-  if (isLoading) {
+  // The cart only gates the form. Once an order exists it's the order that
+  // matters, and the cart behind it may already be spent.
+  if (step === "review" ? isOrderLoading : isLoading) {
     return (
       <div className={`mx-auto max-w-[1920px] ${sidePadding} py-24 text-center`}>
-        <p className="text-sm text-gray-500">Loading your cart…</p>
+        <p className="text-sm text-gray-500">
+          {step === "review" ? "Loading your order…" : "Loading your cart…"}
+        </p>
       </div>
     );
   }
 
-  // Once the order exists the cart may already be spent, so only guard the
-  // details step on having items.
+  // A `?order=` the API won't return — someone else's, cancelled, mistyped.
+  if (step === "review" && !order) {
+    return (
+      <div
+        className={`mx-auto flex max-w-[1920px] flex-col items-center gap-4 ${sidePadding} py-24 text-center`}
+      >
+        <h1 className="text-2xl font-semibold text-black">Order not found</h1>
+        <p className="max-w-[460px] text-sm text-gray-500">
+          {orderError || "We couldn't find that order on your account."}
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/account/orders"
+            className="bg-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-white transition-opacity hover:opacity-90"
+          >
+            My orders
+          </Link>
+          <Link
+            to="/cart"
+            className="border border-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-(--primary-color) transition-colors hover:bg-[#faf4eb]"
+          >
+            Back to cart
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (step === "details" && items.length === 0) {
     return (
       <div
@@ -259,18 +360,53 @@ function Checkout() {
         <h1 className="text-2xl font-semibold text-black">
           Your cart is empty
         </h1>
-        <p className="text-sm text-gray-500">
-          Add something to it before checking out.
-        </p>
-        <Link
-          to="/products"
-          className="bg-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-white transition-opacity hover:opacity-90"
-        >
-          Continue shopping
-        </Link>
+        {/* Stepping back from a created order empties the cart — the order holds
+            those lines now. Saying so, with the way back, beats a bare empty
+            state that looks like the order was lost. */}
+        {abandonedOrder ? (
+          <>
+            <p className="max-w-[460px] text-sm text-gray-500">
+              Order {abandonedOrder} holds those items and is still awaiting
+              payment.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to={`/checkout?order=${encodeURIComponent(abandonedOrder)}`}
+                className="bg-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-white transition-opacity hover:opacity-90"
+              >
+                Review and pay
+              </Link>
+              <Link
+                to="/account/orders"
+                className="border border-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-(--primary-color) transition-colors hover:bg-[#faf4eb]"
+              >
+                My orders
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500">
+              Add something to it before checking out.
+            </p>
+            <Link
+              to="/products"
+              className="bg-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-white transition-opacity hover:opacity-90"
+            >
+              Continue shopping
+            </Link>
+          </>
+        )}
       </div>
     );
   }
+
+  // Everything below is the server's, straight off the order. `items` has been
+  // optional on `OrderResponse` in practice, and a missing array shouldn't take
+  // the page down with it.
+  const orderItems = order?.items ?? [];
+  const orderPaid = Boolean(order) && isPaidStatus(order.status);
+  const discount = Number(order?.discount_ngn ?? 0);
 
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
@@ -297,6 +433,22 @@ function Checkout() {
                   Review your cart
                 </Link>{" "}
                 before continuing.
+              </p>
+            )}
+
+            {/* Submitting again makes a second order — the first one isn't
+                cancelled by stepping back — so say so before they do. */}
+            {abandonedOrder && (
+              <p className="bg-[#fbf4e8] px-4 py-3 text-[13px] font-medium text-[#d99116]">
+                Order {abandonedOrder} is still awaiting payment. Continuing here
+                creates a separate order —{" "}
+                <Link
+                  to={`/checkout?order=${encodeURIComponent(abandonedOrder)}`}
+                  className="font-semibold underline"
+                >
+                  go back to it
+                </Link>{" "}
+                instead if you only wanted to pay.
               </p>
             )}
 
@@ -505,16 +657,28 @@ function Checkout() {
       ) : (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
           <div className="flex flex-col gap-6">
-            <div className="bg-[#fbf4e8] px-4 py-3 text-[13px] font-medium text-[#d99116]">
-              Order {order.order_number} is reserved and awaiting payment.
-            </div>
+            {/* The banner is the order's real status, not an assumption that
+                being on this step means unpaid — landing here from history, or
+                after paying and hitting Back, are both normal. */}
+            {orderPaid ? (
+              <div className="flex items-center gap-2 bg-[#eefeec] px-4 py-3 text-[13px] font-medium text-[#298d1c]">
+                <CircleCheck className="size-4 shrink-0" />
+                Order {order.order_number} is paid —{" "}
+                {ORDER_STATUS_LABEL[order.status] ?? order.status}. Nothing more
+                to do here.
+              </div>
+            ) : (
+              <div className="bg-[#fbf4e8] px-4 py-3 text-[13px] font-medium text-[#d99116]">
+                Order {order.order_number} is reserved and awaiting payment.
+              </div>
+            )}
 
             <div>
               <h2 className="mb-3 text-[16px] font-semibold text-black">
                 Items
               </h2>
               <div className="border-t border-gray-200">
-                {order.items.map((item, index) => (
+                {orderItems.map((item, index) => (
                   <div
                     key={`${item.sku}-${index}`}
                     className="flex items-start justify-between gap-4 border-b border-gray-100 py-3 text-[13px]"
@@ -557,17 +721,16 @@ function Checkout() {
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setOrder(null);
-                setStep("details");
-                setError(null);
-              }}
-              className="w-fit cursor-pointer text-[13px] font-semibold text-(--primary-color) underline"
-            >
-              Change delivery details
-            </button>
+            {!orderPaid && (
+              <button
+                type="button"
+                onClick={changeDetails}
+                disabled={busy}
+                className="w-fit cursor-pointer text-[13px] font-semibold text-(--primary-color) underline disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Change delivery details
+              </button>
+            )}
           </div>
 
           {/* Every figure here is the server's, straight off the created order. */}
@@ -581,12 +744,18 @@ function Checkout() {
                 label="Subtotal"
                 value={formatAmount(order.subtotal_ngn)}
               />
-              <TotalRow
-                label={
-                  order.coupon_code ? `Discount (${order.coupon_code})` : "Discount"
-                }
-                value={`−${formatAmount(order.discount_ngn)}`}
-              />
+              {/* A zero discount row read as though a coupon had failed. Only
+                  shown when there's actually one to show. */}
+              {discount > 0 && (
+                <TotalRow
+                  label={
+                    order.coupon_code
+                      ? `Discount (${order.coupon_code})`
+                      : "Discount"
+                  }
+                  value={`−${formatAmount(order.discount_ngn)}`}
+                />
+              )}
               <TotalRow
                 label="Delivery fee"
                 value={formatAmount(order.delivery_fee_ngn)}
@@ -600,30 +769,43 @@ function Checkout() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={pay}
-              disabled={busy}
-              className="flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[#f0f0f0] disabled:text-[#bdc2cb]"
-            >
-              <Lock className="size-4" />
-              {busy
-                ? "Opening payment…"
-                : `Pay ${formatAmount(order.total_ngn)}`}
-            </button>
+            {/* Never offer to pay an order the server already considers paid —
+                that's the one action on this page that costs money twice. */}
+            {orderPaid ? (
+              <Link
+                to={`/order-received/${encodeURIComponent(order.order_number)}`}
+                className="flex h-[52px] w-full items-center justify-center bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+              >
+                View your order
+              </Link>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={pay}
+                  disabled={busy}
+                  className="flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[#f0f0f0] disabled:text-[#bdc2cb]"
+                >
+                  <Lock className="size-4" />
+                  {busy
+                    ? "Opening payment…"
+                    : `Pay ${formatAmount(order.total_ngn)}`}
+                </button>
 
-            <p className="text-center text-xs text-gray-500">
-              You&apos;ll be taken to Paystack to pay securely. Your order is
-              confirmed only after we verify the payment.
-            </p>
+                <p className="text-center text-xs text-gray-500">
+                  You&apos;ll be taken to Paystack to pay securely. Your order is
+                  confirmed only after we verify the payment.
+                </p>
 
-            <button
-              type="button"
-              onClick={() => navigate("/account/orders")}
-              className="cursor-pointer text-center text-xs font-semibold text-(--primary-color) underline"
-            >
-              Pay later from my orders
-            </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/account/orders")}
+                  className="cursor-pointer text-center text-xs font-semibold text-(--primary-color) underline"
+                >
+                  Pay later from my orders
+                </button>
+              </>
+            )}
           </aside>
         </div>
       )}

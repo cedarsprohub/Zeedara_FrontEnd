@@ -3,7 +3,12 @@ import { useId, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { formatCurrency } from "../../../../utils/formatCurrency";
 
-function Summary({ subtotal, hasIssues = false, onNavigate }) {
+function Summary({
+  subtotal,
+  hasIssues = false,
+  isAuthenticated = false,
+  onNavigate,
+}) {
   const checkboxId = useId();
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
@@ -11,6 +16,15 @@ function Summary({ subtotal, hasIssues = false, onNavigate }) {
   // server would reject it, and letting it through would send someone to a
   // payment page for an amount that's about to change.
   const blocked = !agreedToTerms || hasIssues;
+
+  // Checkout is the one thing that needs a session, so a signed-out shopper is
+  // sent to sign in and returned to /checkout rather than bounced off it. (The
+  // route guard would redirect anyway; going straight there keeps a checkout URL
+  // they never saw out of their history.)
+  const checkoutTo = isAuthenticated ? "/checkout" : "/login";
+  const checkoutState = isAuthenticated
+    ? undefined
+    : { from: { pathname: "/checkout" } };
 
   return (
     <section
@@ -73,7 +87,8 @@ function Summary({ subtotal, hasIssues = false, onNavigate }) {
           View Cart
         </Link>
         <Link
-          to="/checkout"
+          to={checkoutTo}
+          state={checkoutState}
           aria-disabled={blocked}
           onClick={(event) => {
             if (blocked) {
@@ -82,9 +97,9 @@ function Summary({ subtotal, hasIssues = false, onNavigate }) {
             }
             onNavigate?.();
           }}
-          className="flex h-[52px] flex-1 items-center justify-center bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:opacity-90 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+          className="flex h-[52px] flex-1 items-center justify-center bg-(--primary-color) px-2 text-center text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:opacity-90 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >
-          Checkout
+          {isAuthenticated ? "Checkout" : "Sign in to check out"}
         </Link>
       </div>
     </section>

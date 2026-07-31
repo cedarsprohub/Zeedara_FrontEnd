@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Share2, Star, CircleCheck, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useCart } from "../../context/CartContext.js";
 import { formatAmount, formatCurrency } from "../../utils/formatCurrency";
@@ -11,8 +11,7 @@ const FREE_SHIPPING_COPY_THRESHOLD = 80000;
 
 function ProductInfo({ product, summary }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { addItem, openDrawer, isAuthenticated, isMutating } = useCart();
+  const { addItem, openDrawer, isMutating } = useCart();
 
   const variants = useMemo(
     () => (product.variants ?? []).filter((v) => v.status === "active"),
@@ -45,18 +44,17 @@ function ProductInfo({ product, summary }) {
     setError(null);
   };
 
-  // The server re-checks stock on every add; capping here just keeps the UI
-  // from asking for something it already knows isn't there.
+  // No session needed: signed out, the line is held locally and replayed into the
+  // server cart at sign-in. The server re-checks stock on every add; capping here
+  // just keeps the UI from asking for something it already knows isn't there.
   const add = async () => {
     if (!variant) return null;
-    if (!isAuthenticated) {
-      navigate("/login", { state: { from: location } });
-      return null;
-    }
     setBusy(true);
     setError(null);
     try {
-      const cart = await addItem(variant.id, quantity);
+      // The slug is what prices a stored line while signed out; signed in it's
+      // ignored and the server does the pricing.
+      const cart = await addItem(variant.id, quantity, { slug: product.slug });
       setAdded(true);
       return cart;
     } catch (err) {
@@ -74,7 +72,8 @@ function ProductInfo({ product, summary }) {
 
   const buyNow = async () => {
     const cart = await add();
-    // Straight to checkout — no drawer in the way.
+    // Straight to checkout — no drawer in the way. Checkout is behind
+    // `RequireAuth`, so a signed-out shopper signs in and lands back here.
     if (cart) navigate("/checkout");
   };
 

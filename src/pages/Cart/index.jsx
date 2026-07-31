@@ -1,11 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import CartItemList from "../../components/navbar/CartDrawer/CartItemList";
 import CartSummaryPanel from "../../components/cart/CartSummaryPanel";
 import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
 import { useCart } from "../../context/CartContext.js";
 
 function Cart() {
-  const location = useLocation();
   const {
     items,
     subtotal,
@@ -36,19 +35,11 @@ function Cart() {
 
       {/* Checkout takes the whole cart — `CheckoutRequest` has no item subset —
           so there are deliberately no per-line checkboxes here. A selection
-          that the order ignored would misstate what's being charged. */}
-      {!isAuthenticated ? (
-        <p className="mb-16 py-16 text-center text-sm text-gray-500">
-          <Link
-            to="/login"
-            state={{ from: location }}
-            className="font-semibold text-(--primary-color) underline"
-          >
-            Sign in
-          </Link>{" "}
-          to see your cart.
-        </p>
-      ) : isLoading ? (
+          that the order ignored would misstate what's being charged.
+
+          No sign-in gate either: the cart is filled signed out and only checkout
+          needs a session. */}
+      {isLoading ? (
         <p className="mb-16 py-16 text-center text-sm text-gray-500">
           Loading your cart…
         </p>
@@ -70,7 +61,11 @@ function Cart() {
             onRemove={remove}
             disabled={isMutating}
           />
-          <CartSummaryPanel subtotal={subtotal} hasIssues={hasIssues} />
+          <CartSummaryPanel
+            subtotal={subtotal}
+            hasIssues={hasIssues}
+            isAuthenticated={isAuthenticated}
+          />
         </div>
       )}
 

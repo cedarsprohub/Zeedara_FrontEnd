@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext.js";
 import { getProduct } from "../../../api/catalog";
 import { formatAmount } from "../../../utils/formatCurrency";
@@ -14,14 +14,12 @@ import { primaryImageUrl, purchasableVariants } from "../../../utils/product";
  */
 function CartItem({ product, viewMode = "grid" }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const {
     addItem,
     setItemQuantity,
     findItemByVariant,
     findItemByProductName,
     openDrawer,
-    isAuthenticated,
     isMutating,
   } = useCart();
 
@@ -45,11 +43,6 @@ function CartItem({ product, viewMode = "grid" }) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!isAuthenticated) {
-      navigate("/login", { state: { from: location } });
-      return;
-    }
-
     setBusy(true);
     try {
       const detail = await getProduct(product.slug);
@@ -59,7 +52,7 @@ function CartItem({ product, viewMode = "grid" }) {
         navigate(href);
         return;
       }
-      await addItem(options[0].id, 1);
+      await addItem(options[0].id, 1, { slug: product.slug });
       setVariantId(options[0].id);
       // Slide the cart out — the card's stepper alone is easy to miss.
       openDrawer();

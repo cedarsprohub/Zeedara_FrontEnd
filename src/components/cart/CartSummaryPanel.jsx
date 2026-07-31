@@ -13,11 +13,19 @@ import mastercardIcon from "../../assets/ui/masterCardIcon.svg";
  * named here but not guessed at — the real figures appear on the checkout review
  * step, before payment.
  */
-function CartSummaryPanel({ subtotal, hasIssues = false }) {
+function CartSummaryPanel({ subtotal, hasIssues = false, isAuthenticated = false }) {
   const checkboxId = useId();
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
   const blocked = !agreedToTerms || hasIssues;
+
+  // The cart itself needs no session; checkout does. Sending a signed-out shopper
+  // to /login with /checkout as the destination gets them back here afterwards,
+  // with everything they added while signed out already in the server cart.
+  const checkoutTo = isAuthenticated ? "/checkout" : "/login";
+  const checkoutState = isAuthenticated
+    ? undefined
+    : { from: { pathname: "/checkout" } };
 
   return (
     <section
@@ -80,14 +88,15 @@ function CartSummaryPanel({ subtotal, hasIssues = false }) {
       </div>
 
       <Link
-        to="/checkout"
+        to={checkoutTo}
+        state={checkoutState}
         aria-disabled={blocked}
         onClick={(event) => {
           if (blocked) event.preventDefault();
         }}
         className="flex h-[52px] w-full items-center justify-center bg-(--primary-color) text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:opacity-90 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
       >
-        Proceed to Checkout
+        {isAuthenticated ? "Proceed to Checkout" : "Sign in to check out"}
       </Link>
 
       <div className="flex flex-col items-center gap-2 pt-2 text-center">

@@ -8,10 +8,11 @@ import { request } from "./client";
 // and on the way back asks the server to verify the reference. `paid` in that
 // response is the only thing that may be treated as payment.
 
-export function initializePayment(orderNumber) {
+export function initializePayment(orderNumber, accessToken) {
   return request("/api/v1/payments/paystack/initialize", {
     method: "POST",
     body: { order_number: orderNumber },
+    token: accessToken,
   });
 }
 

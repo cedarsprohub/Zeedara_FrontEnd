@@ -1,12 +1,10 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 import CartItemList from "./CartItemList";
 import Summary from "./Summary";
 import { useCart } from "../../../context/CartContext.js";
 
 function CartDrawer({ isOpen, onClose }) {
-  const location = useLocation();
   const {
     items,
     itemCount,
@@ -86,20 +84,9 @@ function CartDrawer({ isOpen, onClose }) {
             </p>
           )}
 
-          {/* The API has no guest cart — every /cart route needs a token. */}
-          {!isAuthenticated ? (
-            <p className="py-12 text-center text-sm text-gray-500">
-              <Link
-                to="/login"
-                state={{ from: location }}
-                onClick={onClose}
-                className="font-semibold text-(--primary-color) underline"
-              >
-                Sign in
-              </Link>{" "}
-              to start a cart.
-            </p>
-          ) : isLoading ? (
+          {/* No sign-in gate: a signed-out cart is held locally and replayed
+              into the server cart at sign-in. Only checkout needs a session. */}
+          {isLoading ? (
             <p className="py-12 text-center text-sm text-gray-500">
               Loading your cart…
             </p>
@@ -113,11 +100,12 @@ function CartDrawer({ isOpen, onClose }) {
           )}
         </div>
 
-        {isAuthenticated && items.length > 0 && (
+        {items.length > 0 && (
           <div className="flex flex-col gap-6 border-t border-gray-100 p-6">
             <Summary
               subtotal={subtotal}
               hasIssues={hasIssues}
+              isAuthenticated={isAuthenticated}
               onNavigate={onClose}
             />
           </div>

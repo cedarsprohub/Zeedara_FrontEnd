@@ -142,7 +142,7 @@ function OrderReceived() {
             <span>Items</span>
             <span>Price</span>
           </div>
-          {order.items.map((item, index) => (
+          {(order.items ?? []).map((item, index) => (
             <div
               key={`${item.sku}-${index}`}
               className="flex items-start justify-between gap-4 border-b border-gray-100 py-3 text-[13px]"

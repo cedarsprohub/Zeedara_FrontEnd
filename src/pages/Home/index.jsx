@@ -1,4 +1,6 @@
 import Faq from "../../components/faq";
+import Seo from "../../components/shared/Seo";
+import { storeSchema } from "../../utils/structuredData";
 import CTA from "../../components/home/cta";
 import sideImg from "../../assets/home/side_img.png";
 import superDealImg from "../../assets/home/superdeal_img.png";
@@ -12,6 +14,15 @@ import WhatsappFab from "../../components/home/whatsapp-fab";
 function Home() {
   return (
     <div>
+      {/* `exactTitle` because the home page's title is the brand line itself —
+          appending "| Zeedara" to it would repeat the name twice. */}
+      <Seo
+        title="Zeedara | Authentic Wigs, Beauty & Skincare in Nigeria"
+        exactTitle
+        description="Shop authentic wigs, hair, beauty, skincare and personal care products in Nigeria. Clear pricing in naira, secure Paystack checkout and reliable delivery."
+        canonical="/"
+        jsonLd={storeSchema()}
+      />
       <Hero />
       <PopularProducts />
       <CTA

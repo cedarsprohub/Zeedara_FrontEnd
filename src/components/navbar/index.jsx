@@ -12,14 +12,19 @@ import twitterIcon from "../../assets/navbar/twitter_icon.svg";
 import CartDrawer from "./CartDrawer";
 import { useCart } from "../../context/CartContext.js";
 
+// Every path here must resolve to a route. `/new-arrivals` and `/request-a-quote`
+// had none, so the catch-all quietly sent them home — a nav link that looks
+// working to a visitor and reads as a broken link to a crawler. They now point at
+// the pages that actually serve those intents (redirects from the old paths are
+// kept in the router for anything already linking to them).
 const navLinks = [
   { name: "HOME", path: "/" },
   { name: "CATEGORIES", path: "/categories", hasDropdown: true },
-  { name: "NEW ARRIVALS", path: "/new-arrivals" },
+  { name: "NEW ARRIVALS", path: "/products?sort=newest" },
   { name: "SKINCARE CLINIC", path: "/skincare-clinic" },
   { name: "CONSULTATION", path: "/consultation" },
   { name: "CUSTOM WIG", path: "/custom-wig" },
-  { name: "REQUEST A QUOTE", path: "/request-a-quote" },
+  { name: "REQUEST A QUOTE", path: "/custom-wig" },
 ];
 
 const socialIcons = [
@@ -53,7 +58,7 @@ function Navbar() {
   const { itemCount, isDrawerOpen, openDrawer, closeDrawer } = useCart();
 
   return (
-    <div className="navbar">
+    <header className="navbar">
       {/* Top bar */}
       <div className={`navbar-banner bg-black py-1 ${sidePadding}`}>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
@@ -141,7 +146,10 @@ function Navbar() {
           </div>
 
           <div className="foot w-full hidden lg:flex justify-center pt-2">
-            <div className="navbar-links flex flex-wrap items-center justify-center gap-2">
+            <nav
+              aria-label="Primary"
+              className="navbar-links flex flex-wrap items-center justify-center gap-2"
+            >
               {navLinks.map((link) =>
                 link.hasDropdown ? (
                   <CategoriesDropdown key={link.path} link={link} />
@@ -162,11 +170,11 @@ function Navbar() {
                   </NavLink>
                 ),
               )}
-            </div>
+            </nav>
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 

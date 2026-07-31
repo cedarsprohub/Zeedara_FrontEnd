@@ -5,14 +5,26 @@ import ImageGallery from "../../components/product-detail/ImageGallery";
 import ProductInfo from "../../components/product-detail/ProductInfo";
 import ProductTabs from "../../components/product-detail/ProductTabs";
 import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
+import Seo from "../../components/shared/Seo";
 import { getProduct, getProductReviews } from "../../api/catalog";
-import { galleryImages } from "../../utils/product";
+import { galleryImages, primaryImageUrl } from "../../utils/product";
+import {
+  breadcrumbSchema,
+  productSchema,
+} from "../../utils/structuredData";
+import { formatAmount } from "../../utils/formatCurrency";
 
 const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
 
 function NotFound({ message }) {
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-24 text-center`}>
+      {/* A withdrawn or mistyped slug must not stay indexed as a real product. */}
+      <Seo
+        title="Product not found"
+        description="The product you're looking for doesn't exist or may have been removed."
+        noindex
+      />
       <h1 className="mb-4 text-2xl font-semibold text-black">
         Product not found
       </h1>
@@ -86,10 +98,41 @@ function ProductDetail() {
 
   if (error || !product) return <NotFound message={error} />;
 
+  // The meta description leads with the product's own copy and falls back to
+  // something specific rather than the sitewide default — a listing page and a
+  // product page sharing one description is a duplicate-snippet problem.
+  const priceLabel = product.min_price
+    ? ` From ${formatAmount(product.min_price)}.`
+    : "";
+  const metaDescription =
+    product.description ||
+    `${product.name}${
+      product.brand ? ` by ${product.brand}` : ""
+    } at Zeedara.${priceLabel} Authentic products with secure checkout and delivery across Nigeria.`;
+
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
+      <Seo
+        title={product.name}
+        description={metaDescription}
+        canonical={`/products/${product.slug}`}
+        image={primaryImageUrl(product.media)}
+        type="product"
+        jsonLd={[
+          productSchema(product, reviews?.summary),
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "All Products", path: "/products" },
+            { name: product.name },
+          ]),
+        ]}
+      />
+
       {/* Breadcrumb */}
-      <div className="mb-6 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-6 flex items-center gap-1.5 text-xs font-medium text-gray-500"
+      >
         <NavLink to="/" className="uppercase hover:text-(--primary-color)">
           Home
         </NavLink>
@@ -102,7 +145,7 @@ function ProductDetail() {
         </NavLink>
         <ChevronRight className="size-3.5" />
         <span className="truncate text-black">{product.name}</span>
-      </div>
+      </nav>
 
       {/* Gallery + Info. Both hold per-product state — the selected variant and
           the active image — so they're keyed to remount when you navigate from

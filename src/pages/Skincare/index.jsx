@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { MessageCircle, ChevronDown, ArrowRight } from "lucide-react";
 import Faq from "../../components/faq";
+import Seo from "../../components/shared/Seo";
+import { faqSchema } from "../../utils/structuredData";
 import { payWithPaystack } from "../../utils/paystack";
 
 import zeedaraLogo from "../../assets/navbar/zeedara_logo.png";
@@ -482,6 +484,16 @@ function Understand() {
 function Skincare() {
   return (
     <div className="skincare-clinic bg-white">
+      {/* Reachable at both /skincare and /skincare-clinic. The canonical is
+          pinned to one of them so the pair isn't read as duplicate content —
+          /skincare-clinic, because that's what the nav links to and what the
+          sitemap lists. */}
+      <Seo
+        title="Skincare Clinic"
+        description="Zeedara's skincare clinic — cleansers, toners, serums and routines matched to your skin, with guidance from our team and delivery across Nigeria."
+        canonical="/skincare-clinic"
+        jsonLd={faqSchema(SKINCARE_FAQS)}
+      />
       <Hero />
       <Covers />
       {/* <BookConsultation /> */}

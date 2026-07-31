@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CircleCheck, Clock } from "lucide-react";
 import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
+import Seo from "../../components/shared/Seo";
 import { useAuth } from "../../context/AuthContext.js";
 import { getOrder } from "../../api/orders";
 import { formatAmount } from "../../utils/formatCurrency";
@@ -102,6 +103,13 @@ function OrderReceived() {
 
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
+      {/* A receipt containing a customer's name, address and phone number. This
+          must never be indexable. */}
+      <Seo
+        title={`Order ${order.order_number}`}
+        description="Your Zeedara order receipt."
+        noindex
+      />
       <div className="mb-8 flex flex-col items-center gap-6 text-center">
         {/* Status is the order's, not an assumption that landing here means paid. */}
         {paid ? (

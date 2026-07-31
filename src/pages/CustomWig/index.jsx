@@ -4,6 +4,7 @@ import customWigImgTwo from "../../assets/custom-wig/customWigImgTwo.png";
 import HowItWorksSteps from "../../components/custom-wig/HowItWorksSteps";
 import RequestForm from "../../components/custom-wig/RequestForm";
 import Faq from "../../components/faq";
+import Seo from "../../components/shared/Seo";
 import { useNavbarHeight } from "../../context/NavbarHeightContext";
 
 function CustomWig() {
@@ -12,6 +13,11 @@ function CustomWig() {
 
   return (
     <div className="custom-wig-page">
+      <Seo
+        title="Custom Wig Requests"
+        description="Request a custom wig from Zeedara — choose length, texture, cap size and density, and we'll build it to your specification and quote before you commit."
+        canonical="/custom-wig"
+      />
       {/* Hero band - heading + banner + disclaimer together fill exactly the
           viewport height left after the navbar, so no scrolling is needed to
           see the whole hero */}

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8a5f18" />
 
     <!-- Open the TCP+TLS handshake to the third parties the first screen needs
          while the bundle is still parsing. Fonts are @imported from CSS, so the
@@ -14,7 +15,98 @@
     <link rel="preconnect" href="https://lionfish-app-z6rt7.ondigitalocean.app" />
     <link rel="dns-prefetch" href="https://picsum.photos" />
 
-    <title>zeedara-frontend</title>
+    <!-- Everything below is the sitewide default. `components/shared/Seo` rewrites
+         these per route once React runs, which is what Google indexes. Social
+         crawlers (WhatsApp, Facebook, X, LinkedIn) never execute JavaScript, so
+         what's written here is the whole of what they see — hence a real title,
+         description and share image rather than placeholders. -->
+    <title>Zeedara | Authentic Wigs, Beauty &amp; Skincare in Nigeria</title>
+    <meta
+      name="description"
+      content="Shop authentic wigs, hair, beauty, skincare and personal care products in Nigeria. Clear pricing in naira, secure Paystack checkout and reliable delivery."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.zeedara.com/" />
+
+    <meta property="og:site_name" content="Zeedara" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.zeedara.com/" />
+    <meta
+      property="og:title"
+      content="Zeedara | Authentic Wigs, Beauty &amp; Skincare in Nigeria"
+    />
+    <meta
+      property="og:description"
+      content="Shop authentic wigs, hair, beauty, skincare and personal care products in Nigeria. Clear pricing in naira, secure Paystack checkout and reliable delivery."
+    />
+    <meta property="og:image" content="https://www.zeedara.com/og-image.png" />
+    <meta property="og:locale" content="en_NG" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Zeedara | Authentic Wigs, Beauty &amp; Skincare in Nigeria"
+    />
+    <meta
+      name="twitter:description"
+      content="Shop authentic wigs, hair, beauty, skincare and personal care products in Nigeria. Clear pricing in naira, secure Paystack checkout and reliable delivery."
+    />
+    <meta name="twitter:image" content="https://www.zeedara.com/og-image.png" />
+
+    <!-- Static so it's readable without JavaScript. The store identity and the
+         sitelinks search box are sitewide facts, not per-route ones. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.zeedara.com/#organization",
+            "name": "Zeedara",
+            "url": "https://www.zeedara.com/",
+            "logo": "https://www.zeedara.com/og-image.png",
+            "description": "Zeedara offers quality wigs, beauty, skincare, and personal care products designed to help you look confident, beautiful, and cared for every day.",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Omma Mall Ground floor, Moore Jackson Street",
+              "addressLocality": "Bonny Island",
+              "addressRegion": "Rivers State",
+              "addressCountry": "NG"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+234-901-234-5643",
+              "email": "email@zeedara.com",
+              "contactType": "customer service",
+              "areaServed": "NG",
+              "availableLanguage": "en"
+            },
+            "sameAs": [
+              "https://www.instagram.com/zeedara",
+              "https://www.youtube.com/zeedara",
+              "https://www.facebook.com/zeedara",
+              "https://www.twitter.com/zeedara"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.zeedara.com/#website",
+            "url": "https://www.zeedara.com/",
+            "name": "Zeedara",
+            "publisher": { "@id": "https://www.zeedara.com/#organization" },
+            "inLanguage": "en",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://www.zeedara.com/products?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

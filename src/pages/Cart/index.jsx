@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import CartItemList from "../../components/navbar/CartDrawer/CartItemList";
 import CartSummaryPanel from "../../components/cart/CartSummaryPanel";
 import YouMayAlsoLike from "../../components/shared/YouMayAlsoLike";
+import Seo from "../../components/shared/Seo";
 import { useCart } from "../../context/CartContext.js";
 
 function Cart() {
@@ -25,6 +26,12 @@ function Cart() {
 
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
+      {/* Someone's cart is per-visitor and has nothing to rank. */}
+      <Seo
+        title="Your Cart"
+        description="Review the items in your Zeedara cart before checking out."
+        noindex
+      />
       <h1 className="mb-4 text-2xl font-semibold text-black">Cart Summary</h1>
 
       {error && (

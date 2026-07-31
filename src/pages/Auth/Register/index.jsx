@@ -5,6 +5,7 @@ import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
+import Seo from "../../../components/shared/Seo";
 import heroImage from "../../../assets/auth/signup_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
 import { registerEmail, googleAuth } from "../../../api/auth";
@@ -58,6 +59,11 @@ function Register() {
 
   return (
     <div className="register">
+      <Seo
+        title="Create an account"
+        description="Create a Zeedara account to track orders, save delivery addresses and review products you've bought."
+        noindex
+      />
       <AuthNav />
 
       {/* Hero */}

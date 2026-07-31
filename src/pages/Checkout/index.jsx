@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CircleCheck, ChevronDown, Lock } from "lucide-react";
 import CouponEntry from "../../components/navbar/CartDrawer/CouponEntry";
+import Seo from "../../components/shared/Seo";
 import { useAuth } from "../../context/AuthContext.js";
 import { useCart } from "../../context/CartContext.js";
 import { listAddresses } from "../../api/addresses";
@@ -410,6 +411,12 @@ function Checkout() {
 
   return (
     <div className={`mx-auto max-w-[1920px] ${sidePadding} py-8`}>
+      {/* Behind a session and specific to one order — never indexable. */}
+      <Seo
+        title={step === "details" ? "Checkout" : "Review your order"}
+        description="Complete your Zeedara order."
+        noindex
+      />
       <h1 className="mb-6 text-2xl font-semibold text-black">
         {step === "details" ? "Checkout" : "Review your order"}
       </h1>

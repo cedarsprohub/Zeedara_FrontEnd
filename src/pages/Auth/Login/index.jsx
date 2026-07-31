@@ -5,6 +5,7 @@ import Faq from "../../../components/faq";
 import Footer from "../../../components/footer";
 import AuthNav from "../../../components/navbar/AuthNav";
 import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
+import Seo from "../../../components/shared/Seo";
 import heroImage from "../../../assets/auth/login_hero.png";
 import googleIcon from "../../../assets/auth/google_icon.svg";
 import { login as loginRequest, googleAuth } from "../../../api/auth";
@@ -67,6 +68,13 @@ function Login() {
 
   return (
     <div className="login">
+      {/* Sign-in forms have nothing to rank and shouldn't compete with the store
+          for brand queries. */}
+      <Seo
+        title="Sign in"
+        description="Sign in to your Zeedara account to track orders, save addresses and check out faster."
+        noindex
+      />
       <AuthNav />
 
       {/* Hero */}

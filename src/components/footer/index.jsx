@@ -187,7 +187,7 @@ const contactLinks = [
 
 function Footer() {
   return (
-    <div className="footer">
+    <footer className="footer">
       <div className="top-footer bg-black">
         <div className="top-footer-inner mx-auto w-full max-w-[1920px] px-[clamp(1rem,6.25vw,7.5rem)] py-[50px]">
           <div className="grid grid-cols-2 gap-[40px] sm:grid-cols-2 lg:grid-cols-4 lg:gap-[clamp(1.5rem,3.125vw,3.75rem)]">
@@ -395,7 +395,7 @@ function Footer() {
           </div>
         </div>
       </div>
-    </div>
+    </footer>
   );
 }
 

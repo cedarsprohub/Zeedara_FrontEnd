@@ -11,6 +11,15 @@ import heroImg2 from "../../../assets/home/heroImg2.png";
 import heroImg3 from "../../../assets/home/heroImg3.png";
 import { useNavbarHeight } from "../../../context/NavbarHeightContext";
 
+// The first slide's headline is the home page's <h1>; the rest are <h2>. All
+// three slides are in the DOM at once, so making them all <h1> would leave the
+// page with no single main heading — and making them all <h2> (as they were) left
+// it with no <h1> at all.
+function HeroHeading({ isPrimary, ...props }) {
+  const Tag = isPrimary ? "h1" : "h2";
+  return <Tag {...props} />;
+}
+
 function Hero() {
   const [isMobile, setIsMobile] = useState(false);
   const navbarHeight = useNavbarHeight();
@@ -142,12 +151,13 @@ function Hero() {
               <div
                 className={`mx-auto max-w-[1920px] w-full flex justify-between items-center h-full ${sidePadding} relative z-20 pt-15 lg:pt-0 pb-0 flex flex-col gap-3 ${slide.alignClass}`}
               >
-                <h2
+                <HeroHeading
+                  isPrimary={index === 0}
                   className="hero-header uppercase font-medium font-[Anton] leading-[1.1] text-[32px] sm:text-[40px] md:text-[50px] lg:text-5xl xl:text-6xl 2xl:text-[72px] data-[bg=true]:text-[#faf4eb] lg:data-[bg=true]:text-[#faf4eb]"
                   data-bg={slide.isFullBackground}
                 >
                   {slide.header}
-                </h2>
+                </HeroHeading>
                 <p
                   className="hero-desc text-[13px] sm:text-[14px] lg:text-[16px] max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] text-black lg:data-[bg=true]:text-inherit"
                   data-bg={slide.isFullBackground}

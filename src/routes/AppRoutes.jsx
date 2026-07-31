@@ -7,6 +7,7 @@ import Layout from "../layout/Layout";
 import ScrollToTop from "../components/ScrollToTop";
 import RequireAuth from "../components/auth/RequireAuth";
 import RouteFallback from "../components/shared/RouteFallback";
+import NoIndexRoutes from "../components/shared/NoIndexRoutes";
 
 // Everything below is code-split. The whole site used to ship as one ~593 kB
 // bundle that had to parse before the first pixel; now a visitor downloads the
@@ -22,6 +23,7 @@ const OrderReceived = lazy(() => import("../pages/OrderReceived"));
 const CustomWig = lazy(() => import("../pages/CustomWig"));
 const Consultation = lazy(() => import("../pages/Consultation"));
 const Skincare = lazy(() => import("../pages/Skincare"));
+const NotFound = lazy(() => import("../pages/NotFound"));
 
 const AccountLayout = lazy(() => import("../pages/Account/AccountLayout"));
 const AccountOverview = lazy(() => import("../pages/Account/Overview"));
@@ -76,8 +78,24 @@ function AppRoutes() {
             <Route path="/payment/callback" element={<PaymentCallback />} />
             <Route path="/custom-wig" element={<CustomWig />} />
             <Route path="/consultation" element={<Consultation />} />
+            {/* Two paths, one page. `/skincare-clinic` is what the nav links to
+                and what the sitemap lists, so both canonicalise there rather
+                than competing as duplicates. */}
             <Route path="/skincare" element={<Skincare />} />
             <Route path="/skincare-clinic" element={<Skincare />} />
+
+            {/* The navbar has always linked here; without a route the catch-all
+                below sent it to the home page, which reads to a crawler as a
+                broken link into a redirect. Newest-first is what the label
+                promises, and /products already sorts that way. */}
+            <Route
+              path="/new-arrivals"
+              element={<Navigate to="/products?sort=newest" replace />}
+            />
+            <Route
+              path="/request-a-quote"
+              element={<Navigate to="/custom-wig" replace />}
+            />
 
             {/* Every account screen needs a session — they all read `user` from
                 AuthContext and call the account API. Checkout and the order
@@ -89,60 +107,92 @@ function AppRoutes() {
                 path="/order-received/:orderNumber"
                 element={<OrderReceived />}
               />
-              <Route path="/account" element={<AccountLayout />}>
-                <Route index element={<AccountOverview />} />
-                <Route path="overview" element={<AccountOverview />} />
-                <Route path="orders" element={<Orders />} />
-                {/* One detail screen for every order state — it reads the
-                    order and picks its variant from `status`. */}
-                <Route path="orders/:orderNumber" element={<OrderDetail />} />
-                <Route path="custom-hair" element={<CustomHair />} />
-                <Route
-                  path="custom-hair/new"
-                  element={<CustomHairNewRequest />}
-                />
-                <Route
-                  path="skincare-consultations"
-                  element={<SkincareConsultations />}
-                />
-                <Route path="address-book" element={<AddressBook />} />
-                {/* One form, two modes — the edit route prefills from the saved
-                    address and PATCHes it. */}
-                <Route path="address-book/new" element={<NewAddress />} />
-                <Route
-                  path="address-book/:addressId/edit"
-                  element={<NewAddress />}
-                />
-                <Route path="settings" element={<Settings />} />
-                <Route
-                  path="settings/basic-details"
-                  element={<BasicDetails />}
-                />
-                <Route path="settings/change-email" element={<ChangeEmail />} />
-                <Route
-                  path="settings/change-password"
-                  element={<AccountChangePassword />}
-                />
+              {/* One `noindex` for the whole account section rather than a
+                  `<Seo>` in each of its twelve screens. */}
+              <Route
+                element={
+                  <NoIndexRoutes
+                    title="My Account"
+                    description="Manage your Zeedara orders, addresses and account details."
+                  />
+                }
+              >
+                <Route path="/account" element={<AccountLayout />}>
+                  <Route index element={<AccountOverview />} />
+                  <Route path="overview" element={<AccountOverview />} />
+                  <Route path="orders" element={<Orders />} />
+                  {/* One detail screen for every order state — it reads the
+                      order and picks its variant from `status`. */}
+                  <Route path="orders/:orderNumber" element={<OrderDetail />} />
+                  <Route path="custom-hair" element={<CustomHair />} />
+                  <Route
+                    path="custom-hair/new"
+                    element={<CustomHairNewRequest />}
+                  />
+                  <Route
+                    path="skincare-consultations"
+                    element={<SkincareConsultations />}
+                  />
+                  <Route path="address-book" element={<AddressBook />} />
+                  {/* One form, two modes — the edit route prefills from the
+                      saved address and PATCHes it. */}
+                  <Route path="address-book/new" element={<NewAddress />} />
+                  <Route
+                    path="address-book/:addressId/edit"
+                    element={<NewAddress />}
+                  />
+                  <Route path="settings" element={<Settings />} />
+                  <Route
+                    path="settings/basic-details"
+                    element={<BasicDetails />}
+                  />
+                  <Route
+                    path="settings/change-email"
+                    element={<ChangeEmail />}
+                  />
+                  <Route
+                    path="settings/change-password"
+                    element={<AccountChangePassword />}
+                  />
+                </Route>
               </Route>
             </Route>
           </Route>
 
-          {/* Auth pages (standalone, no shared layout) */}
+          {/* Auth pages (standalone, no shared layout).
+              /login and /register sit outside the wrapper because they set their
+              own titles — see NoIndexRoutes for why the two can't be combined.
+              The rest are mid-flow screens nobody should reach from search. */}
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/confirm-email" element={<ConfirmEmail />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          <Route path="/create-password" element={<CreatePassword />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
-            path="/verify-forgot-password"
-            element={<VerifyForgotPassword />}
-          />
-          <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/complete-google-profile" element={<GoogleComplete />} />
+            element={
+              <NoIndexRoutes
+                title="Account"
+                description="Zeedara account access."
+              />
+            }
+          >
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/create-password" element={<CreatePassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/verify-forgot-password"
+              element={<VerifyForgotPassword />}
+            />
+            <Route path="/change-password" element={<ChangePassword />} />
+            <Route
+              path="/complete-google-profile"
+              element={<GoogleComplete />}
+            />
+          </Route>
 
-          {/* Catch-all 404 Redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch-all. A real not-found page inside the layout, not a redirect
+              home — see pages/NotFound for why the redirect was a problem. */}
+          <Route element={<Layout />}>
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </Suspense>
     </BrowserRouter>

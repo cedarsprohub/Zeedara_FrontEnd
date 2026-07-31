@@ -26,7 +26,9 @@ function CustomWig() {
               alt="Zeedara Logo"
             />
           </div>
-          <h1 className="text-black uppercase leading-tight text-[36px] sm:text-[48px] md:text-[60px] xl:text-[80px] font-medium font-[Anton]">
+          {/* A section heading, not the page's — the home page's <h1> is the
+              hero headline. Two <h1>s left it with no single main heading. */}
+          <h2 className="text-black uppercase leading-tight text-[36px] sm:text-[48px] md:text-[60px] xl:text-[80px] font-medium font-[Anton]">
             Custom Wigs
             {/* "MADE 4 YOU" — the script 4 overlaps the gap between the words,
                 so it is positioned as a share of the row width, not fixed px. */}
@@ -39,7 +41,7 @@ function CustomWig() {
               />
               <span className="ms-[22%]">You</span>
             </div>
-          </h1>
+          </h2>
           <p className="text-[13px] sm:text-[14px] lg:text-[16px] text-black">
             The concentration of a perfume is the percentage of pure fragrance
             oil to stabilizing ingredients, which determines lasting power.

@@ -1,0 +1,34 @@
+# Zeedara
+#
+# The catalogue is open to crawlers. What's blocked below is either private
+# (someone's account, their cart, their order) or a dead end for search: a
+# checkout step or a payment callback has nothing to rank and shouldn't be
+# offered as an entry point. Those pages also carry `noindex` from the app — this
+# file only asks crawlers not to spend requests on them.
+
+User-agent: *
+Allow: /
+
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-received/
+Disallow: /payment/callback
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /get-started
+Disallow: /confirm-email
+Disallow: /create-password
+Disallow: /forgot-password
+Disallow: /verify-forgot-password
+Disallow: /change-password
+Disallow: /complete-google-profile
+
+# Search-result and filter permutations. Every one of these renders the same
+# products in a different order, and the pages self-canonicalise to the clean
+# path anyway — crawling them just burns budget.
+Disallow: /products?*sort=
+Disallow: /products?*view=
+Disallow: /*?q=
+
+Sitemap: https://www.zeedara.com/sitemap.xml

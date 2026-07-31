@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CircleCheck, CircleX, Loader2 } from "lucide-react";
 import { useCart } from "../../context/CartContext.js";
+import Seo from "../../components/shared/Seo";
 import { verifyPayment } from "../../api/payments";
 import {
   clearPendingPayment,
@@ -90,6 +91,8 @@ function PaymentCallback() {
     <div
       className={`mx-auto flex max-w-[1920px] flex-col items-center gap-6 ${sidePadding} py-24 text-center`}
     >
+      {/* A transient step in a payment flow, keyed to one transaction. */}
+      <Seo title="Confirming your payment" noindex />
       {status === "verifying" && (
         <>
           <Loader2 className="size-8 animate-spin text-(--primary-color)" />

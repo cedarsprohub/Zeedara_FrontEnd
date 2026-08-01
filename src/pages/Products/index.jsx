@@ -6,7 +6,7 @@ import Pagination from "../../components/products/Pagination";
 import CartItem from "../../components/ui/CartItem";
 import Faq from "../../components/faq";
 import Seo from "../../components/shared/Seo";
-import { listProducts, searchProducts } from "../../api/catalog";
+import { listProducts } from "../../api/catalog";
 import {
   breadcrumbSchema,
   itemListSchema,
@@ -59,14 +59,17 @@ function Products() {
   useEffect(() => {
     let active = true;
 
-    // `/search` is the endpoint built for text queries; `/products` handles the
-    // faceted browse (and its own `q`, but search ranks better).
-    const params = { limit: PAGE_SIZE + 1, offset };
-    const request = query
-      ? searchProducts(query, params)
-      : listProducts({ ...params, sort, ...filters });
-
-    request
+    // Everything goes through `/products`, including the text query. `/search`
+    // ranks better but accepts no filters and no sort, so routing search there
+    // would silently drop whatever the sidebar has set. `/products?q=` matches
+    // on name, brand, type, SKU and description, and composes with the facets.
+    listProducts({
+      q: query || undefined,
+      limit: PAGE_SIZE + 1,
+      offset,
+      sort,
+      ...filters,
+    })
       .then((rows) => {
         if (!active) return;
         const list = Array.isArray(rows) ? rows : [];
@@ -207,26 +210,24 @@ function Products() {
                 )}
               </p>
               <div className="flex items-center gap-3">
-                {/* Sorting is server-side; text search has its own ranking, so
-                    the control only applies to the browse endpoint. */}
-                {!query && (
-                  <label className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="sr-only sm:not-sr-only">Sort by</span>
-                    <select
-                      value={sort}
-                      onChange={(event) =>
-                        updateParams({ sort: event.target.value, page: null })
-                      }
-                      className="h-8 cursor-pointer border border-gray-300 bg-white px-2 text-sm text-black focus:border-(--primary-color) focus:outline-none"
-                    >
-                      {SORT_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
+                {/* Sorting is server-side, and applies to search results too
+                    now that they come from the same endpoint. */}
+                <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="sr-only sm:not-sr-only">Sort by</span>
+                  <select
+                    value={sort}
+                    onChange={(event) =>
+                      updateParams({ sort: event.target.value, page: null })
+                    }
+                    className="h-8 cursor-pointer border border-gray-300 bg-white px-2 text-sm text-black focus:border-(--primary-color) focus:outline-none"
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"

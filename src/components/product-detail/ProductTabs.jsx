@@ -7,7 +7,6 @@ function ProductTabs({ product, reviews }) {
   const tabs = [
     { id: "description", label: "Description" },
     { id: "reviews", label: `Reviews (${reviewCount})` },
-    { id: "shipping", label: "Shipping and Return" },
   ];
   const [activeTab, setActiveTab] = useState("description");
 
@@ -59,22 +58,6 @@ function ProductTabs({ product, reviews }) {
 
       {activeTab === "reviews" && (
         <ReviewsPanel product={product} reviews={reviews} />
-      )}
-
-      {activeTab === "shipping" && (
-        <div className="flex flex-col gap-3 text-sm text-gray-600">
-          <p>
-            Orders are processed within 1-2 business days. Estimated delivery is
-            up to 4 business days from dispatch, depending on your location.
-            Delivery fees are calculated at checkout and shown before payment.
-          </p>
-          <p>
-            If you&apos;re not satisfied with your order, items can be returned
-            within 7 days of delivery provided they are unused and in their
-            original packaging. Contact customer support to start a return or
-            exchange.
-          </p>
-        </div>
       )}
     </div>
   );

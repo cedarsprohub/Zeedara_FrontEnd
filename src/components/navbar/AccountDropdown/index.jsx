@@ -13,6 +13,7 @@ import { logout as logoutRequest } from "../../../api/auth";
 import { useAuth } from "../../../context/AuthContext.js";
 
 const accountMenu = [
+  { label: "My Account", icon: CircleUser, to: "/account/overview" },
   { label: "My Orders", icon: Package, to: "/account/orders" },
   { label: "Messages", icon: MessageCircleMore, to: "/register" },
   { label: "Payments", icon: Truck, to: "/payments" },

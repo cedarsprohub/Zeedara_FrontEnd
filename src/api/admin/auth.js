@@ -1,17 +1,34 @@
 import { request } from "../client";
 
-// Admin auth is its own surface — it issues tokens that are unrelated to the
-// storefront's /api/v1/auth/*. Held in one constant because the exact prefix is
-// still to be confirmed with the backend; changing it is a one-line edit.
-const ADMIN_AUTH_BASE = "/api/v1/admin/auth";
-
-// Unauthenticated, so the shared client is safe here: its 401-refresh path only
-// runs for requests that carried a token. Authenticated admin calls will need a
-// client bound to adminTokenStore, or they'd refresh against the customer's
-// refresh token — see the note in adminTokenStore.js.
+// Admins sign in through the same endpoint as customers. The backend branches
+// on the account: customers get a TokenPair straight back, admins get an
+// ADMIN_LOGIN OTP challenge instead (mandatory MFA, SEC-02) and have to finish
+// at /auth/admin/verify-otp. So there is deliberately no admin-only login call.
 export function adminLogin(email, password) {
-  return request(`${ADMIN_AUTH_BASE}/login`, {
+  return request("/api/v1/auth/login", {
     method: "POST",
     body: { email, password },
   });
+}
+
+// Step 2. Returns a TokenPair: { access_token, refresh_token, token_type,
+// expires_in }.
+export function adminVerifyOtp(challengeToken, code) {
+  return request("/api/v1/auth/admin/verify-otp", {
+    method: "POST",
+    body: { challenge_token: challengeToken, code },
+  });
+}
+
+// The login 200 is untyped in the OpenAPI schema, so the challenge field name
+// isn't pinned down there. `challenge_token` is what /auth/admin/verify-otp
+// asks for, so that's the primary; the fallbacks cost nothing and save a
+// round trip if the response nests it.
+export function readChallengeToken(response) {
+  return (
+    response?.challenge_token ??
+    response?.challenge?.token ??
+    response?.challenge?.challenge_token ??
+    null
+  );
 }

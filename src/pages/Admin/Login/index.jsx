@@ -3,8 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
 import logo from "../../../assets/admin/zeedara_logo_vertical.png";
-import { adminLogin } from "../../../api/admin/auth";
-import { setAdminTokens } from "../../../api/adminTokenStore";
+import { adminLogin, readChallengeToken } from "../../../api/admin/auth";
 import { ApiError } from "../../../api/client";
 
 function AdminLogin() {
@@ -24,13 +23,31 @@ function AdminLogin() {
     setIsSubmitting(true);
     try {
       const response = await adminLogin(email, password);
-      if (!response?.access_token) {
-        setError("Sign-in failed. Please contact the system administrator.");
+      const challengeToken = readChallengeToken(response);
+
+      if (challengeToken) {
+        // Tokens are only issued after the OTP step, so nothing is stored yet.
+        // `remember` and the return path ride along to the verify screen.
+        navigate("/admin/verify-otp", {
+          state: {
+            challengeToken,
+            email,
+            remember,
+            from: location.state?.from,
+          },
+        });
         return;
       }
-      setAdminTokens(response, { remember });
-      // Return them to whatever admin page bounced them here, if any.
-      navigate(location.state?.from?.pathname || "/admin", { replace: true });
+
+      // Only non-admin accounts get tokens straight from /auth/login. Reaching
+      // here means the credentials were valid but the account isn't an admin —
+      // so the tokens are deliberately discarded rather than stored.
+      if (response?.access_token) {
+        setError("This account doesn't have admin access.");
+        return;
+      }
+
+      setError("Sign-in failed. Please contact the system administrator.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {

@@ -59,6 +59,7 @@ const GoogleComplete = lazy(() => import("../pages/Auth/GoogleComplete"));
 // Admin. Split like everything else, so a shopper never downloads the
 // dashboard — they'd only pull this chunk by visiting /admin themselves.
 const AdminLogin = lazy(() => import("../pages/Admin/Login"));
+const AdminVerifyOtp = lazy(() => import("../pages/Admin/VerifyOtp"));
 const AdminLayout = lazy(() => import("../layout/AdminLayout"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const AdminProducts = lazy(() => import("../pages/Admin/Products"));
@@ -198,6 +199,7 @@ function AppRoutes() {
           {/* Admin. Standalone — the storefront navbar and footer have no place
               on a back-office screen. The page sets its own noindex. */}
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />

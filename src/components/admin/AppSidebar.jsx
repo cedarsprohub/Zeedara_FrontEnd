@@ -199,9 +199,11 @@ function AppSidebar({ isOpen, onClose }) {
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-[#1f1f1f]">
             Z
           </span>
+          {/* Kept in step with the topbar's profile block — the same account,
+              so the two shouldn't be set at different sizes. */}
           <span className="flex-1">
-            <span className="block text-[16px] font-semibold text-white">Zeedara</span>
-            <span className="block text-[12px] font-medium text-[#828a9b]">Admin</span>
+            <span className="block text-[14px] font-semibold text-white">Zeedara</span>
+            <span className="block text-[11px] font-medium text-[#828a9b]">Admin</span>
           </span>
           {isProfileOpen ? (
             <ChevronUp className="size-4 shrink-0 text-[#828a9b]" />

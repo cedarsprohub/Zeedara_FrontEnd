@@ -61,6 +61,7 @@ const GoogleComplete = lazy(() => import("../pages/Auth/GoogleComplete"));
 const AdminLogin = lazy(() => import("../pages/Admin/Login"));
 const AdminLayout = lazy(() => import("../layout/AdminLayout"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
+const AdminProducts = lazy(() => import("../pages/Admin/Products"));
 
 function AppRoutes() {
   return (
@@ -199,6 +200,7 @@ function AppRoutes() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
           </Route>
 
           {/* Catch-all. A real not-found page inside the layout, not a redirect

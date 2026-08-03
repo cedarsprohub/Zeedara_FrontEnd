@@ -53,11 +53,13 @@ function AppTopbar({ onToggleSidebar }) {
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-white sm:size-10">
             Z
           </span>
+          {/* 14px/11px rather than the design's 16px/12px — at 16px the name
+              outweighed the 14px nav and page copy around it. */}
           <span className="hidden sm:block">
-            <span className="block text-[16px] font-semibold text-[#262626]">
+            <span className="block text-[14px] font-semibold text-[#262626]">
               Zeedara
             </span>
-            <span className="block text-[12px] font-medium text-[#828a9b]">
+            <span className="block text-[11px] font-medium text-[#828a9b]">
               Admin
             </span>
           </span>

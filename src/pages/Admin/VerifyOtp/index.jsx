@@ -2,13 +2,14 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
-import { adminVerifyOtp } from "../../../api/admin/auth";
-import { setAdminTokens } from "../../../api/adminTokenStore";
+import { adminResendOtp, adminVerifyOtp } from "../../../api/admin/auth";
+import { useAdminAuth } from "../../../context/AdminAuthContext.js";
 import { ApiError } from "../../../api/client";
 
 const CODE_LENGTH = 6;
-// The design shows "1:99", which isn't a real clock reading. Two minutes is the
-// nearest sane interpretation.
+// How long before "Resend code" becomes available. The design shows "1:99",
+// which isn't a real clock reading; two minutes is the nearest sane reading and
+// keeps us clear of the server's own resend cooldown.
 const RESEND_SECONDS = 120;
 
 function formatCountdown(seconds) {
@@ -19,12 +20,23 @@ function formatCountdown(seconds) {
 function VerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { challengeToken, email, remember, from } = location.state ?? {};
+  const { signIn } = useAdminAuth();
+  const {
+    challengeToken: initialChallengeToken,
+    email,
+    remember,
+    from,
+  } = location.state ?? {};
 
+  // A resend rotates the challenge token, so the one to verify against is state
+  // rather than whatever navigation handed us.
+  const [challengeToken, setChallengeToken] = useState(initialChallengeToken);
   const [digits, setDigits] = useState(() => Array(CODE_LENGTH).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef([]);
 
   useEffect(() => {
@@ -92,6 +104,27 @@ function VerifyOtp() {
     }
   };
 
+  const handleResend = async () => {
+    setError("");
+    setNotice("");
+    setIsResending(true);
+    try {
+      const response = await adminResendOtp(challengeToken);
+      // The old token stops working the moment this succeeds, so swapping it in
+      // is required, not just tidy.
+      if (response?.challenge_token) setChallengeToken(response.challenge_token);
+      setNotice(response?.message || "A new code is on its way.");
+      setDigits(Array(CODE_LENGTH).fill(""));
+      setSecondsLeft(RESEND_SECONDS);
+      focusInput(0);
+    } catch (err) {
+      // 429 is the server's resend cooldown; its message says how long to wait.
+      setError(err instanceof ApiError ? err.message : "Couldn't resend the code.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (code.length < CODE_LENGTH) {
@@ -99,6 +132,7 @@ function VerifyOtp() {
       return;
     }
     setError("");
+    setNotice("");
     setIsSubmitting(true);
     try {
       const tokens = await adminVerifyOtp(challengeToken, code);
@@ -106,7 +140,9 @@ function VerifyOtp() {
         setError("Verification failed. Please try again.");
         return;
       }
-      setAdminTokens(tokens, { remember: remember ?? true });
+      // Storing the tokens kicks the provider into fetching /users/me; the
+      // guard holds the destination until that confirms an ADMIN account.
+      signIn(tokens, { remember: remember ?? true });
       navigate(from?.pathname || "/admin", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
@@ -173,6 +209,7 @@ function VerifyOtp() {
         </div>
 
         {error && <p className="text-[12.6px] text-[#cf251f]">{error}</p>}
+        {notice && <p className="text-[12.6px] text-[#0f9959]">{notice}</p>}
 
         <div className="flex w-full flex-col gap-[18px]">
           <button
@@ -183,29 +220,26 @@ function VerifyOtp() {
             {isSubmitting ? "Verifying…" : "Verify now"}
           </button>
 
-          {/* There is no resend for this code: /auth/otp/send rejects the
-              ADMIN_LOGIN event, and a new challenge only comes from signing in
-              again. So the countdown ends in "start over", not "resend". */}
+          {/* Counts down first, then offers the resend — /auth/admin/resend-otp
+              enforces its own cooldown, so asking before then just earns a
+              429. */}
           <p className="flex gap-2 text-[12.6px] font-semibold">
+            <span className="text-[#667085]">
+              Didn&apos;t receive a code?{secondsLeft > 0 ? " Wait" : ""}
+            </span>
             {secondsLeft > 0 ? (
-              <>
-                <span className="text-[#667085]">
-                  Didn&apos;t receive a code? Wait
-                </span>
-                <span className="text-(--primary-color)">
-                  {formatCountdown(secondsLeft)}
-                </span>
-              </>
+              <span className="text-(--primary-color)">
+                {formatCountdown(secondsLeft)}
+              </span>
             ) : (
-              <>
-                <span className="text-[#667085]">Code expired?</span>
-                <Link
-                  to="/admin/login"
-                  className="text-(--primary-color) hover:underline"
-                >
-                  Sign in again
-                </Link>
-              </>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                className="cursor-pointer text-(--primary-color) hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isResending ? "Sending…" : "Resend code"}
+              </button>
             )}
           </p>
         </div>

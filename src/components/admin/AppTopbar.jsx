@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 import { PanelLeft, Search, ExternalLink, Bell } from "lucide-react";
+import { useAdminAuth } from "../../context/AdminAuthContext.js";
+import {
+  adminDisplayName,
+  adminInitial,
+  adminRoleLabel,
+} from "./adminIdentity";
 
 function AppTopbar({ onToggleSidebar }) {
+  const { admin } = useAdminAuth();
+
   return (
     <header className="sticky top-0 z-20 flex h-[82px] shrink-0 items-center gap-2 border-b border-[#f0f1f3] bg-white px-4 sm:gap-4 sm:px-6">
       <button
@@ -51,16 +59,16 @@ function AppTopbar({ onToggleSidebar }) {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-white sm:size-10">
-            Z
+            {adminInitial(admin)}
           </span>
           {/* 14px/11px rather than the design's 16px/12px — at 16px the name
               outweighed the 14px nav and page copy around it. */}
-          <span className="hidden sm:block">
-            <span className="block text-[14px] font-semibold text-[#262626]">
-              Zeedara
+          <span className="hidden max-w-[160px] sm:block">
+            <span className="block truncate text-[14px] font-semibold text-[#262626]">
+              {adminDisplayName(admin)}
             </span>
-            <span className="block text-[11px] font-medium text-[#828a9b]">
-              Admin
+            <span className="block truncate text-[11px] font-medium text-[#828a9b]">
+              {adminRoleLabel(admin)}
             </span>
           </span>
         </div>

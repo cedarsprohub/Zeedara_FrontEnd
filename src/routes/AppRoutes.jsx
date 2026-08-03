@@ -1,11 +1,13 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 // Layouts and route guards load with the shell — every route needs them, so
 // splitting them would only add a round trip.
 import Layout from "../layout/Layout";
 import ScrollToTop from "../components/ScrollToTop";
 import RequireAuth from "../components/auth/RequireAuth";
+import RequireAdminAuth from "../components/admin/RequireAdminAuth";
+import { AdminAuthProvider } from "../context/AdminAuthProvider";
 import RouteFallback from "../components/shared/RouteFallback";
 import NoIndexRoutes from "../components/shared/NoIndexRoutes";
 
@@ -198,11 +200,27 @@ function AppRoutes() {
 
           {/* Admin. Standalone — the storefront navbar and footer have no place
               on a back-office screen. The page sets its own noindex. */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
+          {/* The provider wraps the sign-in screens as well as the console —
+              the OTP step writes the tokens, and it's the provider that turns
+              those into a confirmed admin session. */}
+          <Route
+            element={
+              <AdminAuthProvider>
+                <Outlet />
+              </AdminAuthProvider>
+            }
+          >
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
+            {/* Everything behind the layout needs a confirmed admin session.
+                The two sign-in screens sit outside the guard, or it would
+                bounce you away from the page you sign in on. */}
+            <Route element={<RequireAdminAuth />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+              </Route>
+            </Route>
           </Route>
 
           {/* Catch-all. A real not-found page inside the layout, not a redirect

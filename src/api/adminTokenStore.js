@@ -14,6 +14,9 @@ function readToken(key) {
 
 let accessToken = readToken(ACCESS_TOKEN_KEY);
 let refreshToken = readToken(REFRESH_TOKEN_KEY);
+// Which storage the live session lives in, so a token refresh doesn't silently
+// promote a "don't remember me" session into localStorage.
+let isPersistent = localStorage.getItem(ACCESS_TOKEN_KEY) !== null;
 const listeners = new Set();
 
 function notify() {
@@ -25,9 +28,13 @@ export function getAdminTokens() {
   return { accessToken, refreshToken };
 }
 
-export function setAdminTokens(tokens, { remember = true } = {}) {
+// `remember` defaults to whatever the current session already chose, so the
+// silent writes that follow a token refresh keep it where sign-in put it. Only
+// an explicit flag (from the login form) moves a session between stores.
+export function setAdminTokens(tokens, { remember = isPersistent } = {}) {
   accessToken = tokens.access_token;
   refreshToken = tokens.refresh_token;
+  isPersistent = remember;
 
   // Clear the store we're *not* using first — otherwise switching "remember me"
   // off would leave the previous long-lived pair behind for readToken to find.

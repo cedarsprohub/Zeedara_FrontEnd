@@ -20,8 +20,15 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
+  LogOut,
 } from "lucide-react";
 import logo from "../../assets/navbar/zeedara_logo.png";
+import { useAdminAuth } from "../../context/AdminAuthContext.js";
+import {
+  adminDisplayName,
+  adminInitial,
+  adminRoleLabel,
+} from "./adminIdentity";
 
 // Grouped exactly as the design lays them out. `children` marks an item that
 // expands; the sub-items sit flush under it rather than in their own group.
@@ -135,6 +142,15 @@ function AppSidebar({ isOpen, onClose }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  const { admin, signOut } = useAdminAuth();
+
+  // Clearing the session is what trips RequireAdminAuth into redirecting, so
+  // there's no navigate() to pair with this.
+  const handleSignOut = () => {
+    setIsProfileOpen(false);
+    signOut();
+  };
+
   return (
     <>
       {/* Below lg the sidebar is an overlay drawer; the scrim only exists there. */}
@@ -191,19 +207,38 @@ function AppSidebar({ isOpen, onClose }) {
           </button>
         </nav>
 
+      <div className="relative">
+        {isProfileOpen && (
+          <div className="absolute right-3 bottom-full left-3 mb-2 bg-[#262626] py-1 shadow-lg">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-[14px] font-medium text-[#828a9b] transition-colors hover:text-[#e3caa1]"
+            >
+              <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
+              Sign out
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={() => setIsProfileOpen((value) => !value)}
-          className="flex cursor-pointer items-center gap-3 bg-[#262626] px-6 py-3 text-left"
+          aria-expanded={isProfileOpen}
+          className="flex w-full cursor-pointer items-center gap-3 bg-[#262626] px-6 py-3 text-left"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-[#1f1f1f]">
-            Z
+            {adminInitial(admin)}
           </span>
           {/* Kept in step with the topbar's profile block — the same account,
               so the two shouldn't be set at different sizes. */}
-          <span className="flex-1">
-            <span className="block text-[14px] font-semibold text-white">Zeedara</span>
-            <span className="block text-[11px] font-medium text-[#828a9b]">Admin</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[14px] font-semibold text-white">
+              {adminDisplayName(admin)}
+            </span>
+            <span className="block truncate text-[11px] font-medium text-[#828a9b]">
+              {adminRoleLabel(admin)}
+            </span>
           </span>
           {isProfileOpen ? (
             <ChevronUp className="size-4 shrink-0 text-[#828a9b]" />
@@ -211,6 +246,7 @@ function AppSidebar({ isOpen, onClose }) {
             <ChevronDown className="size-4 shrink-0 text-[#828a9b]" />
           )}
         </button>
+      </div>
       </aside>
     </>
   );

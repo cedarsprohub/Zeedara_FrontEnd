@@ -10,38 +10,33 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CATEGORY_SHARE, REVENUE_TREND } from "./data";
+import { CATEGORY_COLORS } from "./data";
+import { formatNairaShort } from "./formatNairaShort";
 
 const AXIS_TICK = { fill: "#828a9b", fontSize: 12 };
-
-// ₦10M / ₦7.5M / ₦2.5M — the design drops the trailing zero on whole millions
-// but keeps one decimal on halves, which `toLocaleString` won't do on its own.
-function formatNaira(value) {
-  if (value >= 1_000_000) {
-    const millions = value / 1_000_000;
-    return `₦${Number.isInteger(millions) ? millions : millions.toFixed(1)}M`;
-  }
-  if (value >= 1_000) return `₦${Math.round(value / 1_000)}K`;
-  return `₦${value}`;
-}
 
 function RevenueTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-[#262626] px-2 py-1.5 text-[11px] leading-[1.4] text-white">
       <p>{label}</p>
-      <p>Revenue = {formatNaira(payload[0].value)}</p>
+      <p>Revenue = {formatNairaShort(payload[0].value)}</p>
     </div>
   );
 }
 
-export function RevenueTrendChart() {
+export function RevenueTrendChart({ data }) {
+  if (!data.length) {
+    return (
+      <p className="flex h-[214px] items-center justify-center text-[12px] text-[#828a9b]">
+        No revenue in this period.
+      </p>
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height={214}>
-      <AreaChart
-        data={REVENUE_TREND}
-        margin={{ top: 6, right: 8, bottom: 0, left: 0 }}
-      >
+      <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
         <defs>
           {/* The design fades the fill out to nothing well before the axis. */}
           <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
@@ -51,12 +46,13 @@ export function RevenueTrendChart() {
         </defs>
         <CartesianGrid stroke="#f0f1f3" vertical={false} />
         <XAxis
-          dataKey="month"
+          dataKey="label"
           tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
-          // Aug, Oct, Dec, Feb, Apr, Jun — the design labels every other month.
-          interval={1}
+          // Labelling every point crowds the axis once a 365-day range comes
+          // back daily; this keeps roughly six labels at any range.
+          interval={Math.max(0, Math.ceil(data.length / 6) - 1)}
           dy={8}
         />
         <YAxis
@@ -64,9 +60,7 @@ export function RevenueTrendChart() {
           tickLine={false}
           axisLine={false}
           width={56}
-          domain={[0, 10_000_000]}
-          ticks={[0, 2_500_000, 5_000_000, 7_500_000, 10_000_000]}
-          tickFormatter={formatNaira}
+          tickFormatter={formatNairaShort}
         />
         <Tooltip
           content={<RevenueTooltip />}
@@ -74,7 +68,7 @@ export function RevenueTrendChart() {
         />
         <Area
           type="monotone"
-          dataKey="revenue"
+          dataKey="value"
           stroke="#ca9949"
           strokeWidth={2}
           fill="url(#revenueFill)"
@@ -85,14 +79,22 @@ export function RevenueTrendChart() {
   );
 }
 
-export function CategoryDonut() {
+export function CategoryDonut({ slices, total }) {
+  if (!slices.length) {
+    return (
+      <div className="flex size-[104px] shrink-0 items-center justify-center text-[11px] text-[#828a9b]">
+        No data
+      </div>
+    );
+  }
+
   return (
     <div className="relative size-[104px] shrink-0">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={CATEGORY_SHARE.slices}
-            dataKey="share"
+            data={slices}
+            dataKey="value"
             innerRadius={34}
             outerRadius={52}
             paddingAngle={1}
@@ -101,8 +103,11 @@ export function CategoryDonut() {
             stroke="none"
             isAnimationActive={false}
           >
-            {CATEGORY_SHARE.slices.map((slice) => (
-              <Cell key={slice.name} fill={slice.color} />
+            {slices.map((slice, index) => (
+              <Cell
+                key={slice.label}
+                fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+              />
             ))}
           </Pie>
         </PieChart>
@@ -112,7 +117,7 @@ export function CategoryDonut() {
           use the page's font stack instead of SVG text metrics. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-[14px] font-bold text-[#262626]">
-          {CATEGORY_SHARE.total}
+          {formatNairaShort(total)}
         </span>
         <span className="text-[9px] font-medium text-[#828a9b]">Revenue</span>
       </div>

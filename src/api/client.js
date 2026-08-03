@@ -1,4 +1,4 @@
-import { getTokens, setTokens, clearTokens } from "./tokenStore";
+import * as customerTokenStore from "./tokenStore";
 
 // In dev, requests go through the Vite proxy (see vite.config.js) as
 // same-origin relative paths, avoiding the backend's CORS allowlist, which
@@ -69,58 +69,70 @@ async function rawFetch(path, { method = "GET", body, token } = {}) {
   return { response, data };
 }
 
-// De-duped so concurrent 401s trigger a single refresh call, not one per request.
-let refreshPromise = null;
+// Builds a request function bound to one token store. Storefront and admin
+// sessions live under different keys and can be signed in at the same time, so
+// each needs its own refresh — otherwise an expired admin token would be
+// refreshed using the customer's refresh token (and vice versa). The refresh
+// de-dupe is per client for the same reason.
+export function createClient(store) {
+  let refreshPromise = null;
 
-function refreshAccessToken() {
-  const { refreshToken } = getTokens();
-  if (!refreshToken) return Promise.resolve(null);
+  function refreshAccessToken() {
+    const { refreshToken } = store.getTokens();
+    if (!refreshToken) return Promise.resolve(null);
 
-  if (!refreshPromise) {
-    refreshPromise = rawFetch("/api/v1/auth/refresh", {
-      method: "POST",
-      body: { refresh_token: refreshToken },
-    })
-      .then(({ response, data }) => {
-        if (!response.ok) throw new Error("refresh failed");
-        setTokens(data);
-        return data;
+    // De-duped so concurrent 401s trigger a single refresh call, not one per
+    // request.
+    if (!refreshPromise) {
+      refreshPromise = rawFetch("/api/v1/auth/refresh", {
+        method: "POST",
+        body: { refresh_token: refreshToken },
       })
-      .catch(() => {
-        clearTokens();
-        return null;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
-  return refreshPromise;
-}
-
-export async function request(path, { method = "GET", body, token } = {}) {
-  let { response, data } = await rawFetch(path, { method, body, token });
-
-  // Only a request that was already carrying a (now-stale) token is worth
-  // retrying after a refresh — an unauthenticated 401 is a real auth failure.
-  if (response.status === 401 && token) {
-    const refreshed = await refreshAccessToken();
-    if (refreshed) {
-      ({ response, data } = await rawFetch(path, {
-        method,
-        body,
-        token: refreshed.access_token,
-      }));
+        .then(({ response, data }) => {
+          if (!response.ok) throw new Error("refresh failed");
+          store.setTokens(data);
+          return data;
+        })
+        .catch(() => {
+          store.clearTokens();
+          return null;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
     }
+    return refreshPromise;
   }
 
-  if (!response.ok) {
-    throw new ApiError(
-      extractMessage(data),
-      response.status,
-      data?.error?.code,
-      data?.error?.details ?? data?.detail,
-    );
-  }
+  return async function request(path, { method = "GET", body, token } = {}) {
+    let { response, data } = await rawFetch(path, { method, body, token });
 
-  return data;
+    // Only a request that was already carrying a (now-stale) token is worth
+    // retrying after a refresh — an unauthenticated 401 is a real auth failure.
+    if (response.status === 401 && token) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        ({ response, data } = await rawFetch(path, {
+          method,
+          body,
+          token: refreshed.access_token,
+        }));
+      }
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        extractMessage(data),
+        response.status,
+        data?.error?.code,
+        data?.error?.details ?? data?.detail,
+      );
+    }
+
+    return data;
+  };
 }
+
+// The storefront client. Signature is unchanged, so every existing caller in
+// src/api/* keeps working untouched.
+export const request = createClient(customerTokenStore);

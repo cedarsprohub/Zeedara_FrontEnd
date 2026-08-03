@@ -35,10 +35,13 @@ const ICONS = {
   clinic: FlaskConical,
 };
 
-// The bordered white box every panel on this page sits in.
+// The bordered white box every panel on this page sits in. `min-w-0` matters:
+// without it a card holding a min-width table grows past its grid/flex track
+// and drags the whole page into a horizontal scroll instead of scrolling the
+// table inside its own overflow container.
 function Card({ className = "", children }) {
   return (
-    <div className={`border border-[#f0f1f3] bg-white ${className}`}>
+    <div className={`min-w-0 border border-[#f0f1f3] bg-white ${className}`}>
       {children}
     </div>
   );
@@ -87,7 +90,7 @@ function Dashboard() {
   const [range, setRange] = useState("12 months");
 
   return (
-    <div className="flex flex-col gap-[21px]">
+    <div className="flex min-w-0 flex-col gap-[21px]">
       <Seo title="Dashboard" description="Zeedara admin dashboard." noindex />
 
       {/* Page header */}
@@ -100,14 +103,16 @@ function Dashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-0.5 border border-[#f0f1f3] bg-white p-[3px]">
+          {/* Scrolls rather than wrapping — a segmented control that breaks
+              onto two lines stops reading as one control. */}
+          <div className="flex max-w-full items-center gap-0.5 overflow-x-auto border border-[#f0f1f3] bg-white p-[3px]">
             {DATE_RANGES.map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setRange(option)}
                 aria-pressed={range === option}
-                className={`cursor-pointer px-3 py-1.5 text-[12px] transition-colors ${
+                className={`shrink-0 cursor-pointer px-3 py-1.5 text-[12px] transition-colors ${
                   range === option
                     ? "border border-[#f0f1f3] bg-white font-bold text-[#262626] shadow-sm"
                     : "font-medium text-[#828a9b] hover:text-[#262626]"
@@ -169,9 +174,9 @@ function Dashboard() {
 
         <Card>
           <PanelHeader title="Top Sales by category" subtitle="Share of revenue" />
-          <div className="flex items-center gap-6 p-[18px]">
+          <div className="flex flex-col items-center gap-4 p-[18px] sm:flex-row sm:gap-6">
             <CategoryDonut />
-            <ul className="flex flex-1 flex-col gap-3">
+            <ul className="flex w-full min-w-0 flex-col gap-3 sm:flex-1">
               {CATEGORY_SHARE.slices.map((slice) => (
                 <li
                   key={slice.name}

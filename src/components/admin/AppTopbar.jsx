@@ -3,17 +3,19 @@ import { PanelLeft, Search, ExternalLink, Bell } from "lucide-react";
 
 function AppTopbar({ onToggleSidebar }) {
   return (
-    <header className="sticky top-0 z-20 flex h-[82px] shrink-0 items-center gap-4 border-b border-[#f0f1f3] bg-white px-6">
+    <header className="sticky top-0 z-20 flex h-[82px] shrink-0 items-center gap-2 border-b border-[#f0f1f3] bg-white px-4 sm:gap-4 sm:px-6">
       <button
         type="button"
         onClick={onToggleSidebar}
         aria-label="Toggle navigation"
-        className="cursor-pointer p-1.5 text-[#48505e] transition-colors hover:text-black"
+        className="shrink-0 cursor-pointer p-1.5 text-[#48505e] transition-colors hover:text-black"
       >
         <PanelLeft className="size-5" strokeWidth={1.75} />
       </button>
 
-      <div className="flex h-[41px] max-w-[602px] flex-1 items-center gap-2 border border-[#f0f1f3] bg-[#f9fafb] px-3 focus-within:border-[#dadde2]">
+      {/* min-w-0 lets the field shrink below its placeholder on narrow screens
+          instead of forcing the whole bar wider than the viewport. */}
+      <div className="flex h-[41px] min-w-0 max-w-[602px] flex-1 items-center gap-2 border border-[#f0f1f3] bg-[#f9fafb] px-3 focus-within:border-[#dadde2]">
         <Search className="size-5 shrink-0 text-[#828a9b]" strokeWidth={1.75} />
         <input
           type="search"
@@ -23,16 +25,17 @@ function AppTopbar({ onToggleSidebar }) {
         />
       </div>
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-4">
         {/* The storefront is a different app surface, so this leaves the
-            dashboard rather than routing inside it. */}
+            dashboard rather than routing inside it. Dropped on phones, where
+            the bar has no room to spare and the storefront is a tab away. */}
         <a
           href="/"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="View storefront"
           title="View storefront"
-          className="p-2 text-[#48505e] transition-colors hover:text-black"
+          className="hidden p-2 text-[#48505e] transition-colors hover:text-black sm:block"
         >
           <ExternalLink className="size-5" strokeWidth={1.75} />
         </a>
@@ -46,8 +49,8 @@ function AppTopbar({ onToggleSidebar }) {
           <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-[#f04438]" />
         </Link>
 
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-white">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-white sm:size-10">
             Z
           </span>
           <span className="hidden sm:block">

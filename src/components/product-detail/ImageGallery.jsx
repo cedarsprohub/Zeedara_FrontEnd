@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Expand } from "lucide-react";
 import { useNavbarHeight } from "../../context/NavbarHeightContext";
 import ImageLightbox from "./ImageLightbox";
 
@@ -54,7 +53,7 @@ function ImageGallery({ images, name }) {
         onClick={() => setIsViewerOpen(true)}
         aria-label="View larger image"
         aria-haspopup="dialog"
-        className="group relative h-[320px] flex-1 cursor-zoom-in overflow-hidden bg-gray-100 sm:h-[420px] lg:h-full"
+        className="h-[320px] flex-1 cursor-zoom-in overflow-hidden bg-gray-100 sm:h-[420px] lg:h-full"
       >
         {/* The detail page's largest paint — fetched eagerly and at high
             priority, and keyed so switching thumbnails re-runs the fade. */}
@@ -66,12 +65,6 @@ function ImageGallery({ images, name }) {
           fetchPriority="high"
           className="media-in h-full w-full object-cover"
         />
-        {/* Affordance for the click target — the cursor alone isn't visible
-            on touch, where this is the only cue that the image opens. */}
-        <span className="pointer-events-none absolute right-3 bottom-3 flex items-center gap-1.5 bg-black/55 px-2.5 py-1.5 text-[11px] font-medium text-white transition-colors group-hover:bg-black/75">
-          <Expand className="size-3.5" />
-          Tap to zoom
-        </span>
       </button>
 
       {isViewerOpen && (

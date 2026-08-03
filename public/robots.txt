@@ -14,6 +14,7 @@ Disallow: /checkout
 Disallow: /order-received/
 Disallow: /payment/callback
 Disallow: /account
+Disallow: /admin
 Disallow: /login
 Disallow: /register
 Disallow: /get-started

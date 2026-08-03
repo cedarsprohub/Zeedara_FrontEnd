@@ -56,6 +56,12 @@ const VerifyForgotPassword = lazy(
 const ChangePassword = lazy(() => import("../pages/Auth/ChangePassword"));
 const GoogleComplete = lazy(() => import("../pages/Auth/GoogleComplete"));
 
+// Admin. Split like everything else, so a shopper never downloads the
+// dashboard — they'd only pull this chunk by visiting /admin themselves.
+const AdminLogin = lazy(() => import("../pages/Admin/Login"));
+const AdminLayout = lazy(() => import("../layout/AdminLayout"));
+const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -186,6 +192,13 @@ function AppRoutes() {
               path="/complete-google-profile"
               element={<GoogleComplete />}
             />
+          </Route>
+
+          {/* Admin. Standalone — the storefront navbar and footer have no place
+              on a back-office screen. The page sets its own noindex. */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
           </Route>
 
           {/* Catch-all. A real not-found page inside the layout, not a redirect

@@ -15,6 +15,7 @@ import {
 import Seo from "../../../components/shared/Seo";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import DeleteDialog from "./DeleteDialog";
+import ImportDialog from "./ImportDialog";
 import {
   CATEGORIES,
   initialsFor,
@@ -70,6 +71,7 @@ function Products() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(() => new Set());
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Tab counts come from the full catalogue, so they keep showing the size of
   // each bucket rather than of whatever the search happens to have narrowed to.
@@ -168,6 +170,18 @@ function Products() {
     setIsConfirmingDelete(false);
   };
 
+  // The filters are cleared along with the insert: importing into a view that
+  // happens to exclude every new row reads as an import that did nothing. The
+  // chosen sort is left alone — it still applies to the rows that arrived.
+  const importProducts = (products) => {
+    setRows((previous) => [...products, ...previous]);
+    setIsImporting(false);
+    setStatus("All");
+    setQuery("");
+    setCategory(CATEGORIES[0]);
+    setPage(1);
+  };
+
   const applySort = (key) => {
     setSort((previous) =>
       previous.key === key
@@ -199,6 +213,7 @@ function Products() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
+            onClick={() => setIsImporting(true)}
             className="flex cursor-pointer items-center gap-2 border border-[#f0f1f3] bg-white px-4 py-2.5 text-[14px] font-medium text-[#48505e] transition-colors hover:border-[#dadde2] hover:text-black"
           >
             <Upload className="size-[17px]" strokeWidth={2} />
@@ -575,6 +590,15 @@ function Products() {
           </div>
         </div>
       </div>
+
+      {isImporting && (
+        <ImportDialog
+          categories={CATEGORIES.slice(1)}
+          existingSkus={rows.map((product) => product.sku)}
+          onCancel={() => setIsImporting(false)}
+          onImport={importProducts}
+        />
+      )}
 
       {isConfirmingDelete && (
         <DeleteDialog

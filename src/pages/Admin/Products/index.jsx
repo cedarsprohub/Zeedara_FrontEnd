@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import DeleteDialog from "./DeleteDialog";
 import {
   CATEGORIES,
   initialsFor,
@@ -68,6 +69,7 @@ function Products() {
   const [sort, setSort] = useState({ key: "name", direction: "asc" });
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(() => new Set());
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   // Tab counts come from the full catalogue, so they keep showing the size of
   // each bucket rather than of whatever the search happens to have narrowed to.
@@ -163,6 +165,7 @@ function Products() {
       previous.filter((product) => !selected.has(product.sku)),
     );
     clearSelection();
+    setIsConfirmingDelete(false);
   };
 
   const applySort = (key) => {
@@ -341,7 +344,7 @@ function Products() {
 
               <button
                 type="button"
-                onClick={deleteSelected}
+                onClick={() => setIsConfirmingDelete(true)}
                 className="flex h-[36px] cursor-pointer items-center gap-2 bg-[#fae9e9] px-3 text-[14px] font-medium text-[#cf251f] transition-opacity hover:opacity-80"
               >
                 <Trash2 className="size-4" strokeWidth={2} />
@@ -572,6 +575,14 @@ function Products() {
           </div>
         </div>
       </div>
+
+      {isConfirmingDelete && (
+        <DeleteDialog
+          count={selected.size}
+          onCancel={() => setIsConfirmingDelete(false)}
+          onConfirm={deleteSelected}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,9 @@ import {
   TEMPLATE_COLUMNS,
 } from "./csv";
 
+// How much of the parsed file the preview shows before summarising the rest.
+const PREVIEW_ROWS = 4;
+
 // Kicks off a download of the blank template. Revoking the URL straight after
 // the click is what lets the blob be collected — it outlives the element.
 function downloadTemplate() {
@@ -27,7 +30,6 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
   const inputRef = useRef(null);
   const closeButtonRef = useRef(null);
 
-  const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -47,11 +49,11 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
     };
   }, [onCancel]);
 
-  // Parsed on selection rather than on Import, so the row count and any bad
-  // lines are visible while there's still a chance to swap the file out.
+  // Parsed on selection rather than on Import, so the preview, the row count
+  // and any bad lines are all visible while there's still a chance to swap the
+  // file out.
   const acceptFile = (candidate) => {
     if (!candidate) return;
-    setFile(candidate);
     setResult(null);
 
     candidate
@@ -59,7 +61,9 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
       .then((text) =>
         setResult(parseProductsCsv(text, { categories, existingSkus })),
       )
-      .catch(() => setResult({ products: [], errors: ["Couldn't read that file."] }));
+      .catch(() =>
+        setResult({ products: [], errors: ["Couldn't read that file."] }),
+      );
   };
 
   const handleDrop = (event) => {
@@ -70,11 +74,15 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
 
   const readyCount = result?.products.length ?? 0;
   const problems = result?.errors ?? [];
+  const hiddenCount = Math.max(0, readyCount - PREVIEW_ROWS);
 
   return (
     // Above the sidebar's z-40, so the scrim covers it as the design shows.
+    // items-start with my-auto rather than items-center: once the preview makes
+    // the dialog taller than the viewport, centring puts its top out of reach
+    // of the scroll.
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/30 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 p-4"
       onClick={onCancel}
     >
       <div
@@ -83,7 +91,7 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
         aria-labelledby="import-products-title"
         aria-describedby="import-products-description"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-full max-w-[680px] flex-col overflow-hidden rounded-[4px] bg-white shadow-[0px_24px_24px_rgba(16,24,40,0.18)]"
+        className="my-auto flex w-full max-w-[680px] flex-col overflow-hidden rounded-[4px] bg-white shadow-[0px_24px_24px_rgba(16,24,40,0.18)]"
       >
         <div className="flex items-start gap-3.5 px-6 py-5">
           <span className="flex size-[42px] shrink-0 items-center justify-center rounded-[4px] bg-[#faf4eb]">
@@ -146,22 +154,14 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
               />
             </span>
 
+            {/* The zone keeps its resting copy once a file is loaded — what
+                arrived is reported by the preview below, not in here. */}
             <span className="pt-[3px] text-[12px] font-semibold">
-              {file ? (
-                <span className="text-[#48505e]">{file.name}</span>
-              ) : (
-                <>
-                  <span className="text-(--primary-color)">
-                    Choose a CSV file
-                  </span>{" "}
-                  <span className="text-[#48505e]">or drag it here</span>
-                </>
-              )}
+              <span className="text-(--primary-color)">Choose a CSV file</span>{" "}
+              <span className="text-[#48505e]">or drag it here</span>
             </span>
             <span className="text-[12px] font-medium text-[#828a9b]">
-              {file && result
-                ? `${readyCount} row${readyCount === 1 ? "" : "s"} ready to import`
-                : `Expected columns: ${TEMPLATE_COLUMNS.join(", ")}`}
+              Expected columns: {TEMPLATE_COLUMNS.join(", ")}
             </span>
           </button>
 
@@ -172,6 +172,75 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
             className="hidden"
             onChange={(event) => acceptFile(event.target.files?.[0])}
           />
+
+          {/* Preview of what the file actually yielded. Only the rows that
+              would be created appear here — the rejected ones are accounted for
+              in the banner below. */}
+          {readyCount > 0 && (
+            <div className="rounded-[4px] border-[0.667px] border-[#dadde2] bg-white shadow-[0px_1px_1px_rgba(16,24,40,0.05)]">
+              <div className="border-b-[0.667px] border-[#eaecf0] px-[18px] py-4">
+                <p className="text-[12px] font-semibold text-[#2e323c]">
+                  {readyCount} row{readyCount === 1 ? "" : "s"} detected
+                </p>
+              </div>
+
+              {/* Raw parsed values rather than formatted ones: this is a read of
+                  the file, so the price shown is the number that will be saved. */}
+              <table className="w-full table-fixed border-collapse text-left">
+                <colgroup>
+                  <col className="w-[40%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                </colgroup>
+                <thead>
+                  <tr className="border-b-[0.667px] border-[#eaecf0] bg-[#fcfcfc] text-[12px] font-semibold text-[#48505e]">
+                    <th scope="col" className="px-4 py-[11px]">
+                      Name
+                    </th>
+                    <th scope="col" className="px-4 py-[11px]">
+                      SKU
+                    </th>
+                    <th scope="col" className="p-3 text-right">
+                      Price
+                    </th>
+                    <th scope="col" className="px-3 py-[11px] text-right">
+                      Stock
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.products.slice(0, PREVIEW_ROWS).map((product) => (
+                    <tr
+                      key={product.sku}
+                      className="border-b-[0.667px] border-[#eaecf0] last:border-0"
+                    >
+                      <td className="px-4 py-[13px] text-[12px] font-semibold text-[#2e323c]">
+                        {product.name}
+                      </td>
+                      <td className="px-4 py-[13px] text-[12px] font-medium text-[#48505e]">
+                        {product.sku}
+                      </td>
+                      <td className="p-3 text-right text-[12px] font-medium text-[#48505e]">
+                        {product.price}
+                      </td>
+                      <td className="px-3 py-[13px] text-right text-[12px] font-medium text-[#48505e]">
+                        {product.stock}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {hiddenCount > 0 && (
+                <div className="border-t-[0.667px] border-[#eaecf0] bg-[#fcfcfc] px-[18px] py-3">
+                  <p className="text-[12px] font-medium text-[#48505e]">
+                    …and {hiddenCount} more
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           <hr className="border-[#f0f1f3]" />
 

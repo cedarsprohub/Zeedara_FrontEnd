@@ -9,6 +9,7 @@ import {
   List,
   Plus,
   Search,
+  Trash2,
   Upload,
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
@@ -57,6 +58,9 @@ function StatusPill({ status }) {
 }
 
 function Products() {
+  // The bulk actions in the selection bar edit the catalogue, so the rows are
+  // held in state rather than read straight off the placeholder array.
+  const [rows, setRows] = useState(PRODUCTS);
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -73,24 +77,24 @@ function Products() {
         STATUSES.map((option) => [
           option,
           option === "All"
-            ? PRODUCTS.length
-            : PRODUCTS.filter((product) => product.status === option).length,
+            ? rows.length
+            : rows.filter((product) => product.status === option).length,
         ]),
       ),
-    [],
+    [rows],
   );
 
   const totals = useMemo(
     () => ({
-      variants: PRODUCTS.reduce((sum, product) => sum + product.variants, 0),
-      units: PRODUCTS.reduce((sum, product) => sum + product.stock, 0),
+      variants: rows.reduce((sum, product) => sum + product.variants, 0),
+      units: rows.reduce((sum, product) => sum + product.stock, 0),
     }),
-    [],
+    [rows],
   );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    const rows = PRODUCTS.filter((product) => {
+    const matches = rows.filter((product) => {
       if (status !== "All" && product.status !== status) return false;
       if (category !== CATEGORIES[0] && product.category !== category)
         return false;
@@ -101,7 +105,7 @@ function Products() {
     });
 
     const factor = sort.direction === "asc" ? 1 : -1;
-    return [...rows].sort((a, b) => {
+    return [...matches].sort((a, b) => {
       const left = a[sort.key];
       const right = b[sort.key];
       if (typeof left === "number" && typeof right === "number") {
@@ -109,7 +113,7 @@ function Products() {
       }
       return String(left).localeCompare(String(right)) * factor;
     });
-  }, [status, category, query, sort]);
+  }, [rows, status, category, query, sort]);
 
   // Clamped rather than reset: deleting the filter that shrank the list
   // shouldn't silently bounce you back to page 1 when the page still exists.
@@ -142,6 +146,25 @@ function Products() {
     });
   };
 
+  const clearSelection = () => setSelected(new Set());
+
+  // Recategorising keeps the selection so the same rows can be acted on again;
+  // deleting drops it, since those SKUs no longer exist to stay selected.
+  const changeCategory = (value) => {
+    setRows((previous) =>
+      previous.map((product) =>
+        selected.has(product.sku) ? { ...product, category: value } : product,
+      ),
+    );
+  };
+
+  const deleteSelected = () => {
+    setRows((previous) =>
+      previous.filter((product) => !selected.has(product.sku)),
+    );
+    clearSelection();
+  };
+
   const applySort = (key) => {
     setSort((previous) =>
       previous.key === key
@@ -165,7 +188,7 @@ function Products() {
         <div>
           <h1 className="text-[24px] font-bold text-[#262626]">Products</h1>
           <p className="text-[12px] font-medium text-[#828a9b]">
-            {PRODUCTS.length} products · {totals.variants} variants ·{" "}
+            {rows.length} products · {totals.variants} variants ·{" "}
             {totals.units.toLocaleString("en-NG")} units in stock
           </p>
         </div>
@@ -281,6 +304,61 @@ function Products() {
           </div>
         </div>
 
+        {/* Bulk action bar. Only present while something is selected — it takes
+            the place of a row rather than sitting there empty, which is why the
+            table below keeps its own top border either way. */}
+        {selected.size > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0f1f3] bg-[#faf4eb] px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="mr-1 text-[14px] font-semibold text-[#865c18]">
+                {selected.size} selected
+              </p>
+
+              <div className="relative">
+                {/* Held at the placeholder so the control reads as an action
+                    rather than as the current category of the selection — the
+                    rows may well be in several different ones. */}
+                <select
+                  aria-label="Change category of selected products"
+                  value=""
+                  onChange={(event) => changeCategory(event.target.value)}
+                  className="h-[36px] w-[190px] cursor-pointer appearance-none border border-[#dadde2] bg-white pr-9 pl-3 text-[14px] font-medium text-[#48505e] focus:outline-none"
+                >
+                  <option value="" disabled>
+                    Change category
+                  </option>
+                  {CATEGORIES.slice(1).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#48505e]"
+                  strokeWidth={2}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={deleteSelected}
+                className="flex h-[36px] cursor-pointer items-center gap-2 bg-[#fae9e9] px-3 text-[14px] font-medium text-[#cf251f] transition-opacity hover:opacity-80"
+              >
+                <Trash2 className="size-4" strokeWidth={2} />
+                Delete
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="cursor-pointer text-[14px] font-semibold text-[#48505e] transition-colors hover:text-black"
+            >
+              Clear selection
+            </button>
+          </div>
+        )}
+
         {visible.length === 0 ? (
           <p className="px-4 py-16 text-center text-[14px] text-[#828a9b]">
             No products match these filters.
@@ -329,70 +407,77 @@ function Products() {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((product) => (
-                  <tr
-                    key={product.sku}
-                    className="border-b border-[#f0f1f3] last:border-0 hover:bg-[#fcfcfc]"
-                  >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${product.name}`}
-                        checked={selected.has(product.sku)}
-                        onChange={() => toggleOne(product.sku)}
-                        className="size-4 cursor-pointer accent-(--primary-color)"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-(--primary-color) text-[12px] font-bold text-white">
-                          {initialsFor(product.name)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-[14px] font-semibold text-[#262626]">
-                            {product.name}
-                          </p>
-                          <p className="text-[12px] text-[#828a9b]">
-                            {product.sku} · {product.variants} variant
-                            {product.variants === 1 ? "" : "s"}
-                          </p>
+                {visible.map((product) => {
+                  const isSelected = selected.has(product.sku);
+                  return (
+                    <tr
+                      key={product.sku}
+                      // A selected row keeps its tint on hover, so the hover rule
+                      // is only applied to the rows that aren't selected.
+                      className={`border-b border-[#f0f1f3] last:border-0 ${
+                        isSelected ? "bg-[#faf4eb]" : "hover:bg-[#fcfcfc]"
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${product.name}`}
+                          checked={isSelected}
+                          onChange={() => toggleOne(product.sku)}
+                          className="size-4 cursor-pointer accent-(--primary-color)"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-(--primary-color) text-[12px] font-bold text-white">
+                            {initialsFor(product.name)}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-[14px] font-semibold text-[#262626]">
+                              {product.name}
+                            </p>
+                            <p className="text-[12px] text-[#828a9b]">
+                              {product.sku} · {product.variants} variant
+                              {product.variants === 1 ? "" : "s"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[14px] text-[#667085]">
-                      {product.category}
-                    </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      {product.compareAt && (
-                        <span className="mr-2 text-[12px] text-[#9fa5b2] line-through">
-                          {formatCurrency(product.compareAt)}
+                      </td>
+                      <td className="px-4 py-3 text-[14px] text-[#667085]">
+                        {product.category}
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {product.compareAt && (
+                          <span className="mr-2 text-[12px] text-[#9fa5b2] line-through">
+                            {formatCurrency(product.compareAt)}
+                          </span>
+                        )}
+                        <span className="text-[14px] font-bold text-(--primary-color)">
+                          {formatCurrency(product.price)}
                         </span>
-                      )}
-                      <span className="text-[14px] font-bold text-(--primary-color)">
-                        {formatCurrency(product.price)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {/* Zero reads as a problem, so it gets the error palette
+                      </td>
+                      <td className="px-4 py-3">
+                        {/* Zero reads as a problem, so it gets the error palette
                           rather than the neutral stock chip. */}
-                      <span
-                        className={`inline-block rounded-md border px-2.5 py-1 text-[12px] font-semibold ${
-                          product.stock === 0
-                            ? "border-[#f3d3d2] bg-[#fdf2f2] text-[#cf251f]"
-                            : "border-[#f6e5c7] bg-white text-[#262626]"
-                        }`}
-                      >
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[14px] text-[#667085]">
-                      {product.sold}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusPill status={product.status} />
-                    </td>
-                  </tr>
-                ))}
+                        <span
+                          className={`inline-block rounded-md border px-2.5 py-1 text-[12px] font-semibold ${
+                            product.stock === 0
+                              ? "border-[#f3d3d2] bg-[#fdf2f2] text-[#cf251f]"
+                              : "border-[#f6e5c7] bg-white text-[#262626]"
+                          }`}
+                        >
+                          {product.stock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[14px] text-[#667085]">
+                        {product.sold}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusPill status={product.status} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -440,7 +525,10 @@ function Products() {
               {filtered.length === 0 ? 0 : start + 1}–
               {Math.min(start + PAGE_SIZE, filtered.length)}
             </span>{" "}
-            of <span className="font-semibold text-[#262626]">{filtered.length}</span>
+            of{" "}
+            <span className="font-semibold text-[#262626]">
+              {filtered.length}
+            </span>
           </p>
 
           <div className="flex items-center gap-1">

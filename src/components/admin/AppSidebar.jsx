@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  Package,
   Tag,
   GalleryHorizontal,
   Image,
@@ -40,7 +39,6 @@ const NAV_GROUPS = [
     heading: "Catalog",
     items: [
       { label: "Products", to: "/admin/products", icon: LayoutDashboard },
-      { label: "Products", to: "/admin/products-list", icon: Package },
       { label: "Categories", to: "/admin/categories", icon: Tag },
       { label: "Product Sliders", to: "/admin/sliders", icon: GalleryHorizontal },
       { label: "Media", to: "/admin/media", icon: Image },

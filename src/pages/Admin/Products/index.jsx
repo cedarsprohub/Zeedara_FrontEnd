@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   ChevronDown,
   ChevronLeft,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import AddProductDrawer from "./AddProductDrawer";
 import DeleteDialog from "./DeleteDialog";
 import ImportDialog from "./ImportDialog";
 import {
@@ -72,6 +72,7 @@ function Products() {
   const [selected, setSelected] = useState(() => new Set());
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   // Tab counts come from the full catalogue, so they keep showing the size of
   // each bucket rather than of whatever the search happens to have narrowed to.
@@ -182,6 +183,13 @@ function Products() {
     setPage(1);
   };
 
+  // A single new product lands the same way an import does — filters cleared so
+  // it's certain to be in view, rather than hidden behind whatever was set.
+  const createProduct = (product) => {
+    importProducts([product]);
+    setIsAdding(false);
+  };
+
   const applySort = (key) => {
     setSort((previous) =>
       previous.key === key
@@ -226,13 +234,14 @@ function Products() {
             <Download className="size-[17px]" strokeWidth={2} />
             Export CSV
           </button>
-          <Link
-            to="/admin/products/new"
-            className="flex items-center gap-2 bg-(--primary-color) px-4 py-2.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            className="flex cursor-pointer items-center gap-2 bg-(--primary-color) px-4 py-2.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
           >
             <Plus className="size-[17px]" strokeWidth={2.5} />
             Add Product
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -590,6 +599,16 @@ function Products() {
           </div>
         </div>
       </div>
+
+      {/* Always mounted, unlike the dialogs — it slides in, so it needs to be
+          in the tree before it opens. */}
+      <AddProductDrawer
+        isOpen={isAdding}
+        categories={CATEGORIES.slice(1)}
+        existingSkus={rows.map((product) => product.sku)}
+        onClose={() => setIsAdding(false)}
+        onCreate={createProduct}
+      />
 
       {isImporting && (
         <ImportDialog

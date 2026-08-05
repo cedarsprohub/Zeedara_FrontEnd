@@ -35,6 +35,27 @@ export const CATEGORIES = [
 
 export const PAGE_SIZE = 12;
 
+// Options for the two selects on the add-product form that aren't derived from
+// the catalogue. The Figma frames show only the closed control, so the lists
+// themselves are a first pass — the hair origins are the ones the storefront
+// copy already talks about, and the weight bands match the shipping tiers.
+export const HAIR_ORIGINS = [
+  "Not applicable",
+  "Vietnamese",
+  "Brazilian",
+  "Peruvian",
+  "Indian",
+  "Cambodian",
+];
+
+export const WEIGHT_BANDS = [
+  "Under 0.5 kg",
+  "0.5 – 1 kg",
+  "1 – 2 kg",
+  "2 – 5 kg",
+  "Over 5 kg",
+];
+
 // Initials for the row avatar. Two words → two letters, one word → two letters
 // of that word, so every badge is the same width.
 export function initialsFor(name) {

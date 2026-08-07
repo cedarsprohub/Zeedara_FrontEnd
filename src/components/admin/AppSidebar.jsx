@@ -33,14 +33,20 @@ import {
 // expands; the sub-items sit flush under it rather than in their own group.
 const NAV_GROUPS = [
   {
-    items: [{ label: "Dashboard", to: "/admin", end: true, icon: LayoutDashboard }],
+    items: [
+      { label: "Dashboard", to: "/admin", end: true, icon: LayoutDashboard },
+    ],
   },
   {
     heading: "Catalog",
     items: [
       { label: "Products", to: "/admin/products", icon: LayoutDashboard },
       { label: "Categories", to: "/admin/categories", icon: Tag },
-      { label: "Product Sliders", to: "/admin/sliders", icon: GalleryHorizontal },
+      {
+        label: "Product Sliders",
+        to: "/admin/sliders",
+        icon: GalleryHorizontal,
+      },
       { label: "Media", to: "/admin/media", icon: Image },
     ],
   },
@@ -71,7 +77,11 @@ const NAV_GROUPS = [
     heading: "Services",
     items: [
       { label: "Customer Hair", to: "/admin/custom-hair", icon: Scissors },
-      { label: "Skincare Clinic", to: "/admin/skincare-clinic", icon: FlaskConical },
+      {
+        label: "Skincare Clinic",
+        to: "/admin/skincare-clinic",
+        icon: FlaskConical,
+      },
     ],
   },
   {
@@ -169,13 +179,17 @@ function AppSidebar({ isOpen, onClose }) {
         }`}
       >
         <div className="flex flex-col gap-1 px-6 py-6">
-          <img src={logo} alt="Zeedara" className="h-[26px] w-[132px] object-contain" />
+          <img
+            src={logo}
+            alt="Zeedara"
+            className="h-[26px] w-[132px] object-contain"
+          />
           <span className="text-[10px] font-medium tracking-[0.08em] text-[#828a9b] uppercase">
             Admin Console
           </span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto pb-4">
+        <nav className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#4a4a4a] pb-4">
           {NAV_GROUPS.map((group, index) => (
             <div key={group.heading || index}>
               {group.divider && <hr className="mx-6 my-3 border-[#2e323c]" />}
@@ -205,46 +219,46 @@ function AppSidebar({ isOpen, onClose }) {
           </button>
         </nav>
 
-      <div className="relative">
-        {isProfileOpen && (
-          <div className="absolute right-3 bottom-full left-3 mb-2 bg-[#262626] py-1 shadow-lg">
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-[14px] font-medium text-[#828a9b] transition-colors hover:text-[#e3caa1]"
-            >
-              <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
-              Sign out
-            </button>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setIsProfileOpen((value) => !value)}
-          aria-expanded={isProfileOpen}
-          className="flex w-full cursor-pointer items-center gap-3 bg-[#262626] px-6 py-3 text-left"
-        >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-[#1f1f1f]">
-            {adminInitial(admin)}
-          </span>
-          {/* Kept in step with the topbar's profile block — the same account,
-              so the two shouldn't be set at different sizes. */}
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[14px] font-semibold text-white">
-              {adminDisplayName(admin)}
-            </span>
-            <span className="block truncate text-[11px] font-medium text-[#828a9b]">
-              {adminRoleLabel(admin)}
-            </span>
-          </span>
-          {isProfileOpen ? (
-            <ChevronUp className="size-4 shrink-0 text-[#828a9b]" />
-          ) : (
-            <ChevronDown className="size-4 shrink-0 text-[#828a9b]" />
+        <div className="relative">
+          {isProfileOpen && (
+            <div className="absolute right-3 bottom-full left-3 mb-2 bg-[#262626] py-1 shadow-lg">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-[14px] font-medium text-[#828a9b] transition-colors hover:text-[#e3caa1]"
+              >
+                <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
+                Sign out
+              </button>
+            </div>
           )}
-        </button>
-      </div>
+
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen((value) => !value)}
+            aria-expanded={isProfileOpen}
+            className="flex w-full cursor-pointer items-center gap-3 bg-[#262626] px-6 py-3 text-left"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ca9949] text-[14px] font-bold text-[#1f1f1f]">
+              {adminInitial(admin)}
+            </span>
+            {/* Kept in step with the topbar's profile block — the same account,
+              so the two shouldn't be set at different sizes. */}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-semibold text-white">
+                {adminDisplayName(admin)}
+              </span>
+              <span className="block truncate text-[11px] font-medium text-[#828a9b]">
+                {adminRoleLabel(admin)}
+              </span>
+            </span>
+            {isProfileOpen ? (
+              <ChevronUp className="size-4 shrink-0 text-[#828a9b]" />
+            ) : (
+              <ChevronDown className="size-4 shrink-0 text-[#828a9b]" />
+            )}
+          </button>
+        </div>
       </aside>
     </>
   );

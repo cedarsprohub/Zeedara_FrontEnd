@@ -1,6 +1,6 @@
 import { Banknote, ShoppingCart, Star, Wallet } from "lucide-react";
 import { Card, StatCard } from "./fields";
-import { unitsTotal } from "./product";
+import { describeVariant, unitsTotal } from "./product";
 import { formatCurrency } from "../../../../utils/formatCurrency";
 
 // Nothing here can have happened yet — the product doesn't exist until Create
@@ -46,12 +46,13 @@ function InsightsTab({ variants }) {
           </p>
         ) : (
           <ul className="flex flex-col gap-3 px-5 py-4">
-            {variants.map((variant, index) => {
+            {variants.map((variant) => {
               const stock = Number(variant.stock) || 0;
+              const { title } = describeVariant(variant);
               return (
                 <li key={variant.id} className="flex items-center gap-4">
                   <span className="w-[150px] shrink-0 truncate text-[12px] font-medium text-[#48505e]">
-                    {variant.name || `Variant ${index + 1}`}
+                    {title}
                   </span>
                   {/* Bars are scaled against the largest variant, not the
                       total — otherwise a wide matrix flattens them all. */}

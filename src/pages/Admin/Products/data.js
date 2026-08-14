@@ -56,6 +56,58 @@ export const WEIGHT_BANDS = [
   "Over 5 kg",
 ];
 
+// Attribute options for the variant editor modal. As with HAIR_ORIGINS and
+// WEIGHT_BANDS, the Figma frame shows only the closed selects, so these lists
+// are a first pass sized to what the catalogue actually stocks.
+export const VARIANT_LENGTHS = [
+  '10"',
+  '12"',
+  '14"',
+  '16"',
+  '18"',
+  '20"',
+  '22"',
+  '24"',
+  '26"',
+  '28"',
+  '30"',
+];
+
+export const VARIANT_TEXTURES = [
+  "Straight",
+  "Body Wave",
+  "Deep Wave",
+  "Loose Wave",
+  "Water Wave",
+  "Kinky Curly",
+];
+
+export const VARIANT_LACE_TYPES = [
+  "Lace Front",
+  "Full Lace",
+  "360 Lace",
+  "Closure",
+  "None",
+];
+
+export const VARIANT_CAP_SIZES = ['Small (21")', 'Average (22")', 'Large (23")'];
+
+export const VARIANT_DENSITIES = ["130%", "150%", "180%", "200%"];
+
+// The fixed swatch fan from the Figma colour picker.
+export const VARIANT_COLORS = [
+  { name: "Jet Black", hex: "#1c1917" },
+  { name: "Off Black", hex: "#0b0b0b" },
+  { name: "Dark Brown 2", hex: "#3b2a20" },
+  { name: "Chocolate Brown", hex: "#5c3a21" },
+  { name: "Caramel Brown", hex: "#b57a3c" },
+  { name: "Sandy Blonde", hex: "#d9c39a" },
+  { name: "Burgundy", hex: "#6b1b2b" },
+  { name: "Copper Auburn", hex: "#9a4b1f" },
+  { name: "Honey Blonde 27", hex: "#e5ddd0" },
+  { name: "Chestnut Brown", hex: "#7a4b27" },
+];
+
 // Initials for the row avatar. Two words → two letters, one word → two letters
 // of that word, so every badge is the same width.
 export function initialsFor(name) {

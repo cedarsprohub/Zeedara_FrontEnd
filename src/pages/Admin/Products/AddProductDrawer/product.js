@@ -44,3 +44,17 @@ export function unitsTotal(variants) {
     0,
   );
 }
+
+// The variant row has no free-text name — it's composed from whichever
+// attributes were picked in the editor, in the same order the Figma matrix
+// groups them: identity on the first line, fit on the second. A variant with
+// nothing picked yet reads as "Untitled variant" rather than a blank row.
+export function describeVariant(variant) {
+  const title = [variant.length, variant.color?.name, variant.texture, variant.sizeShade]
+    .filter(Boolean)
+    .join(" · ");
+  const subtitle = [variant.laceType, variant.density, variant.capSize]
+    .filter(Boolean)
+    .join(" · ");
+  return title ? { title, subtitle } : { title: "Untitled variant", subtitle: "" };
+}

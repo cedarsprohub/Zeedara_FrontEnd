@@ -1,11 +1,37 @@
+import { useState } from "react";
 import { Info, Layers, Plus, Trash2 } from "lucide-react";
 import { Card, InfoBanner } from "./fields";
-import { unitsTotal } from "./product";
+import { describeVariant, unitsTotal } from "./product";
+import VariantModal from "./VariantModal";
 
 const CELL_CLASS =
   "w-full border border-[#dadde2] bg-white px-3 py-2 text-[12px] font-medium text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
 
+const GRID_COLUMNS =
+  "grid-cols-[minmax(0,2.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px]";
+
+function blankVariant(id) {
+  return {
+    id,
+    length: "",
+    texture: "",
+    color: null,
+    laceType: "",
+    capSize: "",
+    density: "",
+    sizeShade: "",
+    sku: "",
+    price: "",
+    stock: "",
+    reorderPoint: "",
+  };
+}
+
 function VariantsTab({ variants, onChange }) {
+  // null when the modal is closed; otherwise which row it's editing and
+  // whether that row is new or already in the matrix.
+  const [editing, setEditing] = useState(null);
+
   const update = (id, patch) =>
     onChange(
       variants.map((variant) =>
@@ -13,18 +39,25 @@ function VariantsTab({ variants, onChange }) {
       ),
     );
 
-  const add = () =>
-    onChange([
-      ...variants,
-      // Ids come off a counter rather than Date.now(), so two rows added in the
-      // same tick can't collide on a key.
-      {
-        id: variants.reduce((max, variant) => Math.max(max, variant.id), 0) + 1,
-        name: "",
-        stock: "",
-        price: "",
-      },
-    ]);
+  const openAdd = () =>
+    setEditing({
+      mode: "add",
+      variant: blankVariant(
+        variants.reduce((max, variant) => Math.max(max, variant.id), 0) + 1,
+      ),
+    });
+
+  const openEdit = (variant) => setEditing({ mode: "edit", variant });
+
+  const saveVariant = (draft) => {
+    const exists = variants.some((variant) => variant.id === draft.id);
+    onChange(
+      exists
+        ? variants.map((variant) => (variant.id === draft.id ? draft : variant))
+        : [...variants, draft],
+    );
+    setEditing(null);
+  };
 
   // Copies the first row's figure down the column. Filling from a row that's
   // already on screen keeps this to one click, where a prompt would put the
@@ -47,10 +80,10 @@ function VariantsTab({ variants, onChange }) {
         action={
           <button
             type="button"
-            onClick={add}
-            className="flex h-9 cursor-pointer items-center gap-2 bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
+            onClick={openAdd}
+            className="flex h-10 cursor-pointer items-center gap-2 bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
           >
-            <Plus className="size-4" strokeWidth={2.5} />
+            <Plus className="size-5" strokeWidth={2} />
             Add variant
           </button>
         }
@@ -72,72 +105,94 @@ function VariantsTab({ variants, onChange }) {
             </p>
           </div>
         ) : (
-          // The populated matrix isn't in the Figma frames — this is the
-          // smallest shape that makes the footer totals and the two "set all"
-          // actions mean something.
-          <ul className="flex flex-col">
-            {variants.map((variant) => (
-              <li
-                key={variant.id}
-                className="flex flex-wrap items-end gap-3 border-b border-[#f0f1f3] px-5 py-3 last:border-0"
-              >
-                <label className="min-w-0 flex-1">
-                  <span className="mb-1 block text-[12px] font-semibold text-[#48505e]">
-                    Variant
-                  </span>
-                  <input
-                    type="text"
-                    value={variant.name}
-                    onChange={(event) =>
-                      update(variant.id, { name: event.target.value })
-                    }
-                    placeholder='e.g. 20" Natural Black 1B'
-                    className={CELL_CLASS}
-                  />
-                </label>
-                <label className="w-[100px]">
-                  <span className="mb-1 block text-[12px] font-semibold text-[#48505e]">
-                    Stock
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={variant.stock}
-                    onChange={(event) =>
-                      update(variant.id, { stock: event.target.value })
-                    }
-                    placeholder="0"
-                    className={CELL_CLASS}
-                  />
-                </label>
-                <label className="w-[120px]">
-                  <span className="mb-1 block text-[12px] font-semibold text-[#48505e]">
-                    Price
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={variant.price}
-                    onChange={(event) =>
-                      update(variant.id, { price: event.target.value })
-                    }
-                    placeholder="0"
-                    className={CELL_CLASS}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onChange(variants.filter((row) => row.id !== variant.id))
-                  }
-                  aria-label={`Remove variant ${variant.name || variant.id}`}
-                  className="flex size-9 cursor-pointer items-center justify-center bg-[#fae9e9] text-[#cf251f] transition-opacity hover:opacity-80"
-                >
-                  <Trash2 className="size-4" strokeWidth={2} />
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-2 p-4">
+            <div
+              className={`grid ${GRID_COLUMNS} gap-2 bg-[#fcfcfc] px-3 py-2 text-[12px] font-semibold text-[#667085]`}
+            >
+              <span>Variant</span>
+              <span>SKU</span>
+              <span>Price</span>
+              <span>Stock</span>
+              <span />
+            </div>
+
+            <ul className="flex flex-col gap-2">
+              {variants.map((variant) => {
+                const { title, subtitle } = describeVariant(variant);
+                return (
+                  <li
+                    key={variant.id}
+                    className={`grid ${GRID_COLUMNS} items-center gap-2 border border-[#dadde2] p-2`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => openEdit(variant)}
+                      className="flex min-w-0 cursor-pointer items-center gap-2 text-left"
+                    >
+                      {variant.color && (
+                        <span
+                          aria-hidden="true"
+                          style={{ backgroundColor: variant.color.hex }}
+                          className="size-4 shrink-0 border border-black/10"
+                        />
+                      )}
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate text-[12px] font-semibold text-black">
+                          {title}
+                        </span>
+                        {subtitle && (
+                          <span className="truncate text-[12px] font-medium text-[#828a9b]">
+                            {subtitle}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+
+                    <input
+                      type="text"
+                      value={variant.sku}
+                      onChange={(event) =>
+                        update(variant.id, { sku: event.target.value })
+                      }
+                      placeholder="ZD-000"
+                      className={CELL_CLASS}
+                    />
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={variant.price}
+                      onChange={(event) =>
+                        update(variant.id, { price: event.target.value })
+                      }
+                      placeholder="0"
+                      className={CELL_CLASS}
+                    />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={variant.stock}
+                      onChange={(event) =>
+                        update(variant.id, { stock: event.target.value })
+                      }
+                      placeholder="0"
+                      className={`${CELL_CLASS} text-right`}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onChange(variants.filter((row) => row.id !== variant.id))
+                      }
+                      aria-label={`Remove ${title}`}
+                      className="flex size-9 cursor-pointer items-center justify-center bg-[#fae9e9] text-[#cf251f] transition-opacity hover:opacity-80"
+                    >
+                      <Trash2 className="size-4" strokeWidth={2} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#f0f1f3] bg-[#fcfcfc] px-5 py-3.5">
@@ -164,6 +219,16 @@ function VariantsTab({ variants, onChange }) {
           </div>
         </div>
       </Card>
+
+      {editing && (
+        <VariantModal
+          key={editing.variant.id}
+          mode={editing.mode}
+          variant={editing.variant}
+          onCancel={() => setEditing(null)}
+          onSave={saveVariant}
+        />
+      )}
     </div>
   );
 }

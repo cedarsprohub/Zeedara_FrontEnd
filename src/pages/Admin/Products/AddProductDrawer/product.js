@@ -36,6 +36,48 @@ export function pricingSummary({ price, compareAt, unitCost }) {
   };
 }
 
+// The blank slate for the drawer form. A function rather than a shared object
+// literal, so opening the drawer twice never hands out the same array/object
+// instances for `variants` and `images`.
+export function emptyProductForm() {
+  return {
+    name: "",
+    sku: "",
+    category: "",
+    hairOrigin: "Not applicable",
+    weight: "",
+    tags: "",
+    description: "",
+    price: "",
+    compareAt: "",
+    unitCost: "",
+    variants: [],
+    images: [],
+    seoTitle: "",
+    metaDescription: "",
+    isPublished: true,
+    isFeatured: true,
+  };
+}
+
+// Maps a catalogue row onto the form the drawer edits. The catalogue only
+// stores the table's summary fields — no description, tags, images, or
+// per-variant rows — so those open blank even when editing an existing
+// product; see submit() in index.jsx for how stock and variant count are
+// kept from being zeroed out by that gap.
+export function productToForm(product) {
+  if (!product) return emptyProductForm();
+  return {
+    ...emptyProductForm(),
+    name: product.name,
+    sku: product.sku,
+    category: product.category,
+    price: String(product.price ?? ""),
+    compareAt: product.compareAt ? String(product.compareAt) : "",
+    isPublished: product.status === "Active",
+  };
+}
+
 // Total units across the matrix — the figure the variants footer reports and
 // the one the created product carries as its stock.
 export function unitsTotal(variants) {

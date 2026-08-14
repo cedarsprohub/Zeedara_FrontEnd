@@ -3,7 +3,7 @@ import { Save, X } from "lucide-react";
 import GeneralTab from "./GeneralTab";
 import PricingTab from "./PricingTab";
 import VariantsTab from "./VariantsTab";
-import { toAmount, unitsTotal } from "./product";
+import { productToForm, toAmount, unitsTotal } from "./product";
 import MediaTab from "./MediaTab";
 import SeoTab from "./SeoTab";
 import InsightsTab from "./InsightsTab";
@@ -17,39 +17,27 @@ const TABS = [
   "Insights",
 ];
 
-const EMPTY_FORM = {
-  name: "",
-  sku: "",
-  category: "",
-  hairOrigin: "Not applicable",
-  weight: "",
-  tags: "",
-  description: "",
-  price: "",
-  compareAt: "",
-  unitCost: "",
-  variants: [],
-  images: [],
-  seoTitle: "",
-  metaDescription: "",
-  isPublished: true,
-  isFeatured: true,
-};
-
-// Only the four fields the design marks with an asterisk block creation.
-function validate(form, existingSkus) {
+// Only the four fields the design marks with an asterisk block submission.
+// `currentSku` excludes the product being edited from its own duplicate
+// check — without it, saving an edit without touching the SKU field would
+// flag the row against itself.
+function validate(form, existingSkus, currentSku) {
   const errors = {};
   if (!form.name.trim()) errors.name = "Product name is required.";
   if (!form.sku.trim()) errors.sku = "Base SKU is required.";
-  else if (existingSkus.includes(form.sku.trim()))
+  else if (form.sku.trim() !== currentSku && existingSkus.includes(form.sku.trim()))
     errors.sku = `SKU ${form.sku.trim()} already exists.`;
   if (!form.category) errors.category = "Pick a category.";
   if (!form.description.trim()) errors.description = "Description is required.";
   return errors;
 }
 
-function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+// `product` is null to create, or the catalogue row being edited. Passing a
+// single `onSubmit` rather than separate create/update callbacks keeps the
+// distinction where it belongs — with the caller, which already knows which
+// one it opened the drawer for.
+function AddProductDrawer({ isOpen, product, categories, existingSkus, onClose, onSubmit }) {
+  const [form, setForm] = useState(() => productToForm(product));
   const [tab, setTab] = useState(TABS[0]);
   const [errors, setErrors] = useState({});
   const [wasOpen, setWasOpen] = useState(isOpen);
@@ -74,7 +62,7 @@ function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate 
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
     if (isOpen) {
-      setForm(EMPTY_FORM);
+      setForm(productToForm(product));
       setTab(TABS[0]);
       setErrors({});
     }
@@ -102,7 +90,7 @@ function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate 
   }, [isOpen, onClose]);
 
   const submit = () => {
-    const found = validate(form, existingSkus);
+    const found = validate(form, existingSkus, product?.sku);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       // Every required field lives on General, so that's where the messages are.
@@ -113,17 +101,28 @@ function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate 
     // toAmount reports "nothing entered" as null; the table needs a number.
     const price = toAmount(form.price) ?? 0;
     const compareAt = toAmount(form.compareAt);
-    onCreate({
+    // The catalogue never carried per-variant rows to begin with, so an edit
+    // that never opens the Variants tab has nothing to recompute from — stock
+    // and the variant count fall back to the row's existing figures instead
+    // of collapsing to 0/1.
+    const touchedVariants = form.variants.length > 0;
+    onSubmit({
       sku: form.sku.trim(),
       name: form.name.trim(),
       category: form.category,
       price,
       // Only a compare-at above the selling price is a real "was" price.
       compareAt: compareAt !== null && compareAt > price ? compareAt : null,
-      stock: unitsTotal(form.variants),
-      sold: 0,
-      variants: Math.max(1, form.variants.length),
-      status: form.isPublished ? "Active" : "Draft",
+      stock: touchedVariants ? unitsTotal(form.variants) : product?.stock ?? 0,
+      sold: product?.sold ?? 0,
+      variants: touchedVariants ? Math.max(1, form.variants.length) : product?.variants ?? 1,
+      // The toggle is binary, so an archived row keeps that status unless
+      // explicitly republished — otherwise every edit would quietly restore it.
+      status: form.isPublished
+        ? "Active"
+        : product?.status === "Archived"
+          ? "Archived"
+          : "Draft",
     });
   };
 
@@ -170,16 +169,18 @@ function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Add product"
+        aria-label={product ? "Edit product" : "Add product"}
         className={`absolute inset-y-0 right-0 flex w-full flex-col bg-white shadow-[0px_24px_24px_rgba(16,24,40,0.18)] transition-transform duration-300 ease-out lg:w-[calc(100%-287px)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex shrink-0 items-start gap-3.5 px-6 py-5">
           <div className="flex min-w-0 flex-1 flex-col">
-            <p className="text-[14px] font-semibold text-black">Add product</p>
+            <p className="text-[14px] font-semibold text-black">
+              {product ? "Edit product" : "Add product"}
+            </p>
             <p className="pt-[3px] text-[12px] font-medium text-[#828a9b]">
-              Create a new catalogue item
+              {product ? "Update this catalogue item" : "Create a new catalogue item"}
             </p>
           </div>
 
@@ -249,7 +250,7 @@ function AddProductDrawer({ isOpen, categories, existingSkus, onClose, onCreate 
             className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[2px] bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
           >
             <Save className="size-5" strokeWidth={2} />
-            Create Product
+            {product ? "Save changes" : "Create Product"}
           </button>
         </div>
       </div>

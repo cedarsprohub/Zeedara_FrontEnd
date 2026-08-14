@@ -72,7 +72,11 @@ function Products() {
   const [selected, setSelected] = useState(() => new Set());
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  // null while the drawer is closed or creating; the row being edited
+  // otherwise. One flag rather than two, so the drawer can't end up open in
+  // both modes at once.
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // Tab counts come from the full catalogue, so they keep showing the size of
   // each bucket rather than of whatever the search happens to have narrowed to.
@@ -183,11 +187,31 @@ function Products() {
     setPage(1);
   };
 
-  // A single new product lands the same way an import does — filters cleared so
-  // it's certain to be in view, rather than hidden behind whatever was set.
-  const createProduct = (product) => {
-    importProducts([product]);
-    setIsAdding(false);
+  const openCreateDrawer = () => {
+    setEditingProduct(null);
+    setIsDrawerOpen(true);
+  };
+
+  const openEditDrawer = (product) => {
+    setEditingProduct(product);
+    setIsDrawerOpen(true);
+  };
+
+  const closeDrawer = () => setIsDrawerOpen(false);
+
+  // A new product lands the same way an import does — filters cleared so it's
+  // certain to be in view, rather than hidden behind whatever was set. An
+  // edit updates in place instead: the row is already visible, since that's
+  // what was clicked to open the drawer.
+  const submitProduct = (built) => {
+    if (editingProduct) {
+      setRows((previous) =>
+        previous.map((row) => (row.sku === editingProduct.sku ? built : row)),
+      );
+    } else {
+      importProducts([built]);
+    }
+    setIsDrawerOpen(false);
   };
 
   const applySort = (key) => {
@@ -236,7 +260,7 @@ function Products() {
           </button>
           <button
             type="button"
-            onClick={() => setIsAdding(true)}
+            onClick={openCreateDrawer}
             className="flex cursor-pointer items-center gap-2 bg-(--primary-color) px-4 py-2.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
           >
             <Plus className="size-[17px]" strokeWidth={2.5} />
@@ -460,9 +484,13 @@ function Products() {
                             {initialsFor(product.name)}
                           </span>
                           <div className="min-w-0">
-                            <p className="truncate text-[14px] font-semibold text-[#262626]">
+                            <button
+                              type="button"
+                              onClick={() => openEditDrawer(product)}
+                              className="block w-full cursor-pointer truncate text-left text-[14px] font-semibold text-[#262626] hover:text-(--primary-color) hover:underline"
+                            >
                               {product.name}
-                            </p>
+                            </button>
                             <p className="text-[12px] text-[#828a9b]">
                               {product.sku} · {product.variants} variant
                               {product.variants === 1 ? "" : "s"}
@@ -524,9 +552,13 @@ function Products() {
                   <StatusPill status={product.status} />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold text-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => openEditDrawer(product)}
+                    className="block w-full cursor-pointer truncate text-left text-[14px] font-semibold text-[#262626] hover:text-(--primary-color) hover:underline"
+                  >
                     {product.name}
-                  </p>
+                  </button>
                   <p className="text-[12px] text-[#828a9b]">
                     {product.sku} · {product.category}
                   </p>
@@ -603,11 +635,12 @@ function Products() {
       {/* Always mounted, unlike the dialogs — it slides in, so it needs to be
           in the tree before it opens. */}
       <AddProductDrawer
-        isOpen={isAdding}
+        isOpen={isDrawerOpen}
+        product={editingProduct}
         categories={CATEGORIES.slice(1)}
         existingSkus={rows.map((product) => product.sku)}
-        onClose={() => setIsAdding(false)}
-        onCreate={createProduct}
+        onClose={closeDrawer}
+        onSubmit={submitProduct}
       />
 
       {isImporting && (

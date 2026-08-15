@@ -12,6 +12,22 @@ export function slugify(name) {
     .replace(/-+/g, "-");
 }
 
+// Base SKU is derived the same way the URL is — from the name, live, rather
+// than typed — so it's a deterministic digest of the name rather than a
+// random number: retyping the same name always reproduces the same code,
+// and a small change to the name produces a different one. The catalogue's
+// existing SKUs are "ZD-" plus three digits, so the digest is folded into
+// that same range instead of inventing a new shape.
+export function generateSku(name) {
+  const trimmed = name.trim().toUpperCase();
+  if (!trimmed) return "";
+  let hash = 0;
+  for (let index = 0; index < trimmed.length; index += 1) {
+    hash = (hash * 31 + trimmed.charCodeAt(index)) >>> 0;
+  }
+  return `ZD-${100 + (hash % 900)}`;
+}
+
 // Money and counts arrive as typed strings. Anything unparseable reads as null
 // so callers can tell "nothing entered" from a genuine zero.
 export function toAmount(value) {
@@ -43,6 +59,7 @@ export function emptyProductForm() {
   return {
     name: "",
     sku: "",
+    brand: "",
     category: "",
     hairOrigin: "Not applicable",
     weight: "",
@@ -125,6 +142,7 @@ export function productToForm(product) {
     ...emptyProductForm(),
     name: product.name ?? "",
     sku: product.base_sku ?? "",
+    brand: product.brand ?? "",
     category: product.category_id ?? "",
     hairOrigin: product.hair_origin ?? "Not applicable",
     weight: product.weight_band ?? "",
@@ -166,6 +184,9 @@ export function buildProductPayload(form, { originalStatus } = {}) {
   return {
     name: form.name.trim(),
     base_sku: form.sku.trim(),
+    // Blank stands for the storefront's single default brand rather than an
+    // empty string — there's no multi-brand catalogue behind this yet.
+    brand: form.brand.trim() || null,
     category_id: form.category,
     hair_origin: form.hairOrigin === "Not applicable" ? null : form.hairOrigin,
     weight_band: form.weight || null,
@@ -189,6 +210,17 @@ export function buildProductPayload(form, { originalStatus } = {}) {
         : "draft",
     variants: form.variants.map(formVariantToApi),
   };
+}
+
+// Description is rich-text HTML, so an editor the admin never typed into can
+// still hold markup like "<p><br></p>" — non-empty as a string, empty to
+// look at. Required-field validation checks this instead of a plain
+// `.trim()`, which that stray markup would pass.
+export function hasVisibleText(html) {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim() !== "";
 }
 
 // Total units across the matrix — the figure the variants footer reports and

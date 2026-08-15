@@ -8,6 +8,7 @@
 import { SITE_NAME, SITE_URL, absoluteUrl, truncate } from "./seo";
 import { toAmount } from "./formatCurrency";
 import { primaryImageUrl, variantLabel } from "./product";
+import { descriptionToPlainText } from "./sanitizeHtml";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 
@@ -87,7 +88,7 @@ export function productSchema(product, summary) {
     url: absoluteUrl(`/products/${product.slug}`),
     image: absoluteUrl(primaryImageUrl(product.media)),
     ...(product.description
-      ? { description: truncate(product.description, 5000) }
+      ? { description: truncate(descriptionToPlainText(product.description), 5000) }
       : {}),
     ...(product.brand
       ? { brand: { "@type": "Brand", name: product.brand } }

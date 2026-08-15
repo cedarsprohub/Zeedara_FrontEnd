@@ -4,6 +4,7 @@ import { Share2, Star, CircleCheck, Minus, Plus, ShoppingCart } from "lucide-rea
 import { useCart } from "../../context/CartContext.js";
 import { formatAmount, formatCurrency } from "../../utils/formatCurrency";
 import { discountPercent, variantLabel } from "../../utils/product";
+import { descriptionToPlainText } from "../../utils/sanitizeHtml";
 
 // Free-shipping threshold shown as store copy. It is not used in any
 // calculation — the delivery fee on an order is whatever the server charges.
@@ -149,8 +150,11 @@ function ProductInfo({ product, summary }) {
       </div>
 
       {product.description && (
+        // The full formatted copy has its own tab further down — this is
+        // the at-a-glance blurb, so it's the plain-text form of the same
+        // field rather than the same markup rendered a second time.
         <p className="border-b border-gray-100 pb-4 text-sm leading-relaxed text-gray-600">
-          {product.description}
+          {descriptionToPlainText(product.description)}
         </p>
       )}
 

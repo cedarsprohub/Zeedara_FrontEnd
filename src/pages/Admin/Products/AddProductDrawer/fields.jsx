@@ -123,7 +123,7 @@ export function Toggle({ id, checked, onChange, label }) {
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-center gap-3 text-[14px] font-medium text-[#48505e]"
+      className="relative flex cursor-pointer items-center gap-3 text-[14px] font-medium text-[#48505e]"
     >
       <input
         id={id}
@@ -132,11 +132,13 @@ export function Toggle({ id, checked, onChange, label }) {
         onChange={(event) => onChange(event.target.checked)}
         className="peer sr-only"
       />
-      {/* The knob is a child of the track so one peer rule moves both the track
-          colour and the knob position. */}
-      <span className="relative h-6 w-11 shrink-0 rounded-full bg-[#dadde2] transition-colors peer-checked:bg-(--primary-color) peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--primary-color)">
-        <span className="absolute top-1 left-1 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
-      </span>
+      {/* Track and knob are both direct siblings of the checkbox, not the knob
+          nested inside the track — a peer-* variant only matches a sibling of
+          .peer, never a sibling's descendant, so nesting it there meant the
+          knob's peer-checked:translate-x-5 never actually matched anything
+          and it sat frozen while only the track's colour animated. */}
+      <span className="h-6 w-11 shrink-0 rounded-full bg-[#dadde2] transition-colors peer-checked:bg-(--primary-color) peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--primary-color)" />
+      <span className="pointer-events-none absolute top-1 left-1 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
       {label}
     </label>
   );

@@ -11,7 +11,12 @@ import {
 import GeneralTab from "./GeneralTab";
 import PricingTab from "./PricingTab";
 import VariantsTab from "./VariantsTab";
-import { buildProductPayload, emptyProductForm, productToForm } from "./product";
+import {
+  buildProductPayload,
+  emptyProductForm,
+  hasVisibleText,
+  productToForm,
+} from "./product";
 import MediaTab from "./MediaTab";
 import SeoTab from "./SeoTab";
 import InsightsTab from "./InsightsTab";
@@ -25,16 +30,17 @@ const TABS = [
   "Insights",
 ];
 
-// Only the four fields the design marks with an asterisk block submission.
-// SKU uniqueness is enforced server-side now — the server is what actually
-// knows the whole catalogue, not whatever page of it happens to be loaded —
-// so a duplicate surfaces as a submit-time error instead of inline as you type.
+// Only the three fields the design marks with an asterisk block submission —
+// Base SKU is generated from the name (see GeneralTab), not user-required.
+// SKU uniqueness itself is enforced server-side now — the server is what
+// actually knows the whole catalogue, not whatever page of it happens to be
+// loaded — so a duplicate surfaces as a submit-time error instead of inline.
 function validate(form) {
   const errors = {};
   if (!form.name.trim()) errors.name = "Product name is required.";
-  if (!form.sku.trim()) errors.sku = "Base SKU is required.";
   if (!form.category) errors.category = "Pick a category.";
-  if (!form.description.trim()) errors.description = "Description is required.";
+  if (!hasVisibleText(form.description))
+    errors.description = "Description is required.";
   return errors;
 }
 
@@ -53,12 +59,20 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
   const [loadError, setLoadError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Bumped each time the drawer opens, so the description editor (an
+  // uncontrolled contentEditable) fully remounts and re-seeds instead of
+  // carrying the previous session's content into a new one.
+  const [formKey, setFormKey] = useState(0);
   const closeButtonRef = useRef(null);
 
   const isEdit = Boolean(productId);
 
   const change = (patch) => {
     setForm((previous) => ({ ...previous, ...patch }));
+    // Stale the moment anything changes — a "fill in the required fields"
+    // prompt (or a rejected SKU) shouldn't sit there once you've started
+    // acting on it, ahead of the next submit attempt confirming it either way.
+    setSubmitError("");
     // A field stops being wrong the moment it's edited, so its message goes
     // then rather than waiting for the next attempt at Create.
     setErrors((previous) => {
@@ -88,17 +102,18 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
       setProduct(null);
       setForm(emptyProductForm());
       setIsLoadingProduct(Boolean(productId));
+      setFormKey((key) => key + 1);
     }
   }
 
   // Fetches the full record for an edit. Runs off `productId`/`accessToken`
-  // rather than the render-time branch above, so it can be async.
+  // rather than the render-time branch above, so it can be async — that
+  // block already set the loading flag and cleared the previous error
+  // synchronously, for the render this effect is reacting to.
   useEffect(() => {
     if (!isOpen || !productId || !accessToken) return undefined;
 
     let active = true;
-    setIsLoadingProduct(true);
-    setLoadError("");
 
     getAdminProduct(productId, accessToken)
       .then((fetched) => {
@@ -161,8 +176,11 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
     const found = validate(form);
     setErrors(found);
     if (Object.keys(found).length > 0) {
-      // Every required field lives on General, so that's where the messages are.
+      // Every required field lives on General, so that's where the prompt
+      // sends you — a banner alone, with the tab left wherever it was,
+      // would leave the actual fields to fill in off-screen.
       setTab(TABS[0]);
+      setSubmitError("Please fill in the required fields before continuing.");
       return;
     }
 
@@ -178,11 +196,15 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (error) {
-      // A duplicate SKU is the one failure worth pointing at its field —
-      // everything else surfaces as a banner, since it isn't tied to one.
+      // The generated SKU collided — the field itself is no longer
+      // user-editable, so the fix is changing the name, not the SKU
+      // directly. Surfaced as a banner rather than a field error for
+      // exactly that reason.
       if (/sku/i.test(error.message)) {
-        setErrors((previous) => ({ ...previous, sku: error.message }));
         setTab(TABS[0]);
+        setSubmitError(
+          `${error.message} Try adjusting the product name to generate a different one.`,
+        );
       } else {
         setSubmitError(error.message);
       }
@@ -198,6 +220,8 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
         errors={errors}
         onChange={change}
         categories={categories}
+        isEditing={isEdit}
+        formKey={formKey}
       />
     ),
     Pricing: <PricingTab form={form} onChange={change} />,

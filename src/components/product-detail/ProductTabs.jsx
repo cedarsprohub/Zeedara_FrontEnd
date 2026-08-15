@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ReviewsPanel from "./ReviewsPanel";
+import { sanitizeDescriptionHtml } from "../../utils/sanitizeHtml";
 
 function ProductTabs({ product, reviews }) {
   const reviewCount = reviews?.summary?.review_count ?? 0;
@@ -44,9 +45,20 @@ function ProductTabs({ product, reviews }) {
 
       {activeTab === "description" && (
         <div className="flex flex-col gap-4 text-sm text-gray-600">
-          <p className="whitespace-pre-line">
-            {product.description || "No description provided for this product."}
-          </p>
+          {product.description ? (
+            // The admin's description editor produces a small, whitelisted
+            // set of tags (p/strong/em/ul/ol/li/a) — sanitized again here
+            // regardless, since this renders to every visitor and the write
+            // side isn't a boundary this component can trust on its own.
+            <div
+              className="flex flex-col gap-3 [&_a]:text-(--primary-color) [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeDescriptionHtml(product.description),
+              }}
+            />
+          ) : (
+            <p>No description provided for this product.</p>
+          )}
           {notes.map((note) => (
             <div key={note.title} className="flex flex-col gap-1">
               <h4 className="text-sm font-semibold text-black">{note.title}</h4>

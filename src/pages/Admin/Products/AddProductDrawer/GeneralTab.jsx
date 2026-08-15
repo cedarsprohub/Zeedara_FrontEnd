@@ -1,9 +1,20 @@
-import { Field, SelectInput, TextArea, TextInput } from "./fields";
+import { Field, SelectInput, TextInput } from "./fields";
 import { HAIR_ORIGINS, WEIGHT_BANDS } from "../data";
-import { slugify } from "./product";
+import { generateSku, slugify } from "./product";
+import RichTextEditor from "./RichTextEditor";
 
-function GeneralTab({ form, errors, onChange, categories }) {
+// `formKey` forces the description editor to remount (and re-seed its
+// contentEditable content) whenever the drawer opens for a different
+// record — see RichTextEditor's own note on why it can't just resync from
+// `value` on every render.
+function GeneralTab({ form, errors, onChange, categories, isEditing, formKey }) {
   const slug = slugify(form.name);
+
+  // Base SKU tracks the name the same way the URL does — live, and never
+  // typed directly. Only while creating: once a product exists its SKU is
+  // the persisted one, fixed regardless of later name edits.
+  const changeName = (name) =>
+    onChange(isEditing ? { name } : { name, sku: generateSku(name) });
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -17,7 +28,7 @@ function GeneralTab({ form, errors, onChange, categories }) {
           id="product-name"
           value={form.name}
           invalid={Boolean(errors.name)}
-          onChange={(event) => onChange({ name: event.target.value })}
+          onChange={(event) => changeName(event.target.value)}
           placeholder="e.g. Bare Lace 13x6 Wig Lacefrontal"
         />
       </Field>
@@ -40,21 +51,28 @@ function GeneralTab({ form, errors, onChange, categories }) {
 
         <Field
           label="Base SKU"
-          required
           htmlFor="product-sku"
-          error={errors.sku}
+          hint="Auto-generated from the name"
         >
           <TextInput
             id="product-sku"
             value={form.sku}
-            invalid={Boolean(errors.sku)}
-            onChange={(event) => onChange({ sku: event.target.value })}
-            placeholder="ZD-134"
+            disabled
+            placeholder="Auto-generated from the name"
           />
         </Field>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
+        <Field label="Brand" htmlFor="product-brand" hint="Defaults to Zeedara">
+          <TextInput
+            id="product-brand"
+            value={form.brand}
+            onChange={(event) => onChange({ brand: event.target.value })}
+            placeholder="Zeedara"
+          />
+        </Field>
+
         <Field
           label="Category"
           required
@@ -120,11 +138,12 @@ function GeneralTab({ form, errors, onChange, categories }) {
         htmlFor="product-description"
         error={errors.description}
       >
-        <TextArea
+        <RichTextEditor
+          key={formKey}
           id="product-description"
           value={form.description}
           invalid={Boolean(errors.description)}
-          onChange={(event) => onChange({ description: event.target.value })}
+          onChange={(html) => onChange({ description: html })}
           placeholder="Describe the unit — lace type, knots, styling potential…"
         />
       </Field>

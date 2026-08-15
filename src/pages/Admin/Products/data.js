@@ -28,6 +28,17 @@ export const PRODUCTS = [
 
 export const STATUSES = ["All", "Active", "Draft", "Archived"];
 
+// The API's status enum is lowercase (active/draft/archived); every UI
+// surface — badges, tabs, CSV rows — uses Title Case. These two functions
+// are the only place that boundary is meant to cross.
+export function toApiStatus(status) {
+  return status.toLowerCase();
+}
+
+export function fromApiStatus(status) {
+  return `${status}`.charAt(0).toUpperCase() + `${status}`.slice(1);
+}
+
 export const CATEGORIES = [
   "All categories",
   ...[...new Set(PRODUCTS.map((product) => product.category))].sort(),

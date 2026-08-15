@@ -60,21 +60,134 @@ export function emptyProductForm() {
   };
 }
 
-// Maps a catalogue row onto the form the drawer edits. The catalogue only
-// stores the table's summary fields — no description, tags, images, or
-// per-variant rows — so those open blank even when editing an existing
-// product; see submit() in index.jsx for how stock and variant count are
-// kept from being zeroed out by that gap.
+// A locally-added variant's id is a small counter number (see nextLocalId in
+// VariantsTab.jsx); one already saved on the server carries its real uuid
+// string. That type difference is also how the payload builder below knows
+// which rows to send an `id` for at all.
+export function isPersistedVariantId(id) {
+  return typeof id === "string";
+}
+
+// GET /admin/products/{id}'s variant shape → the editor's shape. The
+// attribute fields are named identically on both sides except for `color`,
+// which the API splits into `color_name`/`color_hex`.
+function apiVariantToForm(variant) {
+  return {
+    id: variant.id,
+    length: variant.length ?? "",
+    texture: variant.texture ?? "",
+    color: variant.color_name
+      ? { name: variant.color_name, hex: variant.color_hex ?? "" }
+      : null,
+    laceType: variant.lace_type ?? "",
+    capSize: variant.cap_size ?? "",
+    density: variant.density ?? "",
+    sizeShade: variant.size_shade ?? "",
+    sku: variant.sku ?? "",
+    price: variant.price_ngn != null ? String(variant.price_ngn) : "",
+    stock: variant.stock_quantity != null ? String(variant.stock_quantity) : "",
+    reorderPoint:
+      variant.reorder_point != null ? String(variant.reorder_point) : "",
+  };
+}
+
+// The reverse mapping, for the create/update payload. Only a row with a
+// persisted (string) id sends one back — a row added this session has
+// nothing to reference yet, and the server treats an id-less entry as new.
+function formVariantToApi(variant) {
+  return {
+    ...(isPersistedVariantId(variant.id) ? { id: variant.id } : {}),
+    sku: variant.sku.trim(),
+    status: "active",
+    length: variant.length || null,
+    texture: variant.texture || null,
+    color_name: variant.color?.name ?? null,
+    color_hex: variant.color?.hex ?? null,
+    lace_type: variant.laceType || null,
+    cap_size: variant.capSize || null,
+    density: variant.density || null,
+    size_shade: variant.sizeShade || null,
+    price_ngn: String(toAmount(variant.price) ?? 0),
+    compare_at_price_ngn: null,
+    stock_quantity: Math.max(0, Math.round(Number(variant.stock) || 0)),
+    reorder_point: variant.reorderPoint ? Math.round(Number(variant.reorderPoint)) : null,
+  };
+}
+
+// Maps a fetched admin Product (GET /admin/products/{id}) onto the form the
+// drawer edits. `category` here is a name string, not the real uuid the full
+// spec calls `category_id` — there's no Category CRUD wired into this admin
+// yet (see the PRD's non-goals), so the name stands in for the id on both
+// the way in and the way back out, in buildProductPayload below.
 export function productToForm(product) {
   if (!product) return emptyProductForm();
   return {
     ...emptyProductForm(),
-    name: product.name,
-    sku: product.sku,
-    category: product.category,
-    price: String(product.price ?? ""),
-    compareAt: product.compareAt ? String(product.compareAt) : "",
-    isPublished: product.status === "Active",
+    name: product.name ?? "",
+    sku: product.base_sku ?? "",
+    category: product.category_id ?? "",
+    hairOrigin: product.hair_origin ?? "Not applicable",
+    weight: product.weight_band ?? "",
+    tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
+    description: product.description ?? "",
+    price: product.min_price != null ? String(product.min_price) : "",
+    compareAt:
+      product.compare_at_price != null ? String(product.compare_at_price) : "",
+    unitCost: product.unit_cost != null ? String(product.unit_cost) : "",
+    variants: Array.isArray(product.variants)
+      ? product.variants.map(apiVariantToForm)
+      : [],
+    // Already-uploaded media carries its real id and url; `isPersisted`
+    // marks it so MediaTab knows a removal there means DELETE, not just
+    // revoking a local object URL.
+    images: Array.isArray(product.media)
+      ? product.media.map((item) => ({
+          id: item.id,
+          name: item.url.split("/").pop() || "image",
+          url: item.url,
+          isPersisted: true,
+        }))
+      : [],
+    seoTitle: product.seo_title ?? "",
+    metaDescription: product.meta_description ?? "",
+    isPublished: product.status === "active",
+    isFeatured: Boolean(product.is_featured),
+  };
+}
+
+// The create/update request body. `originalStatus` is the raw (lowercase)
+// status the product had before this edit — an archived row stays archived
+// when the publish toggle is off, rather than every edit quietly restoring
+// it to draft (see the PRD's status-transition rule).
+export function buildProductPayload(form, { originalStatus } = {}) {
+  const price = toAmount(form.price) ?? 0;
+  const compareAt = toAmount(form.compareAt);
+
+  return {
+    name: form.name.trim(),
+    base_sku: form.sku.trim(),
+    category_id: form.category,
+    hair_origin: form.hairOrigin === "Not applicable" ? null : form.hairOrigin,
+    weight_band: form.weight || null,
+    tags: form.tags
+      ? form.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : [],
+    description: form.description.trim(),
+    seo_title: form.seoTitle || null,
+    meta_description: form.metaDescription || null,
+    is_featured: form.isFeatured,
+    unit_cost: form.unitCost ? String(toAmount(form.unitCost) ?? 0) : null,
+    // Seed values for the implicit default variant when `variants` is empty
+    // — the server creates one from these rather than from nothing.
+    price: String(price),
+    compare_at_price:
+      compareAt !== null && compareAt > price ? String(compareAt) : null,
+    status: form.isPublished
+      ? "active"
+      : originalStatus === "archived"
+        ? "archived"
+        : "draft",
+    variants: form.variants.map(formVariantToApi),
   };
 }
 

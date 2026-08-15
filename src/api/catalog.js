@@ -1,5 +1,6 @@
 import { buildQuery, request } from "./client";
 import { cachedRequest, clearCatalogCache } from "./catalogCache";
+import { toAmount } from "../utils/formatCurrency";
 
 // Public catalog reads — no token, and none of these accept one, so nothing
 // user-specific can leak through them. Because they're public and identical for
@@ -58,33 +59,18 @@ export function listCollections() {
   return cachedGet("/api/v1/collections");
 }
 
-// Brand and product type are filterable, but the API exposes no facet endpoint
-// to enumerate them — they only exist as fields on products. So the values are
-// read off a page of the catalog. `limit` is the API's own maximum, and a brand
-// that appears solely beyond that window won't be offered as an option (the
-// filter itself still works if such a value reaches the URL). Counts are
-// deliberately not derived: over a partial window they'd be wrong.
-const FACET_SAMPLE_SIZE = 100;
-
+// Brand/product-type options and the price slider's ceiling, computed
+// server-side over the whole active catalogue — not sampled off one page of
+// it, which is how this used to work before `/products/facets` existed (a
+// brand that only appeared past row 100 would silently never become a
+// filter option). `toAmount` turns the endpoint's decimal-string max_price
+// into the number the slider does arithmetic on.
 export async function listProductFacets() {
-  const rows = await listProducts({ limit: FACET_SAMPLE_SIZE, sort: "name" });
-  const products = Array.isArray(rows) ? rows : [];
-
-  const unique = (field) =>
-    [...new Set(products.map((p) => p[field]).filter(Boolean))].sort((a, b) =>
-      a.localeCompare(b),
-    );
-
-  const prices = products
-    .map((product) => Number(product.min_price))
-    .filter((price) => Number.isFinite(price) && price > 0);
-
+  const facets = await cachedGet("/api/v1/products/facets");
   return {
-    brands: unique("brand"),
-    productTypes: unique("product_type"),
-    // Drives the price slider's ceiling, so the usable part of the track isn't
-    // squeezed into its first few pixels by a hardcoded maximum.
-    maxPrice: prices.length ? Math.max(...prices) : null,
+    brands: facets?.brands ?? [],
+    productTypes: facets?.product_types ?? [],
+    maxPrice: facets?.max_price ? toAmount(facets.max_price) : null,
   };
 }
 

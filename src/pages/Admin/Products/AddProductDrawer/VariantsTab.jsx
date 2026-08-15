@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Info, Layers, Plus, Trash2 } from "lucide-react";
 import { Card, InfoBanner } from "./fields";
-import { describeVariant, unitsTotal } from "./product";
+import { describeVariant, isPersistedVariantId, unitsTotal } from "./product";
 import VariantModal from "./VariantModal";
 
 const CELL_CLASS =
@@ -39,13 +39,18 @@ function VariantsTab({ variants, onChange }) {
       ),
     );
 
+  // Only counts locally-added rows — a persisted variant's id is the
+  // server's uuid string, not a number, and would poison Math.max if it were
+  // mixed into this reduction.
+  const nextLocalId = () =>
+    variants.reduce(
+      (max, variant) =>
+        isPersistedVariantId(variant.id) ? max : Math.max(max, variant.id),
+      0,
+    ) + 1;
+
   const openAdd = () =>
-    setEditing({
-      mode: "add",
-      variant: blankVariant(
-        variants.reduce((max, variant) => Math.max(max, variant.id), 0) + 1,
-      ),
-    });
+    setEditing({ mode: "add", variant: blankVariant(nextLocalId()) });
 
   const openEdit = (variant) => setEditing({ mode: "edit", variant });
 

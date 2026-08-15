@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -13,16 +13,17 @@ import {
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import { useAdminAuth } from "../../../context/AdminAuthContext.js";
+import {
+  bulkDeleteAdminProducts,
+  bulkUpdateAdminProducts,
+  exportAdminProducts,
+} from "../../../api/admin/products";
 import AddProductDrawer from "./AddProductDrawer";
 import DeleteDialog from "./DeleteDialog";
 import ImportDialog from "./ImportDialog";
-import {
-  CATEGORIES,
-  initialsFor,
-  PAGE_SIZE,
-  PRODUCTS,
-  STATUSES,
-} from "./data";
+import { useProductsData } from "./useProductsData";
+import { CATEGORIES, initialsFor, PAGE_SIZE, STATUSES, toApiStatus } from "./data";
 
 const STATUS_STYLES = {
   Active: { bg: "#eefeec", border: "#c5e7d7", text: "#0f9959" },
@@ -59,10 +60,22 @@ function StatusPill({ status }) {
   );
 }
 
+// Downloads a CSV response the same way the import dialog's blank template
+// does — revoking the object URL straight after the click is what lets the
+// blob be collected, since it outlives the element.
+function downloadCsv(text, filename) {
+  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function Products() {
-  // The bulk actions in the selection bar edit the catalogue, so the rows are
-  // held in state rather than read straight off the placeholder array.
-  const [rows, setRows] = useState(PRODUCTS);
+  const { accessToken } = useAdminAuth();
+
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -72,147 +85,136 @@ function Products() {
   const [selected, setSelected] = useState(() => new Set());
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  // null while the drawer is closed or creating; the row being edited
-  // otherwise. One flag rather than two, so the drawer can't end up open in
-  // both modes at once.
+  const [isExporting, setIsExporting] = useState(false);
+  const [actionError, setActionError] = useState("");
+  // null while the drawer is closed or creating; the id of the row being
+  // edited otherwise. One flag rather than two, so the drawer can't end up
+  // open in both modes at once.
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingProductId, setEditingProductId] = useState(null);
 
-  // Tab counts come from the full catalogue, so they keep showing the size of
-  // each bucket rather than of whatever the search happens to have narrowed to.
-  const statusCounts = useMemo(
-    () =>
-      Object.fromEntries(
-        STATUSES.map((option) => [
-          option,
-          option === "All"
-            ? rows.length
-            : rows.filter((product) => product.status === option).length,
-        ]),
-      ),
-    [rows],
-  );
-
-  const totals = useMemo(
-    () => ({
-      variants: rows.reduce((sum, product) => sum + product.variants, 0),
-      units: rows.reduce((sum, product) => sum + product.stock, 0),
-    }),
-    [rows],
-  );
-
-  const filtered = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    const matches = rows.filter((product) => {
-      if (status !== "All" && product.status !== status) return false;
-      if (category !== CATEGORIES[0] && product.category !== category)
-        return false;
-      if (!term) return true;
-      return `${product.name} ${product.sku} ${product.category}`
-        .toLowerCase()
-        .includes(term);
+  const { items, total, summary, statusCounts, isLoading, error, reload } =
+    useProductsData({
+      q: query,
+      category: category === CATEGORIES[0] ? "" : category,
+      status,
+      sort: sort.key,
+      direction: sort.direction,
+      limit: PAGE_SIZE,
+      offset: (page - 1) * PAGE_SIZE,
     });
 
-    const factor = sort.direction === "asc" ? 1 : -1;
-    return [...matches].sort((a, b) => {
-      const left = a[sort.key];
-      const right = b[sort.key];
-      if (typeof left === "number" && typeof right === "number") {
-        return (left - right) * factor;
-      }
-      return String(left).localeCompare(String(right)) * factor;
-    });
-  }, [rows, status, category, query, sort]);
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
 
-  // Clamped rather than reset: deleting the filter that shrank the list
-  // shouldn't silently bounce you back to page 1 when the page still exists.
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const visible = filtered.slice(start, start + PAGE_SIZE);
+  // A delete can leave `page` pointing past the last page the new total
+  // actually has. Adjusted during render rather than in an effect — an
+  // effect here would fetch the out-of-range page once before correcting.
+  const [knownPageCount, setKnownPageCount] = useState(pageCount);
+  if (pageCount !== knownPageCount) {
+    setKnownPageCount(pageCount);
+    if (page > pageCount) setPage(pageCount);
+  }
 
   const allVisibleSelected =
-    visible.length > 0 && visible.every((product) => selected.has(product.sku));
+    items.length > 0 && items.every((product) => selected.has(product.id));
 
   const toggleAll = () => {
     setSelected((previous) => {
       const next = new Set(previous);
       if (allVisibleSelected) {
-        visible.forEach((product) => next.delete(product.sku));
+        items.forEach((product) => next.delete(product.id));
       } else {
-        visible.forEach((product) => next.add(product.sku));
+        items.forEach((product) => next.add(product.id));
       }
       return next;
     });
   };
 
-  const toggleOne = (sku) => {
+  const toggleOne = (id) => {
     setSelected((previous) => {
       const next = new Set(previous);
-      if (next.has(sku)) next.delete(sku);
-      else next.add(sku);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
   const clearSelection = () => setSelected(new Set());
 
-  // Recategorising keeps the selection so the same rows can be acted on again;
-  // deleting drops it, since those SKUs no longer exist to stay selected.
-  const changeCategory = (value) => {
-    setRows((previous) =>
-      previous.map((product) =>
-        selected.has(product.sku) ? { ...product, category: value } : product,
-      ),
-    );
+  // Recategorising keeps the selection so the same rows can be acted on
+  // again; deleting drops it, since those rows no longer exist to stay
+  // selected.
+  const changeCategory = async (value) => {
+    setActionError("");
+    try {
+      await bulkUpdateAdminProducts(
+        { ids: [...selected], categoryId: value },
+        accessToken,
+      );
+      reload();
+    } catch (err) {
+      setActionError(err.message);
+    }
   };
 
-  const deleteSelected = () => {
-    setRows((previous) =>
-      previous.filter((product) => !selected.has(product.sku)),
-    );
-    clearSelection();
-    setIsConfirmingDelete(false);
+  const deleteSelected = async () => {
+    setActionError("");
+    try {
+      await bulkDeleteAdminProducts([...selected], accessToken);
+      clearSelection();
+      setIsConfirmingDelete(false);
+      reload();
+    } catch (err) {
+      setActionError(err.message);
+      setIsConfirmingDelete(false);
+    }
   };
 
   // The filters are cleared along with the insert: importing into a view that
-  // happens to exclude every new row reads as an import that did nothing. The
-  // chosen sort is left alone — it still applies to the rows that arrived.
-  const importProducts = (products) => {
-    setRows((previous) => [...products, ...previous]);
+  // happens to exclude every new row reads as an import that did nothing.
+  // The chosen sort is left alone — it still applies to the rows that arrived.
+  const handleImported = () => {
     setIsImporting(false);
     setStatus("All");
     setQuery("");
     setCategory(CATEGORIES[0]);
     setPage(1);
+    reload();
+  };
+
+  const exportCsv = async () => {
+    setIsExporting(true);
+    setActionError("");
+    try {
+      const csv = await exportAdminProducts(
+        {
+          q: query || undefined,
+          categoryId: category === CATEGORIES[0] ? undefined : category,
+          status: status === "All" ? undefined : toApiStatus(status),
+          sort: sort.direction === "desc" ? `-${sort.key}` : sort.key,
+        },
+        accessToken,
+      );
+      downloadCsv(csv, "zeedara-products.csv");
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const openCreateDrawer = () => {
-    setEditingProduct(null);
+    setEditingProductId(null);
     setIsDrawerOpen(true);
   };
 
   const openEditDrawer = (product) => {
-    setEditingProduct(product);
+    setEditingProductId(product.id);
     setIsDrawerOpen(true);
   };
 
   const closeDrawer = () => setIsDrawerOpen(false);
-
-  // A new product lands the same way an import does — filters cleared so it's
-  // certain to be in view, rather than hidden behind whatever was set. An
-  // edit updates in place instead: the row is already visible, since that's
-  // what was clicked to open the drawer.
-  const submitProduct = (built) => {
-    if (editingProduct) {
-      setRows((previous) =>
-        previous.map((row) => (row.sku === editingProduct.sku ? built : row)),
-      );
-    } else {
-      importProducts([built]);
-    }
-    setIsDrawerOpen(false);
-  };
 
   const applySort = (key) => {
     setSort((previous) =>
@@ -237,8 +239,8 @@ function Products() {
         <div>
           <h1 className="text-[24px] font-bold text-[#262626]">Products</h1>
           <p className="text-[12px] font-medium text-[#828a9b]">
-            {rows.length} products · {totals.variants} variants ·{" "}
-            {totals.units.toLocaleString("en-NG")} units in stock
+            {summary.total} products · {summary.variantsTotal} variants ·{" "}
+            {summary.unitsTotal.toLocaleString("en-NG")} units in stock
           </p>
         </div>
 
@@ -253,10 +255,12 @@ function Products() {
           </button>
           <button
             type="button"
-            className="flex cursor-pointer items-center gap-2 border border-[#f0f1f3] bg-white px-4 py-2.5 text-[14px] font-medium text-[#48505e] transition-colors hover:border-[#dadde2] hover:text-black"
+            onClick={exportCsv}
+            disabled={isExporting}
+            className="flex cursor-pointer items-center gap-2 border border-[#f0f1f3] bg-white px-4 py-2.5 text-[14px] font-medium text-[#48505e] transition-colors hover:border-[#dadde2] hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Download className="size-[17px]" strokeWidth={2} />
-            Export CSV
+            {isExporting ? "Exporting…" : "Export CSV"}
           </button>
           <button
             type="button"
@@ -268,6 +272,12 @@ function Products() {
           </button>
         </div>
       </div>
+
+      {actionError && (
+        <p className="bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+          {actionError}
+        </p>
+      )}
 
       {/* Status tabs */}
       <div className="flex flex-wrap items-center gap-3">
@@ -410,7 +420,15 @@ function Products() {
           </div>
         )}
 
-        {visible.length === 0 ? (
+        {isLoading ? (
+          <p className="px-4 py-16 text-center text-[14px] text-[#828a9b]">
+            Loading products…
+          </p>
+        ) : error ? (
+          <p className="px-4 py-16 text-center text-[14px] text-[#cf251f]">
+            {error}
+          </p>
+        ) : items.length === 0 ? (
           <p className="px-4 py-16 text-center text-[14px] text-[#828a9b]">
             No products match these filters.
           </p>
@@ -458,11 +476,11 @@ function Products() {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((product) => {
-                  const isSelected = selected.has(product.sku);
+                {items.map((product) => {
+                  const isSelected = selected.has(product.id);
                   return (
                     <tr
-                      key={product.sku}
+                      key={product.id}
                       // A selected row keeps its tint on hover, so the hover rule
                       // is only applied to the rows that aren't selected.
                       className={`border-b border-[#f0f1f3] last:border-0 ${
@@ -474,7 +492,7 @@ function Products() {
                           type="checkbox"
                           aria-label={`Select ${product.name}`}
                           checked={isSelected}
-                          onChange={() => toggleOne(product.sku)}
+                          onChange={() => toggleOne(product.id)}
                           className="size-4 cursor-pointer accent-(--primary-color)"
                         />
                       </td>
@@ -540,9 +558,9 @@ function Products() {
           // Grid view isn't in the Figma file — the toggle is, so this is a
           // straightforward card rendering of the same rows.
           <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
-            {visible.map((product) => (
+            {items.map((product) => (
               <div
-                key={product.sku}
+                key={product.id}
                 className="flex min-w-0 flex-col gap-3 border border-[#f0f1f3] p-4"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -581,20 +599,16 @@ function Products() {
           <p className="text-[14px] text-[#667085]">
             Showing{" "}
             <span className="font-semibold text-[#262626]">
-              {filtered.length === 0 ? 0 : start + 1}–
-              {Math.min(start + PAGE_SIZE, filtered.length)}
+              {total === 0 ? 0 : start + 1}–{Math.min(start + PAGE_SIZE, total)}
             </span>{" "}
-            of{" "}
-            <span className="font-semibold text-[#262626]">
-              {filtered.length}
-            </span>
+            of <span className="font-semibold text-[#262626]">{total}</span>
           </p>
 
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => setPage(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
               aria-label="Previous page"
               className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -607,9 +621,9 @@ function Products() {
                   key={number}
                   type="button"
                   onClick={() => setPage(number)}
-                  aria-current={number === currentPage ? "page" : undefined}
+                  aria-current={number === page ? "page" : undefined}
                   className={`size-8 cursor-pointer text-[14px] transition-colors ${
-                    number === currentPage
+                    number === page
                       ? "bg-(--primary-color) font-bold text-white"
                       : "text-[#48505e] hover:bg-[#f9fafb]"
                   }`}
@@ -621,8 +635,8 @@ function Products() {
 
             <button
               type="button"
-              onClick={() => setPage(currentPage + 1)}
-              disabled={currentPage === pageCount}
+              onClick={() => setPage(page + 1)}
+              disabled={page === pageCount}
               aria-label="Next page"
               className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -636,19 +650,18 @@ function Products() {
           in the tree before it opens. */}
       <AddProductDrawer
         isOpen={isDrawerOpen}
-        product={editingProduct}
+        productId={editingProductId}
         categories={CATEGORIES.slice(1)}
-        existingSkus={rows.map((product) => product.sku)}
         onClose={closeDrawer}
-        onSubmit={submitProduct}
+        onSaved={reload}
       />
 
       {isImporting && (
         <ImportDialog
           categories={CATEGORIES.slice(1)}
-          existingSkus={rows.map((product) => product.sku)}
+          existingSkus={items.map((product) => product.sku)}
           onCancel={() => setIsImporting(false)}
-          onImport={importProducts}
+          onImported={handleImported}
         />
       )}
 

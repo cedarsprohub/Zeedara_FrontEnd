@@ -52,19 +52,28 @@ function extractMessage(body) {
 }
 
 async function rawFetch(path, { method = "GET", body, token } = {}) {
-  const headers = { "Content-Type": "application/json" };
+  // A FormData body (product media upload) needs the browser's own
+  // multipart Content-Type with its boundary — setting one here, or
+  // JSON.stringify-ing the body, would break the upload.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  const headers = {};
+  if (!isFormData) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   });
 
+  // Non-JSON success bodies (a CSV export) are still worth returning — read
+  // as text rather than silently discarded as null.
   const isJson = response.headers
     .get("content-type")
     ?.includes("application/json");
-  const data = isJson ? await response.json().catch(() => null) : null;
+  const data = isJson
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => null);
 
   return { response, data };
 }

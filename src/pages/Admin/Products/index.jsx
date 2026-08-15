@@ -23,7 +23,10 @@ import AddProductDrawer from "./AddProductDrawer";
 import DeleteDialog from "./DeleteDialog";
 import ImportDialog from "./ImportDialog";
 import { useProductsData } from "./useProductsData";
-import { CATEGORIES, initialsFor, PAGE_SIZE, STATUSES, toApiStatus } from "./data";
+import { useCategories } from "./useCategories";
+import { initialsFor, PAGE_SIZE, STATUSES, toApiStatus } from "./data";
+
+const ALL_CATEGORIES = "";
 
 const STATUS_STYLES = {
   Active: { bg: "#eefeec", border: "#c5e7d7", text: "#0f9959" },
@@ -75,10 +78,11 @@ function downloadCsv(text, filename) {
 
 function Products() {
   const { accessToken } = useAdminAuth();
+  const categories = useCategories();
 
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState(ALL_CATEGORIES);
   const [view, setView] = useState("list");
   const [sort, setSort] = useState({ key: "name", direction: "asc" });
   const [page, setPage] = useState(1);
@@ -96,12 +100,13 @@ function Products() {
   const { items, total, summary, statusCounts, isLoading, error, reload } =
     useProductsData({
       q: query,
-      category: category === CATEGORIES[0] ? "" : category,
+      category,
       status,
       sort: sort.key,
       direction: sort.direction,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
+      categories,
     });
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -178,7 +183,7 @@ function Products() {
     setIsImporting(false);
     setStatus("All");
     setQuery("");
-    setCategory(CATEGORIES[0]);
+    setCategory(ALL_CATEGORIES);
     setPage(1);
     reload();
   };
@@ -190,7 +195,7 @@ function Products() {
       const csv = await exportAdminProducts(
         {
           q: query || undefined,
-          categoryId: category === CATEGORIES[0] ? undefined : category,
+          categoryId: category || undefined,
           status: status === "All" ? undefined : toApiStatus(status),
           sort: sort.direction === "desc" ? `-${sort.key}` : sort.key,
         },
@@ -330,9 +335,10 @@ function Products() {
               onChange={(event) => resetPage(setCategory)(event.target.value)}
               className="h-[41px] cursor-pointer appearance-none border border-[#f0f1f3] bg-white pr-10 pl-3 text-[14px] text-[#48505e] focus:border-[#dadde2] focus:outline-none"
             >
-              {CATEGORIES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              <option value={ALL_CATEGORIES}>All categories</option>
+              {categories.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
                 </option>
               ))}
             </select>
@@ -388,9 +394,9 @@ function Products() {
                   <option value="" disabled>
                     Change category
                   </option>
-                  {CATEGORIES.slice(1).map((option) => (
-                    <option key={option} value={option}>
-                      {option}
+                  {categories.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
                     </option>
                   ))}
                 </select>
@@ -651,14 +657,16 @@ function Products() {
       <AddProductDrawer
         isOpen={isDrawerOpen}
         productId={editingProductId}
-        categories={CATEGORIES.slice(1)}
+        categories={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
         onClose={closeDrawer}
         onSaved={reload}
       />
 
       {isImporting && (
         <ImportDialog
-          categories={CATEGORIES.slice(1)}
+          // The import row's own category field is matched by name server-side
+          // (see ProductImportRow), not the real id the other forms send.
+          categories={categories.map((cat) => cat.name)}
           existingSkus={items.map((product) => product.sku)}
           onCancel={() => setIsImporting(false)}
           onImported={handleImported}

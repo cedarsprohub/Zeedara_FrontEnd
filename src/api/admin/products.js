@@ -36,13 +36,28 @@ export function getAdminProduct(id, token) {
 
 // If `variants` is omitted, the server creates one default variant from
 // `base_sku` plus the submitted price/compare-at/stock — a product is never
-// created with zero variants.
+// created with zero variants. A new product always starts as a draft — there
+// is no `status` field to set here — so publishing it is a second call.
 export function createAdminProduct(product, token) {
   return adminRequest("/api/v1/admin/products", {
     method: "POST",
     body: product,
     token,
   });
+}
+
+export function publishAdminProduct(id, token) {
+  return adminRequest(
+    `/api/v1/admin/products/${encodeURIComponent(id)}/publish`,
+    { method: "POST", token },
+  );
+}
+
+export function archiveAdminProduct(id, token) {
+  return adminRequest(
+    `/api/v1/admin/products/${encodeURIComponent(id)}/archive`,
+    { method: "POST", token },
+  );
 }
 
 // Partial update. Omitting `variants` entirely leaves stock, variant count
@@ -113,9 +128,17 @@ export function exportAdminProducts({ ids, q, categoryId, status, sort } = {}, t
 
 // Multipart upload. Returns the created ProductMedia record with its real
 // CDN url — there is no local object-URL step on this path.
-export function uploadProductMedia(productId, file, token) {
+export function uploadProductMedia(
+  productId,
+  file,
+  { isPrimary, displayOrder } = {},
+  token,
+) {
   const formData = new FormData();
   formData.append("file", file);
+  if (isPrimary !== undefined) formData.append("is_primary", String(isPrimary));
+  if (displayOrder !== undefined)
+    formData.append("display_order", String(displayOrder));
   return adminRequest(
     `/api/v1/admin/products/${encodeURIComponent(productId)}/media`,
     { method: "POST", body: formData, token },

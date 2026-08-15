@@ -6,14 +6,18 @@ import { fromApiStatus, toApiStatus } from "./data";
 // The table, selection, and every mutation below key off `id` — the server's
 // real identifier. The rest of the table's shape stays camelCase, matching
 // what it rendered before this page had a real backend, so the JSX barely
-// had to change for it.
-function toRow(item) {
+// had to change for it. `categoryNameById` turns the row's real category_id
+// (a uuid, not a name) into something the table can actually print — applied
+// outside the fetch effect (see the return statement below) so a category
+// list that arrives after the products already have doesn't need the whole
+// list re-fetched just to pick up the name.
+function toRow(item, categoryNameById) {
   return {
     id: item.id,
-    sku: item.sku,
+    sku: item.base_sku,
     name: item.name,
-    category: item.category,
-    price: item.price,
+    category: categoryNameById.get(item.category_id) ?? "—",
+    price: item.min_price,
     compareAt: item.compare_at_price,
     stock: item.stock,
     sold: item.sold_count,
@@ -27,7 +31,7 @@ function toRow(item) {
 const STATUS_KEYS = ["Active", "Draft", "Archived"];
 
 const EMPTY = {
-  items: [],
+  rawItems: [],
   total: 0,
   summary: { total: 0, variantsTotal: 0, unitsTotal: 0 },
   statusCounts: { All: 0, Active: 0, Draft: 0, Archived: 0 },
@@ -39,7 +43,16 @@ const EMPTY = {
 // count-only call per status (for the tab badges — which, like the header,
 // ignore whatever category/search is currently narrowing the table, same as
 // before this page had a real backend behind it).
-export function useProductsData({ q, category, status, sort, direction, limit, offset }) {
+export function useProductsData({
+  q,
+  category,
+  status,
+  sort,
+  direction,
+  limit,
+  offset,
+  categories,
+}) {
   const { accessToken } = useAdminAuth();
   const apiStatus = status && status !== "All" ? toApiStatus(status) : undefined;
   const sortParam = sort ? `${direction === "desc" ? "-" : ""}${sort}` : undefined;
@@ -85,7 +98,7 @@ export function useProductsData({ q, category, status, sort, direction, limit, o
       setResult({
         key: `${accessToken}|${q}|${category}|${apiStatus}|${sortParam}|${limit}|${offset}|${reloadKey}`,
         data: {
-          items: (list.items ?? []).map(toRow),
+          rawItems: list.items ?? [],
           total: list.total ?? 0,
           summary: {
             total: summary.total ?? 0,
@@ -109,8 +122,12 @@ export function useProductsData({ q, category, status, sort, direction, limit, o
     };
   }, [accessToken, q, category, apiStatus, sortParam, limit, offset, reloadKey]);
 
+  const data = isFresh ? result.data : EMPTY;
+  const categoryNameById = new Map(categories.map((cat) => [cat.id, cat.name]));
+
   return {
-    ...(isFresh ? result.data : EMPTY),
+    ...data,
+    items: data.rawItems.map((item) => toRow(item, categoryNameById)),
     isLoading: Boolean(accessToken) && !isFresh,
     error: isFresh ? result.error : "",
     reload,

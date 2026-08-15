@@ -5,6 +5,7 @@ import {
   createAdminProduct,
   deleteProductMedia,
   getAdminProduct,
+  publishAdminProduct,
   updateAdminProduct,
   uploadProductMedia,
 } from "../../../../api/admin/products";
@@ -12,7 +13,8 @@ import GeneralTab from "./GeneralTab";
 import PricingTab from "./PricingTab";
 import VariantsTab from "./VariantsTab";
 import {
-  buildProductPayload,
+  buildCreatePayload,
+  buildUpdatePayload,
   emptyProductForm,
   hasVisibleText,
   productToForm,
@@ -156,19 +158,30 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
 
   // Media isn't sent as part of the product payload — it's synced separately
   // once the product itself has an id, by diffing against what the product
-  // actually had on the server. Reordering/setting-primary is left out: the
-  // Media tab has no control that would trigger it yet.
+  // actually had on the server. `is_primary`/`display_order` come from the
+  // image's position in the form's own array (position 0 is always the
+  // primary thumbnail, per MediaTab's own copy) — reordering already-uploaded
+  // images isn't wired up beyond that, since MediaTab has no drag control yet.
   const syncMedia = async (id) => {
     const originalIds = new Set((product?.media ?? []).map((item) => item.id));
     const currentPersistedIds = new Set(
       form.images.filter((image) => image.isPersisted).map((image) => image.id),
     );
     const toDelete = [...originalIds].filter((id_) => !currentPersistedIds.has(id_));
-    const toUpload = form.images.filter((image) => !image.isPersisted && image.file);
 
     await Promise.all([
       ...toDelete.map((mediaId) => deleteProductMedia(id, mediaId, accessToken)),
-      ...toUpload.map((image) => uploadProductMedia(id, image.file, accessToken)),
+      ...form.images
+        .map((image, index) => ({ image, index }))
+        .filter(({ image }) => !image.isPersisted && image.file)
+        .map(({ image, index }) =>
+          uploadProductMedia(
+            id,
+            image.file,
+            { isPrimary: index === 0, displayOrder: index },
+            accessToken,
+          ),
+        ),
     ]);
   };
 
@@ -186,12 +199,19 @@ function AddProductDrawer({ isOpen, productId, categories, onClose, onSaved }) {
 
     setIsSubmitting(true);
     setSubmitError("");
-    const payload = buildProductPayload(form, { originalStatus: product?.status });
 
     try {
-      const saved = isEdit
-        ? await updateAdminProduct(productId, payload, accessToken)
-        : await createAdminProduct(payload, accessToken);
+      let saved;
+      if (isEdit) {
+        const payload = buildUpdatePayload(form, { originalStatus: product?.status });
+        saved = await updateAdminProduct(productId, payload, accessToken);
+      } else {
+        // Created products always start as a draft — the create endpoint has
+        // no status field — so publishing is a second call, made only when
+        // the toggle asks for it.
+        saved = await createAdminProduct(buildCreatePayload(form), accessToken);
+        if (form.isPublished) saved = await publishAdminProduct(saved.id, accessToken);
+      }
       await syncMedia(saved?.id ?? productId);
       onSaved();
       onClose();

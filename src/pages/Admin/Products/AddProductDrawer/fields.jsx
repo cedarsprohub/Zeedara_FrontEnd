@@ -82,11 +82,18 @@ export function SelectInput({ id, invalid, placeholder, options, ...props }) {
             {placeholder}
           </option>
         )}
-        {options.map((option) => (
-          <option key={option} value={option} className="text-black">
-            {option}
-          </option>
-        ))}
+        {options.map((option) => {
+          // Plain strings (hair origin, weight band, …) use the same value
+          // for both; a real id/name pair (category, now that it's backed
+          // by the real catalogue) passes {value, label} instead.
+          const value = typeof option === "string" ? option : option.value;
+          const label = typeof option === "string" ? option : option.label;
+          return (
+            <option key={value} value={value} className="text-black">
+              {label}
+            </option>
+          );
+        })}
       </select>
       <ChevronDown
         className="pointer-events-none absolute top-1/2 right-4 size-[19px] -translate-y-1/2 text-[#48505e]"

@@ -2,12 +2,32 @@ import { useEffect, useRef, useState } from "react";
 import { Download, FileText, Info, TriangleAlert, Upload, X } from "lucide-react";
 import { useAdminAuth } from "../../../context/AdminAuthContext.js";
 import { importAdminProducts } from "../../../api/admin/products";
+import { toApiStatus } from "./data";
 import {
   buildTemplateCsv,
   FALLBACK_CATEGORY,
   parseProductsCsv,
   TEMPLATE_COLUMNS,
 } from "./csv";
+
+// The parsed rows are Title Case + a comma-joined tags string, matching the
+// preview table and the rest of this admin's UI conventions — the API's
+// ProductImportRow wants the status lowercase and tags as an actual array,
+// so that shape change happens right here, at the one place a row actually
+// leaves the browser.
+function toImportPayloadRow(row) {
+  return {
+    name: row.name,
+    sku: row.sku,
+    category: row.category,
+    price: row.price,
+    stock: row.stock,
+    status: toApiStatus(row.status),
+    tags: row.tags
+      ? row.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : [],
+  };
+}
 
 // How much of the parsed file the preview shows before summarising the rest.
 const PREVIEW_ROWS = 4;
@@ -81,7 +101,7 @@ function ImportDialog({ categories, existingSkus, onCancel, onImported }) {
     setIsImporting(true);
     setImportError("");
     try {
-      await importAdminProducts(result.products, accessToken);
+      await importAdminProducts(result.products.map(toImportPayloadRow), accessToken);
       onImported();
     } catch (error) {
       setImportError(error.message);

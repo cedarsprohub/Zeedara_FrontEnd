@@ -1,6 +1,13 @@
 // Derivations shared by the add-product tabs and the drawer shell. Kept out of
 // the component files so each of those exports only its component.
 
+import {
+  fromApiHairOrigin,
+  fromApiWeightBand,
+  toApiHairOrigin,
+  toApiWeightBand,
+} from "../data";
+
 // A product's URL is its slug, so it follows the name rather than being typed:
 // lowercased, punctuation dropped, runs of spaces collapsed to single hyphens.
 export function slugify(name) {
@@ -132,10 +139,9 @@ function formVariantToApi(variant) {
 }
 
 // Maps a fetched admin Product (GET /admin/products/{id}) onto the form the
-// drawer edits. `category` here is a name string, not the real uuid the full
-// spec calls `category_id` — there's no Category CRUD wired into this admin
-// yet (see the PRD's non-goals), so the name stands in for the id on both
-// the way in and the way back out, in buildProductPayload below.
+// drawer edits. `category` holds the real category_id uuid directly — the
+// General tab's select now runs on the real catalogue (see useCategories.js),
+// so there's no name-as-id stand-in to undo here anymore.
 export function productToForm(product) {
   if (!product) return emptyProductForm();
   return {
@@ -144,8 +150,8 @@ export function productToForm(product) {
     sku: product.base_sku ?? "",
     brand: product.brand ?? "",
     category: product.category_id ?? "",
-    hairOrigin: product.hair_origin ?? "Not applicable",
-    weight: product.weight_band ?? "",
+    hairOrigin: fromApiHairOrigin(product.hair_origin),
+    weight: fromApiWeightBand(product.weight_band),
     tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
     description: product.description ?? "",
     price: product.min_price != null ? String(product.min_price) : "",
@@ -173,42 +179,63 @@ export function productToForm(product) {
   };
 }
 
-// The create/update request body. `originalStatus` is the raw (lowercase)
-// status the product had before this edit — an archived row stays archived
-// when the publish toggle is off, rather than every edit quietly restoring
-// it to draft (see the PRD's status-transition rule).
-export function buildProductPayload(form, { originalStatus } = {}) {
-  const price = toAmount(form.price) ?? 0;
-  const compareAt = toAmount(form.compareAt);
-
+// Fields the create and update payloads share. `category_id` is sent as-is —
+// it's the real uuid straight from the Category select now, not a name
+// standing in for one.
+function baseProductFields(form) {
   return {
     name: form.name.trim(),
-    base_sku: form.sku.trim(),
+    base_sku: form.sku.trim() || null,
+    description: form.description.trim() || null,
     // Blank stands for the storefront's single default brand rather than an
     // empty string — there's no multi-brand catalogue behind this yet.
     brand: form.brand.trim() || null,
-    category_id: form.category,
-    hair_origin: form.hairOrigin === "Not applicable" ? null : form.hairOrigin,
-    weight_band: form.weight || null,
+    category_id: form.category || null,
+    hair_origin: toApiHairOrigin(form.hairOrigin),
+    weight_band: form.weight ? toApiWeightBand(form.weight) : null,
     tags: form.tags
       ? form.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
       : [],
-    description: form.description.trim(),
     seo_title: form.seoTitle || null,
     meta_description: form.metaDescription || null,
     is_featured: form.isFeatured,
     unit_cost: form.unitCost ? String(toAmount(form.unitCost) ?? 0) : null,
-    // Seed values for the implicit default variant when `variants` is empty
-    // — the server creates one from these rather than from nothing.
-    price: String(price),
-    compare_at_price:
+    collection_ids: [],
+    variants: form.variants.map(formVariantToApi),
+  };
+}
+
+// POST /admin/products has no `status` field at all — a new product always
+// starts as a draft server-side, so the drawer publishes it as a second
+// call afterwards when the toggle is on (see index.jsx). It does take
+// price_ngn/compare_at_price_ngn/stock_quantity at the top level, though,
+// to seed the implicit default variant when `variants` comes back empty.
+export function buildCreatePayload(form) {
+  const price = toAmount(form.price) ?? 0;
+  const compareAt = toAmount(form.compareAt);
+
+  return {
+    ...baseProductFields(form),
+    price_ngn: String(price),
+    compare_at_price_ngn:
       compareAt !== null && compareAt > price ? String(compareAt) : null,
+    stock_quantity: 0,
+  };
+}
+
+// PATCH /admin/products/{id} carries `status` directly instead — there's no
+// per-variant seeding to do on an edit, since real variants already exist.
+// `originalStatus` is the raw (lowercase) status the product had before this
+// edit — an archived row stays archived when the publish toggle is off,
+// rather than every edit quietly restoring it to draft.
+export function buildUpdatePayload(form, { originalStatus } = {}) {
+  return {
+    ...baseProductFields(form),
     status: form.isPublished
       ? "active"
       : originalStatus === "archived"
         ? "archived"
         : "draft",
-    variants: form.variants.map(formVariantToApi),
   };
 }
 

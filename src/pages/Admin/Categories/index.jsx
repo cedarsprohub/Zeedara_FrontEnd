@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
 import { useAdminAuth } from "../../../context/AdminAuthContext.js";
@@ -11,6 +12,7 @@ import ProductsPerCategory from "./ProductsPerCategory";
 import UncategorisedCheck from "./UncategorisedCheck";
 
 function Categories() {
+  const navigate = useNavigate();
   const { accessToken } = useAdminAuth();
   const {
     tree,
@@ -43,6 +45,9 @@ function Categories() {
   const openAddSubcategory = (parent) =>
     setModalState({ category: null, defaultParentId: parent.id });
   const closeModal = () => setModalState(null);
+
+  const viewProducts = (category) =>
+    navigate(`/admin/products?category=${encodeURIComponent(category.id)}`);
 
   const persistOrder = async (items) => {
     setActionError("");
@@ -126,6 +131,7 @@ function Categories() {
             onReorderRoots={reorderRoots}
             onReorderChildren={reorderChildren}
             onEdit={openEdit}
+            onViewProducts={viewProducts}
             onAddSubcategory={openAddSubcategory}
             onDelete={setDeletingCategory}
           />

@@ -3,12 +3,17 @@ import {
   ChevronRight,
   GripVertical,
   MoreVertical,
+  Package,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
 
-function CategoryRowMenu({ onEdit, onAddSubcategory, onDelete }) {
+// Matches the Figma "Top category dropdown" component exactly: same panel
+// (rounded-lg, the navbar's own drop-shadow token), same four items, same
+// divider before the destructive one. A subcategory gets the same list minus
+// "Add subcategory" — the tree is only ever two levels deep.
+function CategoryRowMenu({ onEdit, onViewProducts, onAddSubcategory, onDelete }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
 
@@ -41,36 +46,46 @@ function CategoryRowMenu({ onEdit, onAddSubcategory, onDelete }) {
       {isOpen && (
         <div
           role="menu"
-          className="absolute top-full right-0 z-10 mt-1 w-44 border border-[#f0f1f3] bg-white py-1 shadow-[0px_12px_24px_rgba(16,24,40,0.12)]"
+          className="absolute top-full right-0 z-10 mt-1 flex w-52 flex-col gap-1 rounded-lg bg-white p-3 shadow-[-2px_-9px_43.9px_rgba(0,0,0,0.05)]"
         >
           <button
             type="button"
             role="menuitem"
             onClick={() => act(onEdit)}
-            className="flex w-full cursor-pointer items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-medium text-[#48505e] transition-colors hover:bg-[#f9fafb] hover:text-black"
+            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-3 text-left text-[14px] font-medium text-[#667085] transition-colors hover:bg-[#f9fafb] hover:text-black"
           >
-            <Pencil className="size-3.5" strokeWidth={2} />
-            Edit
+            <Pencil className="size-5" strokeWidth={1.75} />
+            Edit category
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => act(onViewProducts)}
+            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-3 text-left text-[14px] font-medium text-[#667085] transition-colors hover:bg-[#f9fafb] hover:text-black"
+          >
+            <Package className="size-5" strokeWidth={1.75} />
+            View products
           </button>
           {onAddSubcategory && (
             <button
               type="button"
               role="menuitem"
               onClick={() => act(onAddSubcategory)}
-              className="flex w-full cursor-pointer items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-medium text-[#48505e] transition-colors hover:bg-[#f9fafb] hover:text-black"
+              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-3 text-left text-[14px] font-medium text-[#667085] transition-colors hover:bg-[#f9fafb] hover:text-black"
             >
-              <Plus className="size-3.5" strokeWidth={2} />
+              <Plus className="size-5" strokeWidth={1.75} />
               Add subcategory
             </button>
           )}
+          <div className="my-1 border-t border-[#f0f1f3]" />
           <button
             type="button"
             role="menuitem"
             onClick={() => act(onDelete)}
-            className="flex w-full cursor-pointer items-center gap-2 px-3.5 py-2.5 text-left text-[13px] font-medium text-[#cf251f] transition-colors hover:bg-[#fef3f2]"
+            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-3 text-left text-[14px] font-medium text-[#cf251f] transition-colors hover:bg-[#fef3f2]"
           >
-            <Trash2 className="size-3.5" strokeWidth={2} />
-            Delete
+            <Trash2 className="size-5" strokeWidth={1.75} />
+            Delete category
           </button>
         </div>
       )}
@@ -90,6 +105,7 @@ function CategoryRow({
   onToggleExpand,
   dragProps,
   onEdit,
+  onViewProducts,
   onAddSubcategory,
   onDelete,
 }) {
@@ -156,6 +172,7 @@ function CategoryRow({
 
       <CategoryRowMenu
         onEdit={onEdit}
+        onViewProducts={onViewProducts}
         onAddSubcategory={isTopLevel ? onAddSubcategory : undefined}
         onDelete={onDelete}
       />
@@ -180,6 +197,7 @@ function CategoryTree({
   onReorderRoots,
   onReorderChildren,
   onEdit,
+  onViewProducts,
   onAddSubcategory,
   onDelete,
 }) {
@@ -240,6 +258,7 @@ function CategoryTree({
               onToggleExpand={() => toggle(root.id)}
               dragProps={dragPropsFor(tree, null, root.id)}
               onEdit={() => onEdit(root)}
+              onViewProducts={() => onViewProducts(root)}
               onAddSubcategory={() => onAddSubcategory(root)}
               onDelete={() => onDelete(root)}
             />
@@ -252,6 +271,7 @@ function CategoryTree({
                   depth={1}
                   dragProps={dragPropsFor(root.children, root.id, child.id)}
                   onEdit={() => onEdit(child)}
+                  onViewProducts={() => onViewProducts(child)}
                   onDelete={() => onDelete(child)}
                 />
               ))}

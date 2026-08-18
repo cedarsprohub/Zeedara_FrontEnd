@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Save, X } from "lucide-react";
+import { Layers, X } from "lucide-react";
 import { useAdminAuth } from "../../../context/AdminAuthContext.js";
 import {
   createAdminCategory,
@@ -86,17 +86,22 @@ function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, 
         aria-modal="true"
         aria-labelledby="category-form-title"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-full max-w-[480px] flex-col overflow-hidden rounded-[4px] bg-white shadow-[0px_24px_24px_rgba(16,24,40,0.18)]"
+        className="flex w-full max-w-[680px] flex-col overflow-hidden rounded-[4px] bg-white shadow-[0px_24px_24px_rgba(16,24,40,0.18)]"
       >
-        <div className="flex items-start gap-3 border-b border-[#f0f1f3] px-[22px] py-5">
+        <div className="flex items-start gap-3.5 px-6 py-5">
+          <span className="flex size-[42px] shrink-0 items-center justify-center rounded-[4px] bg-[#faf4eb]">
+            <Layers
+              className="size-[21px] text-(--primary-color)"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+          </span>
           <div className="flex min-w-0 flex-1 flex-col">
             <p id="category-form-title" className="text-[14px] font-semibold text-black">
               {isEdit ? "Edit category" : "Add category"}
             </p>
             <p className="pt-[3px] text-[12px] font-medium text-[#828a9b]">
-              {isEdit
-                ? "Update this category's details"
-                : "Create a top-level category or subcategory"}
+              {isEdit ? "Update this category's details" : "Create a new browsable group"}
             </p>
           </div>
           <button
@@ -110,38 +115,32 @@ function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, 
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 px-[22px] py-5">
-          <Field label="Name" required htmlFor="category-name" error={errors.name}>
-            <TextInput
-              id="category-name"
-              value={form.name}
-              invalid={Boolean(errors.name)}
-              onChange={(event) => change({ name: event.target.value })}
-              placeholder="e.g. Frontal Wigs"
-            />
-          </Field>
+        <div className="flex flex-col gap-4 px-6 py-5">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <Field label="Category name" required htmlFor="category-name" error={errors.name}>
+              <TextInput
+                id="category-name"
+                value={form.name}
+                invalid={Boolean(errors.name)}
+                onChange={(event) => change({ name: event.target.value })}
+                placeholder="e.g. Frontal Wigs"
+              />
+            </Field>
 
-          <Field
-            label="URL"
-            htmlFor="category-url"
-            hint={`zeedara.com/${slug || "…"}`}
-          >
-            {/* Derived, not entered — disabled rather than hidden, so the shape
-                of the URL is visible while the name is being typed. Same
-                treatment as a product's URL field on the General tab. */}
-            <TextInput
-              id="category-url"
-              value={slug}
-              disabled
-              placeholder="Auto-generated from the name"
-            />
-          </Field>
+            <Field label="URL" htmlFor="category-url" hint={`zeedara.com/${slug || "…"}`}>
+              {/* Derived, not entered — disabled rather than hidden, so the shape
+                  of the URL is visible while the name is being typed. Same
+                  treatment as a product's URL field on the General tab. */}
+              <TextInput
+                id="category-url"
+                value={slug}
+                disabled
+                placeholder="Auto-generated from the name"
+              />
+            </Field>
+          </div>
 
-          <Field
-            label="Parent category"
-            htmlFor="category-parent"
-            hint="Leave blank for a top-level category."
-          >
+          <Field label="Parent category" htmlFor="category-parent">
             <SelectInput
               id="category-parent"
               value={form.parentId}
@@ -153,7 +152,7 @@ function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, 
           <Field label="Description" htmlFor="category-description">
             <TextArea
               id="category-description"
-              rows={3}
+              rows={4}
               value={form.description}
               onChange={(event) => change({ description: event.target.value })}
               placeholder="Shown on the category page."
@@ -177,9 +176,8 @@ function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, 
               type="button"
               onClick={submit}
               disabled={isSubmitting}
-              className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[2px] bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-10 cursor-pointer items-center justify-center rounded-[2px] bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Save className="size-5" strokeWidth={2} />
               {isSubmitting ? "Saving…" : isEdit ? "Save changes" : "Create category"}
             </button>
           </div>

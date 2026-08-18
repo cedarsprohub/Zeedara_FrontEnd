@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ChevronDown,
   ChevronLeft,
@@ -79,10 +80,16 @@ function downloadCsv(text, filename) {
 function Products() {
   const { accessToken } = useAdminAuth();
   const categories = useCategories();
+  const [searchParams] = useSearchParams();
 
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState(ALL_CATEGORIES);
+  // Seeded once from the incoming `?category=` param — the Categories
+  // page's "View products" action links here with one — and left to the
+  // filter bar's own state from then on, same as every other filter here.
+  const [category, setCategory] = useState(
+    () => searchParams.get("category") || ALL_CATEGORIES,
+  );
   const [view, setView] = useState("list");
   const [sort, setSort] = useState({ key: "name", direction: "asc" });
   const [page, setPage] = useState(1);

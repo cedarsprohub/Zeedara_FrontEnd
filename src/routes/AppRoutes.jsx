@@ -65,6 +65,7 @@ const AdminVerifyOtp = lazy(() => import("../pages/Admin/VerifyOtp"));
 const AdminLayout = lazy(() => import("../layout/AdminLayout"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const AdminProducts = lazy(() => import("../pages/Admin/Products"));
+const AdminCategories = lazy(() => import("../pages/Admin/Categories"));
 
 function AppRoutes() {
   return (
@@ -219,6 +220,7 @@ function AppRoutes() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="categories" element={<AdminCategories />} />
               </Route>
             </Route>
           </Route>

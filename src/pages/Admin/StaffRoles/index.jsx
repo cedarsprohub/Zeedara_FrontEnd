@@ -10,10 +10,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
+import RolesTab from "./RolesTab";
+import ActivityLogTab from "./ActivityLogTab";
 import {
+  ACTIVITY_LOG,
   initialsFor,
   MEMBERS_WITHOUT_2FA,
   PAGE_SIZE,
+  ROLE_CARDS,
   STAFF_MEMBERS,
   TABS,
 } from "./data";
@@ -31,7 +35,7 @@ function StaffRoles() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const roleCount = new Set(STAFF_MEMBERS.map((member) => member.role)).size;
+  const roleCount = ROLE_CARDS.length;
   const twoFactorCount = STAFF_MEMBERS.length - MEMBERS_WITHOUT_2FA.length;
 
   const filtered = STAFF_MEMBERS.filter((member) => {
@@ -82,8 +86,8 @@ function StaffRoles() {
             option.key === "team"
               ? STAFF_MEMBERS.length
               : option.key === "roles"
-                ? 0
-                : 0;
+                ? ROLE_CARDS.length
+                : ACTIVITY_LOG.length;
           return (
             <button
               key={option.key}
@@ -111,11 +115,11 @@ function StaffRoles() {
         })}
       </div>
 
-      {tab !== "team" ? (
-        <div className="border border-[#f0f1f3] bg-white px-4 py-16 text-center text-[14px] text-[#828a9b]">
-          {tab === "roles" ? "No custom roles yet." : "No activity recorded yet."}
-        </div>
-      ) : (
+      {tab === "roles" && <RolesTab roles={ROLE_CARDS} />}
+
+      {tab === "activity" && <ActivityLogTab entries={ACTIVITY_LOG} />}
+
+      {tab === "team" && (
         <>
           {MEMBERS_WITHOUT_2FA.length > 0 && (
             <div className="flex items-start gap-3 rounded-[4px] border border-[#efe0c8] bg-[#fff9f0] px-[15px] py-3">

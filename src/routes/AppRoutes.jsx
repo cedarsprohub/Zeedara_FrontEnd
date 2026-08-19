@@ -67,6 +67,7 @@ const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const AdminProducts = lazy(() => import("../pages/Admin/Products"));
 const AdminCategories = lazy(() => import("../pages/Admin/Categories"));
 const AdminStaffRoles = lazy(() => import("../pages/Admin/StaffRoles"));
+const AdminInviteUser = lazy(() => import("../pages/Admin/StaffRoles/InviteUser"));
 
 function AppRoutes() {
   return (
@@ -223,6 +224,7 @@ function AppRoutes() {
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="staff-roles" element={<AdminStaffRoles />} />
+                <Route path="staff-roles/invite" element={<AdminInviteUser />} />
               </Route>
             </Route>
           </Route>

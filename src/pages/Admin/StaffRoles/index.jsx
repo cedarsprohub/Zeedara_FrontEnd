@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronLeft,
@@ -25,6 +26,7 @@ const COLUMNS = [
 ];
 
 function StaffRoles() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("team");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -65,6 +67,7 @@ function StaffRoles() {
 
         <button
           type="button"
+          onClick={() => navigate("/admin/staff-roles/invite")}
           className="flex cursor-pointer items-center gap-2 bg-(--primary-color) px-4 py-2.5 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
         >
           <Plus className="size-[17px]" strokeWidth={2.5} />

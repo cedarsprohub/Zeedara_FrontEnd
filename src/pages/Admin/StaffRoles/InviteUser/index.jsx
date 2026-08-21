@@ -10,8 +10,8 @@ import { ROLES, defaultPermissionState, generatePassword } from "./data";
 const HEADERS = {
   1: { title: "Add a user", subtitle: "They receive an email invitation" },
   2: {
-    title: "Set permissions",
-    subtitle: "Fine-tune what this member can access before you send the invite.",
+    title: "Invite a team member",
+    subtitle: "They receive an email invitation to set a password.",
   },
   3: {
     title: "Invite a team member",
@@ -97,6 +97,9 @@ function InviteUser() {
 
       {step === 2 && (
         <StepPermissions
+          firstName={firstName}
+          lastName={lastName}
+          email={email}
           role={role}
           permissions={permissions}
           onTogglePermission={togglePermission}
@@ -131,7 +134,7 @@ function InviteUser() {
           {step === 1
             ? "Proceed to permissions"
             : step === 2
-              ? "Proceed to review"
+              ? "Continue to Review"
               : "Send invitation"}
         </button>
       </div>

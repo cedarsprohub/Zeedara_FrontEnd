@@ -19,6 +19,10 @@ import {
 function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, onSaved }) {
   const { accessToken } = useAdminAuth();
   const isEdit = Boolean(category);
+  // Plain "Add category" creates a top-level category, so there's no parent
+  // to pick. "Add subcategory" and editing both need it — the former to show
+  // which parent it's landing under, the latter to let it be reassigned.
+  const showParentField = isEdit || Boolean(defaultParentId);
   const [form, setForm] = useState(() =>
     isEdit ? categoryToForm(category) : emptyCategoryForm(defaultParentId),
   );
@@ -140,14 +144,16 @@ function CategoryFormModal({ category, parentOptions, defaultParentId, onClose, 
             </Field>
           </div>
 
-          <Field label="Parent category" htmlFor="category-parent">
-            <SelectInput
-              id="category-parent"
-              value={form.parentId}
-              onChange={(event) => change({ parentId: event.target.value })}
-              options={parentOptions}
-            />
-          </Field>
+          {showParentField && (
+            <Field label="Parent category" htmlFor="category-parent">
+              <SelectInput
+                id="category-parent"
+                value={form.parentId}
+                onChange={(event) => change({ parentId: event.target.value })}
+                options={parentOptions}
+              />
+            </Field>
+          )}
 
           <Field label="Description" htmlFor="category-description">
             <TextArea

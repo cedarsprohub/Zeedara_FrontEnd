@@ -68,6 +68,21 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
         </Field>
 
         <Field
+          label="Hair origin"
+          htmlFor="product-hair-origin"
+          hint="Leave blank for skincare, fragrance and tools"
+        >
+          <SelectInput
+            id="product-hair-origin"
+            value={form.hairOrigin}
+            onChange={(event) => onChange({ hairOrigin: event.target.value })}
+            options={HAIR_ORIGINS}
+          />
+        </Field>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <Field
           label="Category"
           required
           htmlFor="product-category"
@@ -83,37 +98,24 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
           />
         </Field>
 
-        <Field
-          label="Hair origin"
-          htmlFor="product-hair-origin"
-          hint="Leave blank for skincare, fragrance and tools"
-        >
-          <SelectInput
-            id="product-hair-origin"
-            value={form.hairOrigin}
-            onChange={(event) => onChange({ hairOrigin: event.target.value })}
-            options={HAIR_ORIGINS}
-          />
-        </Field>
+        {/* Only present once the chosen category actually has subcategories —
+            a category with none leaves this out rather than showing a select
+            with nothing but "No subcategory" to pick. */}
+        {subcategoryOptions.length > 0 && (
+          <Field
+            label="Subcategory"
+            htmlFor="product-subcategory"
+            hint="Optional — narrows the product to a specific subcategory"
+          >
+            <SelectInput
+              id="product-subcategory"
+              value={subcategoryValue}
+              onChange={(event) => changeSubcategory(event.target.value)}
+              options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}
+            />
+          </Field>
+        )}
       </div>
-
-      {/* Only present once the chosen category actually has subcategories —
-          a category with none leaves this out rather than showing a select
-          with nothing but "No subcategory" to pick. */}
-      {subcategoryOptions.length > 0 && (
-        <Field
-          label="Subcategory"
-          htmlFor="product-subcategory"
-          hint="Optional — narrows the product to a specific subcategory"
-        >
-          <SelectInput
-            id="product-subcategory"
-            value={subcategoryValue}
-            onChange={(event) => changeSubcategory(event.target.value)}
-            options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}
-          />
-        </Field>
-      )}
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Field

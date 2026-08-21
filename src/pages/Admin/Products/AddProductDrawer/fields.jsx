@@ -72,7 +72,7 @@ export function SelectInput({ id, invalid, placeholder, options, ...props }) {
       <select
         id={id}
         aria-invalid={invalid || undefined}
-        className={`${CONTROL_CLASS} cursor-pointer appearance-none pr-11 ${
+        className={`${CONTROL_CLASS} cursor-pointer appearance-none pr-11 disabled:cursor-not-allowed disabled:bg-[#f0f1f3] disabled:text-[#9fa5b2] ${
           invalid ? "border-[#cf251f]" : ""
         } ${props.value ? "" : "text-[#9fa5b2]"}`}
         {...props}

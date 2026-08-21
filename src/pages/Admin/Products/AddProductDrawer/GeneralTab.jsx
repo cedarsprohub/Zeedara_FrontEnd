@@ -98,23 +98,26 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
           />
         </Field>
 
-        {/* Only present once the chosen category actually has subcategories —
-            a category with none leaves this out rather than showing a select
-            with nothing but "No subcategory" to pick. */}
-        {subcategoryOptions.length > 0 && (
-          <Field
-            label="Subcategory"
-            htmlFor="product-subcategory"
-            hint="Optional — narrows the product to a specific subcategory"
-          >
-            <SelectInput
-              id="product-subcategory"
-              value={subcategoryValue}
-              onChange={(event) => changeSubcategory(event.target.value)}
-              options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}
-            />
-          </Field>
-        )}
+        {/* Always present, next to Category, rather than appearing only once
+            a category with children is picked — a category with none just
+            leaves it disabled with nothing but "No subcategory" to show. */}
+        <Field
+          label="Subcategory"
+          htmlFor="product-subcategory"
+          hint={
+            subcategoryOptions.length > 0
+              ? "Optional — narrows the product to a specific subcategory"
+              : "This category has no subcategories"
+          }
+        >
+          <SelectInput
+            id="product-subcategory"
+            value={subcategoryValue}
+            disabled={subcategoryOptions.length === 0}
+            onChange={(event) => changeSubcategory(event.target.value)}
+            options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}
+          />
+        </Field>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">

@@ -119,7 +119,12 @@ function formVariantToApi(variant) {
     price_ngn: String(toAmount(variant.price) ?? 0),
     compare_at_price_ngn: null,
     stock_quantity: Math.max(0, Math.round(Number(variant.stock) || 0)),
-    reorder_point: variant.reorderPoint ? Math.round(Number(variant.reorderPoint)) : null,
+    // A plain non-nullable integer on the API, with its own server default
+    // (5) — `null` isn't a valid value for it, so a blank field omits the
+    // key entirely rather than sending one, letting that default apply.
+    ...(variant.reorderPoint
+      ? { reorder_point: Math.round(Number(variant.reorderPoint)) }
+      : {}),
   };
 }
 

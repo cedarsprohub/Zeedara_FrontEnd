@@ -18,7 +18,7 @@ import {
 function VariantModal({ mode, variant, onCancel, onSave }) {
   const [draft, setDraft] = useState(variant);
   const isEdit = mode === "edit";
-  const canSave = draft.sku.trim() !== "" && String(draft.stock).trim() !== "";
+  const canSave = String(draft.stock).trim() !== "";
 
   const patch = (fields) => setDraft((previous) => ({ ...previous, ...fields }));
 
@@ -158,12 +158,12 @@ function VariantModal({ mode, variant, onCancel, onSave }) {
                 placeholder="e.g. 100ml, Medium"
               />
             </Field>
-            <Field label="Base SKU" required htmlFor="variant-sku">
+            <Field label="Base SKU" htmlFor="variant-sku" hint="Assigned by the server once saved">
               <TextInput
                 id="variant-sku"
                 value={draft.sku}
-                onChange={(event) => patch({ sku: event.target.value })}
-                placeholder="ZD-134"
+                disabled
+                placeholder="Auto-generated on save"
               />
             </Field>
             <Field label="Price" htmlFor="variant-price">

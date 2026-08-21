@@ -51,6 +51,7 @@ export function emptyProductForm() {
     name: "",
     brand: "",
     category: "",
+    subcategory: "",
     hairOrigin: "Not applicable",
     weight: "",
     tags: "",
@@ -101,10 +102,11 @@ function apiVariantToForm(variant) {
 // The reverse mapping, for the create/update payload. Only a row with a
 // persisted (string) id sends one back — a row added this session has
 // nothing to reference yet, and the server treats an id-less entry as new.
+// No `sku` here — like a product's base_sku, a variant's is server-generated
+// and isn't a field either VariantCreate or VariantUpdate accepts.
 function formVariantToApi(variant) {
   return {
     ...(isPersistedVariantId(variant.id) ? { id: variant.id } : {}),
-    sku: variant.sku.trim(),
     status: "active",
     length: variant.length || null,
     texture: variant.texture || null,
@@ -145,9 +147,9 @@ export function buildCategoryOptions(categories) {
 }
 
 // Maps a fetched admin Product (GET /admin/products/{id}) onto the form the
-// drawer edits. `category` holds the real category_id uuid directly — the
-// General tab's select now runs on the real catalogue (see useCategories.js),
-// so there's no name-as-id stand-in to undo here anymore.
+// drawer edits. `category`/`subcategory` hold the real category_id/
+// subcategory_id uuids directly — the API carries them as two independent
+// fields, not a parent/child pair to derive from one id.
 export function productToForm(product) {
   if (!product) return emptyProductForm();
   return {
@@ -155,6 +157,7 @@ export function productToForm(product) {
     name: product.name ?? "",
     brand: product.brand ?? "",
     category: product.category_id ?? "",
+    subcategory: product.subcategory_id ?? "",
     hairOrigin: fromApiHairOrigin(product.hair_origin),
     weight: fromApiWeightBand(product.weight_band),
     tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
@@ -184,9 +187,9 @@ export function productToForm(product) {
   };
 }
 
-// Fields the create and update payloads share. `category_id` is sent as-is —
-// it's the real uuid straight from the Category select now, not a name
-// standing in for one.
+// Fields the create and update payloads share. `category_id`/`subcategory_id`
+// are sent as two separate fields, matching the API — a product's category
+// is never encoded by pointing `category_id` at the subcategory itself.
 function baseProductFields(form) {
   return {
     name: form.name.trim(),
@@ -195,6 +198,7 @@ function baseProductFields(form) {
     // empty string — there's no multi-brand catalogue behind this yet.
     brand: form.brand.trim() || null,
     category_id: form.category || null,
+    subcategory_id: form.subcategory || null,
     hair_origin: toApiHairOrigin(form.hairOrigin),
     weight_band: form.weight ? toApiWeightBand(form.weight) : null,
     tags: form.tags

@@ -7,6 +7,9 @@ import VariantModal from "./VariantModal";
 const CELL_CLASS =
   "w-full border border-[#dadde2] bg-white px-3 py-2 text-[12px] font-medium text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
 
+const DISABLED_CELL_CLASS =
+  "w-full border border-[#dadde2] bg-[#f0f1f3] px-3 py-2 text-[12px] font-medium text-[#9fa5b2]";
+
 const GRID_COLUMNS =
   "grid-cols-[minmax(0,2.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px]";
 
@@ -153,14 +156,14 @@ function VariantsTab({ variants, onChange }) {
                       </span>
                     </button>
 
+                    {/* Server-generated, like a product's own base SKU — shown
+                        for reference once assigned, never typed here. */}
                     <input
                       type="text"
                       value={variant.sku}
-                      onChange={(event) =>
-                        update(variant.id, { sku: event.target.value })
-                      }
-                      placeholder="ZD-000"
-                      className={CELL_CLASS}
+                      disabled
+                      placeholder="Auto-generated on save"
+                      className={DISABLED_CELL_CLASS}
                     />
                     <input
                       type="text"

@@ -10,20 +10,17 @@ import RichTextEditor from "./RichTextEditor";
 function GeneralTab({ form, errors, onChange, categories, formKey }) {
   const slug = slugify(form.name);
 
-  // `form.category` always carries the id that actually gets submitted —
-  // a top-level category, or one of its subcategories. The Category select
-  // below shows that selection's top-level ancestor (itself, if it has
-  // none); Subcategory, when the chosen category has any, shows the deeper
-  // id or blank.
+  // `category` and `subcategory` are independent fields on the form, exactly
+  // as the API takes them — Subcategory's own options are just whichever
+  // children the picked top-level category has.
   const categoryTree = buildCategoryOptions(categories);
-  const selectedCategory = categories.find((category) => category.id === form.category);
-  const topCategoryId = selectedCategory?.parent_id || form.category;
   const subcategoryOptions =
-    categoryTree.find((node) => node.value === topCategoryId)?.children ?? [];
-  const subcategoryValue = selectedCategory?.parent_id ? form.category : "";
+    categoryTree.find((node) => node.value === form.category)?.children ?? [];
 
-  const changeCategory = (value) => onChange({ category: value });
-  const changeSubcategory = (value) => onChange({ category: value || topCategoryId });
+  // A category change invalidates whatever subcategory was picked under the
+  // previous one — it may not even exist under the new category.
+  const changeCategory = (value) => onChange({ category: value, subcategory: "" });
+  const changeSubcategory = (value) => onChange({ subcategory: value });
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -90,7 +87,7 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
         >
           <SelectInput
             id="product-category"
-            value={topCategoryId}
+            value={form.category}
             invalid={Boolean(errors.category)}
             onChange={(event) => changeCategory(event.target.value)}
             placeholder="Select Product category"
@@ -112,7 +109,7 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
         >
           <SelectInput
             id="product-subcategory"
-            value={subcategoryValue}
+            value={form.subcategory}
             disabled={subcategoryOptions.length === 0}
             onChange={(event) => changeSubcategory(event.target.value)}
             options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}

@@ -125,9 +125,6 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
         >
           <TextInput
             id="product-weight"
-            type="number"
-            min="0"
-            step="0.01"
             inputMode="decimal"
             value={form.weight}
             onChange={(event) => onChange({ weight: event.target.value })}

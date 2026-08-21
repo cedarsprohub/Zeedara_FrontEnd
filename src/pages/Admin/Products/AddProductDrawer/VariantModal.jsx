@@ -18,7 +18,6 @@ import {
 function VariantModal({ mode, variant, onCancel, onSave }) {
   const [draft, setDraft] = useState(variant);
   const isEdit = mode === "edit";
-  const canSave = String(draft.stock).trim() !== "";
 
   const patch = (fields) => setDraft((previous) => ({ ...previous, ...fields }));
 
@@ -177,7 +176,7 @@ function VariantModal({ mode, variant, onCancel, onSave }) {
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Field label="Stock on hand" required htmlFor="variant-stock">
+            <Field label="Stock on hand" htmlFor="variant-stock">
               <TextInput
                 id="variant-stock"
                 inputMode="numeric"
@@ -212,9 +211,8 @@ function VariantModal({ mode, variant, onCancel, onSave }) {
           </button>
           <button
             type="button"
-            onClick={() => canSave && onSave(draft)}
-            disabled={!canSave}
-            className="flex h-10 cursor-pointer items-center justify-center bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => onSave(draft)}
+            className="flex h-10 cursor-pointer items-center justify-center bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
           >
             {isEdit ? "Save variant" : "Add variant"}
           </button>

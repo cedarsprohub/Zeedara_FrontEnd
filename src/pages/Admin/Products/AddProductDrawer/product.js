@@ -19,22 +19,6 @@ export function slugify(name) {
     .replace(/-+/g, "-");
 }
 
-// Base SKU is derived the same way the URL is — from the name, live, rather
-// than typed — so it's a deterministic digest of the name rather than a
-// random number: retyping the same name always reproduces the same code,
-// and a small change to the name produces a different one. The catalogue's
-// existing SKUs are "ZD-" plus three digits, so the digest is folded into
-// that same range instead of inventing a new shape.
-export function generateSku(name) {
-  const trimmed = name.trim().toUpperCase();
-  if (!trimmed) return "";
-  let hash = 0;
-  for (let index = 0; index < trimmed.length; index += 1) {
-    hash = (hash * 31 + trimmed.charCodeAt(index)) >>> 0;
-  }
-  return `ZD-${100 + (hash % 900)}`;
-}
-
 // Money and counts arrive as typed strings. Anything unparseable reads as null
 // so callers can tell "nothing entered" from a genuine zero.
 export function toAmount(value) {
@@ -65,7 +49,6 @@ export function pricingSummary({ price, compareAt, unitCost }) {
 export function emptyProductForm() {
   return {
     name: "",
-    sku: "",
     brand: "",
     category: "",
     hairOrigin: "Not applicable",
@@ -138,6 +121,29 @@ function formVariantToApi(variant) {
   };
 }
 
+// The flat category list (each row carrying `parent_id`, same shape the
+// admin Categories tree groups by) split into top-level options plus each
+// one's own children — what lets the General tab offer Category and
+// Subcategory as two selects instead of one flat list mixing both levels.
+export function buildCategoryOptions(categories) {
+  const byParent = new Map();
+  categories.forEach((category) => {
+    const key = category.parent_id || null;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(category);
+  });
+
+  const roots = byParent.get(null) ?? [];
+  return roots.map((root) => ({
+    value: root.id,
+    label: root.name,
+    children: (byParent.get(root.id) ?? []).map((child) => ({
+      value: child.id,
+      label: child.name,
+    })),
+  }));
+}
+
 // Maps a fetched admin Product (GET /admin/products/{id}) onto the form the
 // drawer edits. `category` holds the real category_id uuid directly — the
 // General tab's select now runs on the real catalogue (see useCategories.js),
@@ -147,7 +153,6 @@ export function productToForm(product) {
   return {
     ...emptyProductForm(),
     name: product.name ?? "",
-    sku: product.base_sku ?? "",
     brand: product.brand ?? "",
     category: product.category_id ?? "",
     hairOrigin: fromApiHairOrigin(product.hair_origin),
@@ -185,7 +190,6 @@ export function productToForm(product) {
 function baseProductFields(form) {
   return {
     name: form.name.trim(),
-    base_sku: form.sku.trim() || null,
     description: form.description.trim() || null,
     // Blank stands for the storefront's single default brand rather than an
     // empty string — there's no multi-brand catalogue behind this yet.

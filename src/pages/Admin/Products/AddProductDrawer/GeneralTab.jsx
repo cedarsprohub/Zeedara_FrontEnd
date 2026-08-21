@@ -1,20 +1,29 @@
 import { Field, SelectInput, TextInput } from "./fields";
 import { HAIR_ORIGINS, WEIGHT_BANDS } from "../data";
-import { generateSku, slugify } from "./product";
+import { buildCategoryOptions, slugify } from "./product";
 import RichTextEditor from "./RichTextEditor";
 
 // `formKey` forces the description editor to remount (and re-seed its
 // contentEditable content) whenever the drawer opens for a different
 // record — see RichTextEditor's own note on why it can't just resync from
 // `value` on every render.
-function GeneralTab({ form, errors, onChange, categories, isEditing, formKey }) {
+function GeneralTab({ form, errors, onChange, categories, formKey }) {
   const slug = slugify(form.name);
 
-  // Base SKU tracks the name the same way the URL does — live, and never
-  // typed directly. Only while creating: once a product exists its SKU is
-  // the persisted one, fixed regardless of later name edits.
-  const changeName = (name) =>
-    onChange(isEditing ? { name } : { name, sku: generateSku(name) });
+  // `form.category` always carries the id that actually gets submitted —
+  // a top-level category, or one of its subcategories. The Category select
+  // below shows that selection's top-level ancestor (itself, if it has
+  // none); Subcategory, when the chosen category has any, shows the deeper
+  // id or blank.
+  const categoryTree = buildCategoryOptions(categories);
+  const selectedCategory = categories.find((category) => category.id === form.category);
+  const topCategoryId = selectedCategory?.parent_id || form.category;
+  const subcategoryOptions =
+    categoryTree.find((node) => node.value === topCategoryId)?.children ?? [];
+  const subcategoryValue = selectedCategory?.parent_id ? form.category : "";
+
+  const changeCategory = (value) => onChange({ category: value });
+  const changeSubcategory = (value) => onChange({ category: value || topCategoryId });
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -28,40 +37,25 @@ function GeneralTab({ form, errors, onChange, categories, isEditing, formKey }) 
           id="product-name"
           value={form.name}
           invalid={Boolean(errors.name)}
-          onChange={(event) => changeName(event.target.value)}
+          onChange={(event) => onChange({ name: event.target.value })}
           placeholder="e.g. Bare Lace 13x6 Wig Lacefrontal"
         />
       </Field>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <Field
-          label="URL"
-          htmlFor="product-url"
-          hint={`zeedara.com/products/${slug || "…"}`}
-        >
-          {/* Derived, not entered — disabled rather than hidden so the shape of
-              the URL is visible while the name is being typed. */}
-          <TextInput
-            id="product-url"
-            value={slug}
-            disabled
-            placeholder="Auto-generated from the name"
-          />
-        </Field>
-
-        <Field
-          label="Base SKU"
-          htmlFor="product-sku"
-          hint="Auto-generated from the name"
-        >
-          <TextInput
-            id="product-sku"
-            value={form.sku}
-            disabled
-            placeholder="Auto-generated from the name"
-          />
-        </Field>
-      </div>
+      <Field
+        label="URL"
+        htmlFor="product-url"
+        hint={`zeedara.com/products/${slug || "…"}`}
+      >
+        {/* Derived, not entered — disabled rather than hidden so the shape of
+            the URL is visible while the name is being typed. */}
+        <TextInput
+          id="product-url"
+          value={slug}
+          disabled
+          placeholder="Auto-generated from the name"
+        />
+      </Field>
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Field label="Brand" htmlFor="product-brand" hint="Defaults to Zeedara">
@@ -81,11 +75,11 @@ function GeneralTab({ form, errors, onChange, categories, isEditing, formKey }) 
         >
           <SelectInput
             id="product-category"
-            value={form.category}
+            value={topCategoryId}
             invalid={Boolean(errors.category)}
-            onChange={(event) => onChange({ category: event.target.value })}
+            onChange={(event) => changeCategory(event.target.value)}
             placeholder="Select Product category"
-            options={categories}
+            options={categoryTree}
           />
         </Field>
 
@@ -102,6 +96,24 @@ function GeneralTab({ form, errors, onChange, categories, isEditing, formKey }) 
           />
         </Field>
       </div>
+
+      {/* Only present once the chosen category actually has subcategories —
+          a category with none leaves this out rather than showing a select
+          with nothing but "No subcategory" to pick. */}
+      {subcategoryOptions.length > 0 && (
+        <Field
+          label="Subcategory"
+          htmlFor="product-subcategory"
+          hint="Optional — narrows the product to a specific subcategory"
+        >
+          <SelectInput
+            id="product-subcategory"
+            value={subcategoryValue}
+            onChange={(event) => changeSubcategory(event.target.value)}
+            options={[{ value: "", label: "No subcategory" }, ...subcategoryOptions]}
+          />
+        </Field>
+      )}
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Field

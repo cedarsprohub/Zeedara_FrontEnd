@@ -45,7 +45,19 @@ function extractMessage(body) {
   const { detail } = body || {};
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) {
-    return detail.map((item) => item.msg).filter(Boolean).join(" ");
+    // Raw FastAPI/pydantic validation errors: [{ loc: ["body", "category_id"],
+    // msg, type }, ...]. `loc` is what actually says which field failed —
+    // dropping it (as a bare .msg join used to) leaves several fields'
+    // messages run together with no way to tell them apart.
+    return detail
+      .map((item) => {
+        const field = Array.isArray(item.loc)
+          ? item.loc.filter((part) => part !== "body").join(".")
+          : "";
+        return field ? `${field}: ${item.msg}` : item.msg;
+      })
+      .filter(Boolean)
+      .join("; ");
   }
 
   return "Something went wrong. Please try again.";

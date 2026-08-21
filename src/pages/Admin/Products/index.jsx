@@ -664,7 +664,7 @@ function Products() {
       <AddProductDrawer
         isOpen={isDrawerOpen}
         productId={editingProductId}
-        categories={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+        categories={categories}
         onClose={closeDrawer}
         onSaved={reload}
       />

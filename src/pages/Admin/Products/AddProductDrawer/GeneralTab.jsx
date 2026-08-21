@@ -1,5 +1,5 @@
 import { Field, SelectInput, TextInput } from "./fields";
-import { HAIR_ORIGINS, WEIGHT_BANDS } from "../data";
+import { HAIR_ORIGINS } from "../data";
 import { buildCategoryOptions, slugify } from "./product";
 import RichTextEditor from "./RichTextEditor";
 
@@ -117,16 +117,19 @@ function GeneralTab({ form, errors, onChange, categories, formKey }) {
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Field
-          label="Weight"
+          label="Weight (kg)"
           htmlFor="product-weight"
-          hint="used to calculate shipping"
+          hint="Used to calculate shipping"
         >
-          <SelectInput
+          <TextInput
             id="product-weight"
+            type="number"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
             value={form.weight}
             onChange={(event) => onChange({ weight: event.target.value })}
-            placeholder="Select a weight band"
-            options={WEIGHT_BANDS}
+            placeholder="e.g. 0.75"
           />
         </Field>
 

@@ -22,10 +22,11 @@ export function fromApiStatus(status) {
 
 export const PAGE_SIZE = 12;
 
-// Options for the two enum selects on the General tab. Values are the
-// display strings shown in the UI; the API's HairOrigin/WeightBand enums use
-// a different, snake_case shape (e.g. "vietnamese", "under_0_5kg") — see the
-// API_VALUES maps and to/fromApi* functions below for that boundary.
+// Options for the Hair origin select on the General tab. Values are the
+// display strings shown in the UI; the API's HairOrigin enum uses a
+// different, snake_case shape (e.g. "vietnamese") — see HAIR_ORIGIN_API_VALUES
+// and to/fromApiHairOrigin below for that boundary. Weight has no such list —
+// see toApiWeightBand/fromApiWeightBand further down instead.
 export const HAIR_ORIGINS = [
   "Not applicable",
   "Vietnamese",
@@ -56,32 +57,28 @@ export function fromApiHairOrigin(apiValue) {
   return display ?? "Not applicable";
 }
 
-export const WEIGHT_BANDS = [
-  "Under 0.5 kg",
-  "0.5 – 1 kg",
-  "1 – 2 kg",
-  "2 – 5 kg",
-  "Over 5 kg",
+// The API stores shipping weight as one of five fixed bands, not the exact
+// figure — so the typed kg value here is bucketed into the matching band on
+// submit. Editing an existing product can only recover which band it's in,
+// never the number that was actually typed, so the field is seeded with that
+// band's lower bound rather than inventing a more precise-looking figure.
+const WEIGHT_BANDS = [
+  { max: 0.5, apiValue: "under_0_5kg", lowerBoundKg: 0 },
+  { max: 1, apiValue: "0_5_to_1kg", lowerBoundKg: 0.5 },
+  { max: 2, apiValue: "1_to_2kg", lowerBoundKg: 1 },
+  { max: 5, apiValue: "2_to_5kg", lowerBoundKg: 2 },
+  { max: Infinity, apiValue: "over_5kg", lowerBoundKg: 5 },
 ];
 
-const WEIGHT_BAND_API_VALUES = {
-  "Under 0.5 kg": "under_0_5kg",
-  "0.5 – 1 kg": "0_5_to_1kg",
-  "1 – 2 kg": "1_to_2kg",
-  "2 – 5 kg": "2_to_5kg",
-  "Over 5 kg": "over_5kg",
-};
-
-export function toApiWeightBand(displayValue) {
-  return WEIGHT_BAND_API_VALUES[displayValue] ?? null;
+export function toApiWeightBand(weightKg) {
+  const kg = Number.parseFloat(weightKg);
+  if (!Number.isFinite(kg) || kg < 0) return null;
+  return (WEIGHT_BANDS.find((band) => kg < band.max) ?? WEIGHT_BANDS.at(-1)).apiValue;
 }
 
 export function fromApiWeightBand(apiValue) {
-  const [display] =
-    Object.entries(WEIGHT_BAND_API_VALUES).find(
-      ([, value]) => value === apiValue,
-    ) ?? [];
-  return display ?? "";
+  const band = WEIGHT_BANDS.find((item) => item.apiValue === apiValue);
+  return band ? String(band.lowerBoundKg) : "";
 }
 
 // Attribute options for the variant editor modal. As with HAIR_ORIGINS and

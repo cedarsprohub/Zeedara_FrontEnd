@@ -1,4 +1,4 @@
-import { CheckCircle2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Info } from "lucide-react";
 
 // Two-row status card: a clean catalogue shows only the green row, an admin
 // who's just added a category with nothing in it yet sees the amber one too,
@@ -44,7 +44,7 @@ function UncategorisedCheck({ uncategorisedCount, emptyCategories }) {
 
         {emptyCategories.length > 0 && (
           <div className="flex items-start gap-3 rounded-[4px] border-[0.667px] border-[#f6e5c7] bg-[#fffaf2] px-[15px] py-3">
-            <TriangleAlert
+            <Info
               className="mt-px size-[18px] shrink-0 text-[#a06e1c]"
               strokeWidth={2}
               aria-hidden="true"

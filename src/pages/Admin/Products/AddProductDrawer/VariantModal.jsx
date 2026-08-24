@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Layers, X } from "lucide-react";
+import { Layers, Pipette, X } from "lucide-react";
 import { CurrencyInput, Field, SelectInput, TextInput } from "./fields";
 import {
   VARIANT_CAP_SIZES,
@@ -18,6 +18,11 @@ import {
 function VariantModal({ mode, variant, onCancel, onSave }) {
   const [draft, setDraft] = useState(variant);
   const isEdit = mode === "edit";
+  // A color picked from the fixed fan; anything else — including one already
+  // saved on this variant from before the fan covered it — falls to the
+  // picker instead, named on its own line.
+  const isCustomColor =
+    Boolean(draft.color) && !VARIANT_COLORS.some((swatch) => swatch.hex === draft.color.hex);
 
   const patch = (fields) => setDraft((previous) => ({ ...previous, ...fields }));
 
@@ -96,25 +101,73 @@ function VariantModal({ mode, variant, onCancel, onSave }) {
             </Field>
           </div>
 
-          <Field label="Color">
-            <div className="flex flex-wrap gap-2">
-              {VARIANT_COLORS.map((swatch) => {
-                const isSelected = draft.color?.hex === swatch.hex;
-                return (
-                  <button
-                    key={swatch.hex}
-                    type="button"
-                    onClick={() => patch({ color: swatch })}
-                    aria-pressed={isSelected}
-                    aria-label={swatch.name}
-                    title={swatch.name}
-                    style={{ backgroundColor: swatch.hex }}
-                    className={`size-7 shrink-0 cursor-pointer border-2 transition-colors ${
-                      isSelected ? "border-[#bdc2cb]" : "border-[#faf4eb]"
-                    }`}
+          <Field label="Color" hint="Pick a swatch, or the picker for anything else">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {VARIANT_COLORS.map((swatch) => {
+                  const isSelected = draft.color?.hex === swatch.hex;
+                  return (
+                    <button
+                      key={swatch.hex}
+                      type="button"
+                      onClick={() => patch({ color: swatch })}
+                      aria-pressed={isSelected}
+                      aria-label={swatch.name}
+                      title={swatch.name}
+                      style={{ backgroundColor: swatch.hex }}
+                      className={`size-7 shrink-0 cursor-pointer border-2 transition-colors ${
+                        isSelected ? "border-[#bdc2cb]" : "border-[#faf4eb]"
+                      }`}
+                    />
+                  );
+                })}
+
+                {/* A native color input rather than a swatch fan entry — for
+                    anything the fixed fan above doesn't stock. Transparent and
+                    stretched over the visible trigger beneath it, the usual
+                    way to restyle a color input without losing the OS picker
+                    it opens. */}
+                <label
+                  title="Custom color"
+                  style={isCustomColor ? { backgroundColor: draft.color.hex } : undefined}
+                  className={`relative flex size-7 shrink-0 cursor-pointer items-center justify-center border-2 transition-colors ${
+                    isCustomColor ? "border-[#bdc2cb]" : "border-dashed border-[#dadde2] bg-white"
+                  }`}
+                >
+                  {!isCustomColor && (
+                    <Pipette
+                      className="size-3.5 text-[#9fa5b2]"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <input
+                    type="color"
+                    aria-label="Pick a custom color"
+                    value={isCustomColor ? draft.color.hex : "#000000"}
+                    onChange={(event) =>
+                      patch({
+                        color: {
+                          name: isCustomColor ? draft.color.name : "",
+                          hex: event.target.value,
+                        },
+                      })
+                    }
+                    className="absolute inset-0 size-full cursor-pointer opacity-0"
                   />
-                );
-              })}
+                </label>
+              </div>
+
+              {isCustomColor && (
+                <TextInput
+                  id="variant-color-name"
+                  value={draft.color.name}
+                  onChange={(event) =>
+                    patch({ color: { ...draft.color, name: event.target.value } })
+                  }
+                  placeholder="Name this color, e.g. Rose Gold"
+                />
+              )}
             </div>
           </Field>
 

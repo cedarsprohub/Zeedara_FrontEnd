@@ -222,13 +222,20 @@ function baseProductFields(form) {
 // starts as a draft server-side, so the drawer publishes it as a second
 // call afterwards when the toggle is on (see index.jsx). It does take
 // price_ngn/compare_at_price_ngn/stock_quantity at the top level, though,
-// to seed the implicit default variant when `variants` comes back empty.
+// to seed the implicit default variant when `variants` is left out of the
+// request entirely — the server's fallback only fires on a missing key, not
+// on one present but empty, so `variants` is omitted here rather than sent
+// as `[]` for a product with no rows added on the Variants tab. Sending `[]`
+// would create the product with genuinely zero variants, which the server
+// then refuses to publish.
 export function buildCreatePayload(form) {
   const price = toAmount(form.price) ?? 0;
   const compareAt = toAmount(form.compareAt);
+  const { variants, ...rest } = baseProductFields(form);
 
   return {
-    ...baseProductFields(form),
+    ...rest,
+    ...(variants.length > 0 ? { variants } : {}),
     price_ngn: String(price),
     compare_at_price_ngn:
       compareAt !== null && compareAt > price ? String(compareAt) : null,

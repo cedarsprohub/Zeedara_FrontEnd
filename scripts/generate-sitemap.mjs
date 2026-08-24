@@ -9,33 +9,23 @@
 // yields a sitemap of just the static routes plus a warning — shipping a smaller
 // sitemap is recoverable on the next deploy, refusing to ship isn't.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readEnv } from "./lib/env.mjs";
+import { fetchAllProducts } from "./lib/products.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-// Vite's own env loading isn't available here, so `.env` is read directly. Real
-// environment variables win, which is how a CI or Vercel build overrides it.
-function readEnv(name, fallback) {
-  if (process.env[name]) return process.env[name];
-  for (const file of [".env.local", ".env"]) {
-    const path = resolve(root, file);
-    if (!existsSync(path)) continue;
-    const match = readFileSync(path, "utf8").match(
-      new RegExp(`^\\s*${name}\\s*=\\s*(.*)$`, "m"),
-    );
-    const value = match?.[1]?.trim().replace(/^["']|["']$/g, "");
-    if (value) return value;
-  }
-  return fallback;
-}
-
-const SITE_URL = readEnv("VITE_SITE_URL", "https://www.zeedara.com").replace(
+const SITE_URL = readEnv(
+  root,
+  "VITE_SITE_URL",
+  "https://www.zeedara.com",
+).replace(/\/+$/, "");
+const API_BASE_URL = readEnv(root, "VITE_API_BASE_URL", "").replace(
   /\/+$/,
   "",
 );
-const API_BASE_URL = readEnv("VITE_API_BASE_URL", "").replace(/\/+$/, "");
 
 // `changefreq`/`priority` are hints Google has said it ignores, so only `loc` and
 // `lastmod` are emitted. A hint that's ignored is just bytes.
@@ -52,10 +42,6 @@ const STATIC_ROUTES = [
   "/custom-wig",
 ];
 
-const PAGE_SIZE = 100;
-// A guard against paging forever if the endpoint ever ignores `offset`.
-const MAX_PAGES = 200;
-
 function escapeXml(value) {
   return String(value).replace(
     /[<>&'"]/g,
@@ -70,46 +56,6 @@ function escapeXml(value) {
   );
 }
 
-async function fetchAllProducts() {
-  if (!API_BASE_URL) {
-    console.warn(
-      "[sitemap] VITE_API_BASE_URL is not set — writing static routes only.",
-    );
-    return [];
-  }
-
-  const products = [];
-  const seen = new Set();
-
-  for (let page = 0; page < MAX_PAGES; page += 1) {
-    const url = `${API_BASE_URL}/api/v1/products?limit=${PAGE_SIZE}&offset=${
-      page * PAGE_SIZE
-    }`;
-
-    const response = await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(20000),
-    });
-    if (!response.ok) {
-      throw new Error(`GET /api/v1/products returned ${response.status}`);
-    }
-
-    const rows = await response.json();
-    if (!Array.isArray(rows) || rows.length === 0) break;
-
-    for (const row of rows) {
-      // Only slugs are addressable, and a duplicate would be an invalid sitemap.
-      if (!row?.slug || seen.has(row.slug)) continue;
-      seen.add(row.slug);
-      products.push(row);
-    }
-
-    if (rows.length < PAGE_SIZE) break;
-  }
-
-  return products;
-}
-
 function urlEntry(loc, lastmod) {
   const parsed = lastmod ? new Date(lastmod) : null;
   const stamp =
@@ -120,9 +66,15 @@ function urlEntry(loc, lastmod) {
 }
 
 async function main() {
+  if (!API_BASE_URL) {
+    console.warn(
+      "[sitemap] VITE_API_BASE_URL is not set — writing static routes only.",
+    );
+  }
+
   let products = [];
   try {
-    products = await fetchAllProducts();
+    products = await fetchAllProducts(API_BASE_URL);
     console.log(`[sitemap] found ${products.length} products`);
   } catch (error) {
     console.warn(

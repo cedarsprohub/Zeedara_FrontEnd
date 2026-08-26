@@ -22,7 +22,7 @@ const navLinks = [
   { name: "CATEGORIES", path: "/categories", hasDropdown: true },
   { name: "NEW ARRIVALS", path: "/products?sort=newest" },
   { name: "SKINCARE CLINIC", path: "/skincare-clinic" },
-  { name: "CONSULTATION", path: "/consultation" },
+  // { name: "CONSULTATION", path: "/consultation" },
   { name: "CUSTOM WIG", path: "/custom-wig" },
   { name: "REQUEST A QUOTE", path: "/custom-wig" },
 ];

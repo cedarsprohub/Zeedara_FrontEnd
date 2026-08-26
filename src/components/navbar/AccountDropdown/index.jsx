@@ -144,7 +144,7 @@ function AccountDropdown({ light = false }) {
                 onClick={handleLogout}
                 className="flex cursor-pointer items-center gap-2 px-2 py-3 text-left text-[#667085] transition-colors hover:text-(--primary-color)"
               >
-                <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.4]">
+                <span className="whitespace-nowrap text-[13px] font-semibold leading-[1.4]">
                   Logout
                 </span>
               </button>

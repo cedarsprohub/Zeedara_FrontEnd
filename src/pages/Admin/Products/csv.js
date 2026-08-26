@@ -188,6 +188,7 @@ export function parseProductsCsv(text, { categories = [], existingSkus = [] }) {
       status:
         matchOption(columnAt(row, "status"), IMPORTABLE_STATUSES) ??
         DEFAULT_STATUS,
+      tags: columnAt(row, "tags"),
     });
   });
 

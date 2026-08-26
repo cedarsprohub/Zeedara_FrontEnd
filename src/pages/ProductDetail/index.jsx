@@ -13,6 +13,7 @@ import {
   productSchema,
 } from "../../utils/structuredData";
 import { formatAmount } from "../../utils/formatCurrency";
+import { descriptionToPlainText } from "../../utils/sanitizeHtml";
 
 const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
 
@@ -105,7 +106,7 @@ function ProductDetail() {
     ? ` From ${formatAmount(product.min_price)}.`
     : "";
   const metaDescription =
-    product.description ||
+    descriptionToPlainText(product.description) ||
     `${product.name}${
       product.brand ? ` by ${product.brand}` : ""
     } at Zeedara.${priceLabel} Authentic products with secure checkout and delivery across Nigeria.`;

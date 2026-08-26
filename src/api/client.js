@@ -34,37 +34,70 @@ export class ApiError extends Error {
   }
 }
 
+// Pydantic/FastAPI validation errors, wherever they show up: either the raw
+// `[{ loc: ["body", "category_id"], msg, type }, ...]` list FastAPI's default
+// 422 handler returns, or that same list passed through as `error.details` by
+// the backend's own wrapper (see extractMessage below). `loc` is what actually
+// says which field failed — dropping it (a bare .msg join) leaves several
+// fields' messages run together with no way to tell them apart.
+function formatValidationDetails(details) {
+  if (!Array.isArray(details)) return "";
+  return details
+    .map((item) => {
+      if (typeof item === "string") return item;
+      const field = Array.isArray(item.loc)
+        ? item.loc.filter((part) => part !== "body").join(".")
+        : "";
+      return field ? `${field}: ${item.msg}` : item.msg;
+    })
+    .filter(Boolean)
+    .join("; ");
+}
+
 // The backend wraps every failure as {"error": {code, message, details,
-// trace_id}} — NOT FastAPI's default {"detail": ...}. The fallback below only
-// covers a bare FastAPI validation error, in case some endpoint ever bypasses
-// the custom exception handler.
+// trace_id}} — NOT FastAPI's default {"detail": ...}. `message` alone is
+// often a generic line ("One or more fields are invalid.") with the actual
+// per-field breakdown sitting unread in `details`, so it's appended here
+// rather than dropped. The `detail` fallback below only covers a bare
+// FastAPI validation error, in case some endpoint ever bypasses the custom
+// exception handler entirely.
 function extractMessage(body) {
   const message = body?.error?.message;
-  if (message) return message;
+  if (message) {
+    const details = formatValidationDetails(body.error.details);
+    return details ? `${message} ${details}` : message;
+  }
 
   const { detail } = body || {};
   if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) {
-    return detail.map((item) => item.msg).filter(Boolean).join(" ");
-  }
+  if (Array.isArray(detail)) return formatValidationDetails(detail) || "Something went wrong. Please try again.";
 
   return "Something went wrong. Please try again.";
 }
 
 async function rawFetch(path, { method = "GET", body, token } = {}) {
-  const headers = { "Content-Type": "application/json" };
+  // A FormData body (product media upload) needs the browser's own
+  // multipart Content-Type with its boundary — setting one here, or
+  // JSON.stringify-ing the body, would break the upload.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  const headers = {};
+  if (!isFormData) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   });
 
+  // Non-JSON success bodies (a CSV export) are still worth returning — read
+  // as text rather than silently discarded as null.
   const isJson = response.headers
     .get("content-type")
     ?.includes("application/json");
-  const data = isJson ? await response.json().catch(() => null) : null;
+  const data = isJson
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => null);
 
   return { response, data };
 }

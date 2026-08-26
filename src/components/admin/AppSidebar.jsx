@@ -16,6 +16,7 @@ import {
   Scissors,
   FlaskConical,
   Images,
+  ShieldCheck,
   Settings,
   ChevronDown,
   ChevronUp,
@@ -87,6 +88,12 @@ const NAV_GROUPS = [
   {
     divider: true,
     items: [{ label: "Banners", to: "/admin/banners", icon: Images }],
+  },
+  {
+    heading: "Administration",
+    items: [
+      { label: "Staff Roles", to: "/admin/staff-roles", icon: ShieldCheck },
+    ],
   },
 ];
 

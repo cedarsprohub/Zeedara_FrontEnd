@@ -7,7 +7,9 @@ function MediaTab({ images, onChange }) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Previews are object URLs, so each one is revoked as its image is dropped
-  // rather than left to leak for the life of the page.
+  // rather than left to leak for the life of the page. `file` keeps the raw
+  // File around too — the drawer uploads it for real on Save, once the
+  // product has an id to attach it to.
   const accept = (files) => {
     const picked = [...(files ?? [])].filter((file) =>
       file.type.startsWith("image/"),
@@ -19,13 +21,16 @@ function MediaTab({ images, onChange }) {
         id: `${file.name}-${file.size}-${file.lastModified}`,
         name: file.name,
         url: URL.createObjectURL(file),
+        file,
       })),
     ]);
   };
 
   const remove = (id) => {
     const going = images.find((image) => image.id === id);
-    if (going) URL.revokeObjectURL(going.url);
+    // A persisted image's url is the real CDN one, not a local object URL —
+    // nothing to revoke.
+    if (going && !going.isPersisted) URL.revokeObjectURL(going.url);
     onChange(images.filter((image) => image.id !== id));
   };
 

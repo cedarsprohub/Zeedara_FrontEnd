@@ -1,11 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, FileText, Info, TriangleAlert, Upload, X } from "lucide-react";
+import { useAdminAuth } from "../../../context/AdminAuthContext.js";
+import { importAdminProducts } from "../../../api/admin/products";
+import { toApiStatus } from "./data";
 import {
   buildTemplateCsv,
   FALLBACK_CATEGORY,
   parseProductsCsv,
   TEMPLATE_COLUMNS,
 } from "./csv";
+
+// The parsed rows are Title Case + a comma-joined tags string, matching the
+// preview table and the rest of this admin's UI conventions — the API's
+// ProductImportRow wants the status lowercase and tags as an actual array,
+// so that shape change happens right here, at the one place a row actually
+// leaves the browser.
+function toImportPayloadRow(row) {
+  return {
+    name: row.name,
+    sku: row.sku,
+    category: row.category,
+    price: row.price,
+    stock: row.stock,
+    status: toApiStatus(row.status),
+    tags: row.tags
+      ? row.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : [],
+  };
+}
 
 // How much of the parsed file the preview shows before summarising the rest.
 const PREVIEW_ROWS = 4;
@@ -26,12 +48,15 @@ function downloadTemplate() {
 
 // CSV importer behind the page header's Import button. Locks page scroll and
 // closes on Escape, same as the delete confirmation.
-function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
+function ImportDialog({ categories, existingSkus, onCancel, onImported }) {
+  const { accessToken } = useAdminAuth();
   const inputRef = useRef(null);
   const closeButtonRef = useRef(null);
 
   const [result, setResult] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState("");
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -70,6 +95,19 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
     event.preventDefault();
     setIsDragging(false);
     acceptFile(event.dataTransfer.files?.[0]);
+  };
+
+  const importReadyRows = async () => {
+    setIsImporting(true);
+    setImportError("");
+    try {
+      await importAdminProducts(result.products.map(toImportPayloadRow), accessToken);
+      onImported();
+    } catch (error) {
+      setImportError(error.message);
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const readyCount = result?.products.length ?? 0;
@@ -289,30 +327,35 @@ function ImportDialog({ categories, existingSkus, onCancel, onImport }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-2.5 border-t-[0.667px] border-[#f0f1f3] bg-[#fcfcfc] px-[22px] py-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex h-10 cursor-pointer items-center justify-center rounded-[2px] border border-[#dadde2] bg-white px-3 text-[14px] font-semibold text-[#48505e] transition-colors hover:border-[#9fa5b2] hover:text-black"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={downloadTemplate}
-            className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[2px] border border-[#dadde2] bg-white pr-2 pl-4 text-[14px] font-semibold text-[#48505e] transition-colors hover:border-[#9fa5b2] hover:text-black"
-          >
-            Download Template
-            <Download className="size-5" strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onImport(result.products)}
-            disabled={readyCount === 0}
-            className="flex h-10 cursor-pointer items-center justify-center rounded-[2px] bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Import
-          </button>
+        <div className="flex flex-col gap-2.5 border-t-[0.667px] border-[#f0f1f3] bg-[#fcfcfc] px-[22px] py-4">
+          {importError && (
+            <p className="text-[12px] font-medium text-[#cf251f]">{importError}</p>
+          )}
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex h-10 cursor-pointer items-center justify-center rounded-[2px] border border-[#dadde2] bg-white px-3 text-[14px] font-semibold text-[#48505e] transition-colors hover:border-[#9fa5b2] hover:text-black"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={downloadTemplate}
+              className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[2px] border border-[#dadde2] bg-white pr-2 pl-4 text-[14px] font-semibold text-[#48505e] transition-colors hover:border-[#9fa5b2] hover:text-black"
+            >
+              Download Template
+              <Download className="size-5" strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={importReadyRows}
+              disabled={readyCount === 0 || isImporting}
+              className="flex h-10 cursor-pointer items-center justify-center rounded-[2px] bg-(--primary-color) px-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isImporting ? "Importing…" : "Import"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

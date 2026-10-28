@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
+import Pagination from "../../../components/admin/Pagination";
 import { ACTIVITY_CATEGORY_STYLES, ACTIVITY_PAGE_SIZE } from "./data";
 
 function CategoryPill({ category }) {
@@ -129,43 +130,7 @@ function ActivityLogTab({ entries }) {
           of <span className="font-semibold text-[#262626]">{filtered.length}</span>
         </p>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-            aria-label="Previous page"
-            className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronLeft className="size-4" strokeWidth={2} />
-          </button>
-
-          {Array.from({ length: pageCount }, (_, i) => i + 1).map((number) => (
-            <button
-              key={number}
-              type="button"
-              onClick={() => setPage(number)}
-              aria-current={number === page ? "page" : undefined}
-              className={`size-8 cursor-pointer text-[14px] transition-colors ${
-                number === page
-                  ? "bg-(--primary-color) font-bold text-white"
-                  : "text-[#48505e] hover:bg-[#f9fafb]"
-              }`}
-            >
-              {number}
-            </button>
-          ))}
-
-          <button
-            type="button"
-            onClick={() => setPage(page + 1)}
-            disabled={page === pageCount}
-            aria-label="Next page"
-            className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronRight className="size-4" strokeWidth={2} />
-          </button>
-        </div>
+        <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
       </div>
     </div>
   );

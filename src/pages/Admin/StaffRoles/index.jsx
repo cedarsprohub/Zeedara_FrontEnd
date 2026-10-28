@@ -2,14 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   MoreVertical,
   Plus,
   Search,
   ShieldCheck,
 } from "lucide-react";
 import Seo from "../../../components/shared/Seo";
+import Pagination from "../../../components/admin/Pagination";
 import RolesTab from "./RolesTab";
 import ActivityLogTab from "./ActivityLogTab";
 import {
@@ -250,45 +249,7 @@ function StaffRoles() {
                 </span>
               </p>
 
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  aria-label="Previous page"
-                  className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft className="size-4" strokeWidth={2} />
-                </button>
-
-                {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-                  (number) => (
-                    <button
-                      key={number}
-                      type="button"
-                      onClick={() => setPage(number)}
-                      aria-current={number === page ? "page" : undefined}
-                      className={`size-8 cursor-pointer text-[14px] transition-colors ${
-                        number === page
-                          ? "bg-(--primary-color) font-bold text-white"
-                          : "text-[#48505e] hover:bg-[#f9fafb]"
-                      }`}
-                    >
-                      {number}
-                    </button>
-                  ),
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page === pageCount}
-                  aria-label="Next page"
-                  className="cursor-pointer p-2 text-[#48505e] transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronRight className="size-4" strokeWidth={2} />
-                </button>
-              </div>
+              <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
             </div>
           </div>
         </>

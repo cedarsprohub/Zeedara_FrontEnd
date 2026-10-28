@@ -90,7 +90,7 @@ function AppRoutes() {
                 server-side before anything is treated as paid. */}
             <Route path="/payment/callback" element={<PaymentCallback />} />
             <Route path="/custom-wig" element={<CustomWig />} />
-            <Route path="/consultation" element={<Consultation />} />
+            {/* <Route path="/consultation" element={<Consultation />} /> */}
             {/* Two paths, one page. `/skincare-clinic` is what the nav links to
                 and what the sitemap lists, so both canonicalise there rather
                 than competing as duplicates. */}

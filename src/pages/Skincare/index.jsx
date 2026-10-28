@@ -145,12 +145,12 @@ function Hero() {
             your skin type.
           </p>
           <div className="flex flex-col gap-[18px] sm:flex-row">
-            <a
-              href="#book"
+            <NavLink
+              to="/account/skincare-consultations"
               className="flex items-center justify-center bg-(--primary-color) px-6 py-4 text-[16px] font-bold text-white transition-opacity hover:opacity-90"
             >
               BOOK A CONSULTATION
-            </a>
+            </NavLink>
             <a
               href={WHATSAPP_URL}
               target="_blank"
@@ -465,7 +465,7 @@ function Understand() {
           </p>
 
           <NavLink
-            to="/account"
+            to="/account/skincare-consultations"
             className="cta-button text-center uppercase text-[12px] sm:text-[13px] lg:text-[14px] lg:text-start bg-(--primary-color) cursor-pointer text-white font-semibold tracking-[0.28px] py-2.5 lg:py-3 px-6 w-fit hover:bg-[#573b0f] transition-colors duration-300"
           >
             Book a Consultation

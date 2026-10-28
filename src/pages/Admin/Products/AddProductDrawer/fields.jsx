@@ -1,4 +1,6 @@
+import { useLayoutEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
+import { cleanAmountInput, formatAmountInput } from "./product";
 
 // Form and layout primitives shared by the add-product tabs. Every one of them
 // is a straight read of the Figma field component, so the tabs themselves stay
@@ -104,6 +106,54 @@ export function SelectInput({ id, invalid, placeholder, options, ...props }) {
   );
 }
 
+// How many of the characters that survive cleaning (digits and the point)
+// sit before `position` — what a caret's place is measured in, since commas
+// come and go around it as the number is regrouped.
+const significantBefore = (text, position) =>
+  text.slice(0, position).replace(/[^\d.]/g, "").length;
+
+// A bare amount input: shows "1,250,000.50" while `value` and what
+// `onValueChange` receives stay the plain "1250000.50". Re-grouping moves the
+// commas under the caret, so the caret is put back after the same number of
+// digits it followed before, rather than jumping to the end on every key.
+export function AmountInput({ value, onValueChange, ...props }) {
+  const inputRef = useRef(null);
+  const pendingCaret = useRef(null);
+
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    const target = pendingCaret.current;
+    if (!input || target === null) return;
+    pendingCaret.current = null;
+
+    let position = 0;
+    let seen = 0;
+    while (position < input.value.length && seen < target) {
+      if (/[\d.]/.test(input.value[position])) seen += 1;
+      position += 1;
+    }
+    input.setSelectionRange(position, position);
+  });
+
+  const handleChange = (event) => {
+    const { value: typed, selectionStart } = event.target;
+    pendingCaret.current = significantBefore(typed, selectionStart ?? typed.length);
+    onValueChange(cleanAmountInput(typed));
+  };
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      value={formatAmountInput(value)}
+      onChange={handleChange}
+      {...props}
+    />
+  );
+}
+
 // A money field: the currency sits in its own bordered cell to the left of the
 // input rather than inside it, which is how the pricing tab draws it.
 export function CurrencyInput({ id, ...props }) {
@@ -115,10 +165,8 @@ export function CurrencyInput({ id, ...props }) {
       >
         ₦
       </span>
-      <input
+      <AmountInput
         id={id}
-        type="text"
-        inputMode="decimal"
         className="min-w-0 flex-1 border border-[#dadde2] bg-white px-[17px] py-[13px] text-[14px] font-medium text-black transition-colors placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none"
         {...props}
       />

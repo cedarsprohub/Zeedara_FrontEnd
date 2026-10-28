@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Info, Layers, Plus, Trash2 } from "lucide-react";
-import { Card, InfoBanner } from "./fields";
+import { AmountInput, Card, InfoBanner } from "./fields";
 import { describeVariant, isPersistedVariantId, unitsTotal } from "./product";
 import VariantModal from "./VariantModal";
 
@@ -165,13 +165,9 @@ function VariantsTab({ variants, onChange }) {
                       placeholder="Auto-generated on save"
                       className={DISABLED_CELL_CLASS}
                     />
-                    <input
-                      type="text"
-                      inputMode="decimal"
+                    <AmountInput
                       value={variant.price}
-                      onChange={(event) =>
-                        update(variant.id, { price: event.target.value })
-                      }
+                      onValueChange={(price) => update(variant.id, { price })}
                       placeholder="0"
                       className={CELL_CLASS}
                     />

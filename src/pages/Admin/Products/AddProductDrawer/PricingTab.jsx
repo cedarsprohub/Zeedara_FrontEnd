@@ -18,7 +18,7 @@ function PricingTab({ form, onChange }) {
           <CurrencyInput
             id="product-price"
             value={form.price}
-            onChange={(event) => onChange({ price: event.target.value })}
+            onValueChange={(price) => onChange({ price })}
             placeholder="0"
           />
         </Field>
@@ -31,7 +31,7 @@ function PricingTab({ form, onChange }) {
           <CurrencyInput
             id="product-compare-at"
             value={form.compareAt}
-            onChange={(event) => onChange({ compareAt: event.target.value })}
+            onValueChange={(compareAt) => onChange({ compareAt })}
             placeholder="0"
           />
         </Field>
@@ -44,7 +44,7 @@ function PricingTab({ form, onChange }) {
           <CurrencyInput
             id="product-unit-cost"
             value={form.unitCost}
-            onChange={(event) => onChange({ unitCost: event.target.value })}
+            onValueChange={(unitCost) => onChange({ unitCost })}
             placeholder="0"
           />
         </Field>

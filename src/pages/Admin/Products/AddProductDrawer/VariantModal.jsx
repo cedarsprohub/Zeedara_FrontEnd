@@ -222,7 +222,7 @@ function VariantModal({ mode, variant, onCancel, onSave }) {
               <CurrencyInput
                 id="variant-price"
                 value={draft.price}
-                onChange={(event) => patch({ price: event.target.value })}
+                onValueChange={(price) => patch({ price })}
                 placeholder="0"
               />
             </Field>

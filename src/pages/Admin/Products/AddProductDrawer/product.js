@@ -26,6 +26,34 @@ export function toAmount(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+// What a money field holds while it's being typed into: digits plus at most
+// one decimal point with up to two places (kobo), leading zeros dropped. No
+// separators — those are display-only (see formatAmountInput), so the form
+// state and everything built from it stays a plain parseable number.
+export function cleanAmountInput(text) {
+  const [whole = "", ...rest] = String(text).replace(/[^\d.]/g, "").split(".");
+  const integer = whole.replace(/^0+(?=\d)/, "");
+  if (rest.length === 0) return integer;
+  return `${integer || "0"}.${rest.join("").slice(0, 2)}`;
+}
+
+// A cleaned amount with thousands separators, for display: "1250000.5" →
+// "1,250,000.5". A trailing "." is kept so the user can keep typing kobo.
+export function formatAmountInput(raw) {
+  if (!raw) return "";
+  const [integer, decimals] = raw.split(".");
+  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimals === undefined ? grouped : `${grouped}.${decimals}`;
+}
+
+// API money arrives as a decimal string ("40000.00"); the form wants what an
+// admin would have typed ("40000"), so whole-naira amounts don't show ".00".
+function amountToInput(value) {
+  if (value == null) return "";
+  const amount = Number(value);
+  return Number.isFinite(amount) ? String(amount) : "";
+}
+
 // The three figures under the pricing inputs are all derived, so they're
 // computed rather than held in state where they could drift from the prices.
 export function pricingSummary({ price, compareAt, unitCost }) {
@@ -92,7 +120,7 @@ function apiVariantToForm(variant) {
     density: variant.density ?? "",
     sizeShade: variant.size_shade ?? "",
     sku: variant.sku ?? "",
-    price: variant.price_ngn != null ? String(variant.price_ngn) : "",
+    price: amountToInput(variant.price_ngn),
     stock: variant.stock_quantity != null ? String(variant.stock_quantity) : "",
     reorderPoint:
       variant.reorder_point != null ? String(variant.reorder_point) : "",
@@ -167,10 +195,9 @@ export function productToForm(product) {
     weight: fromApiWeightBand(product.weight_band),
     tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
     description: product.description ?? "",
-    price: product.min_price != null ? String(product.min_price) : "",
-    compareAt:
-      product.compare_at_price != null ? String(product.compare_at_price) : "",
-    unitCost: product.unit_cost != null ? String(product.unit_cost) : "",
+    price: amountToInput(product.min_price),
+    compareAt: amountToInput(product.compare_at_price),
+    unitCost: amountToInput(product.unit_cost),
     variants: Array.isArray(product.variants)
       ? product.variants.map(apiVariantToForm)
       : [],

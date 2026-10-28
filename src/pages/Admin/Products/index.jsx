@@ -121,8 +121,10 @@ function Products() {
   // A delete can leave `page` pointing past the last page the new total
   // actually has. Adjusted during render rather than in an effect — an
   // effect here would fetch the out-of-range page once before correcting.
+  // Only once a response has landed: mid-fetch, `total` is the previous
+  // answer's, not the one this page number will be checked against.
   const [knownPageCount, setKnownPageCount] = useState(pageCount);
-  if (pageCount !== knownPageCount) {
+  if (!isLoading && pageCount !== knownPageCount) {
     setKnownPageCount(pageCount);
     if (page > pageCount) setPage(pageCount);
   }

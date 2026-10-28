@@ -122,7 +122,15 @@ export function useProductsData({
     };
   }, [accessToken, q, category, apiStatus, sortParam, limit, offset, reloadKey]);
 
-  const data = isFresh ? result.data : EMPTY;
+  // While the next request is in flight the rows go (the table shows its
+  // loading state), but the counts carry over from the last answer — dropping
+  // `total` to 0 would collapse the pager to a single page mid-navigation,
+  // and the page clamp in index.jsx would then bounce you back to page 1.
+  const data = isFresh
+    ? result.data
+    : result
+      ? { ...result.data, rawItems: [] }
+      : EMPTY;
   const categoryNameById = new Map(categories.map((cat) => [cat.id, cat.name]));
 
   return {

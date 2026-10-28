@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 // Up to this many slots (numbers + ellipses) render at once. Odd, so the
 // current page can sit in the middle with an equal run either side.
@@ -41,25 +46,52 @@ function pageItems(page, pageCount) {
   return [1, "start-gap", ...middle, "end-gap", pageCount];
 }
 
-const navButtonClass =
-  "flex h-8 cursor-pointer items-center gap-1 rounded-[2px] border border-[#dadde2] bg-white px-2.5 text-[13px] font-semibold text-[#48505e] transition-colors hover:border-[#9fa5b2] hover:text-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#dadde2] disabled:hover:text-[#48505e]";
+// Jumia-style: every control is the same round button, the current page a
+// filled circle, and the first/previous/next/last arrows flank the numbers.
+// `display` is left out of the shared shape so a caller can pass its own
+// (e.g. "hidden sm:flex") without two display utilities competing.
+const circleShape =
+  "size-9 shrink-0 items-center justify-center rounded-full text-[14px] transition-colors";
+const circleClass = `flex ${circleShape}`;
+const arrowClass = `${circleShape} cursor-pointer text-[#262626] hover:bg-[#f0f1f3] disabled:cursor-not-allowed disabled:text-[#c4c8d0] disabled:hover:bg-transparent`;
+
+// First/last drop out on phones so the row fits a narrow screen.
+function ArrowButton({ label, icon: Icon, onClick, disabled, className = "flex" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={`${arrowClass} ${className}`}
+    >
+      <Icon className="size-5" strokeWidth={2} />
+    </button>
+  );
+}
 
 // The numbered page control the admin tables share. `page` is 1-based.
 function Pagination({ page, pageCount, onPageChange }) {
   const items = pageItems(page, pageCount);
+  const isFirst = page <= 1;
+  const isLast = page >= pageCount;
 
   return (
-    <nav aria-label="Pagination" className="flex items-center gap-1">
-      <button
-        type="button"
+    <nav aria-label="Pagination" className="flex items-center gap-0.5 sm:gap-1">
+      <ArrowButton
+        label="First page"
+        icon={ChevronsLeft}
+        className="hidden sm:flex"
+        onClick={() => onPageChange(1)}
+        disabled={isFirst}
+      />
+      <ArrowButton
+        label="Previous page"
+        icon={ChevronLeft}
         onClick={() => onPageChange(page - 1)}
-        disabled={page <= 1}
-        aria-label="Previous page"
-        className={navButtonClass}
-      >
-        <ChevronLeft className="size-4" strokeWidth={2} />
-        <span className="hidden sm:inline">Previous</span>
-      </button>
+        disabled={isFirst}
+      />
 
       {items.map((item) =>
         typeof item === "number" ? (
@@ -69,10 +101,10 @@ function Pagination({ page, pageCount, onPageChange }) {
             onClick={() => onPageChange(item)}
             aria-label={`Page ${item}`}
             aria-current={item === page ? "page" : undefined}
-            className={`size-8 cursor-pointer text-[14px] transition-colors ${
+            className={`${circleClass} cursor-pointer ${
               item === page
-                ? "bg-(--primary-color) font-bold text-white"
-                : "text-[#48505e] hover:bg-[#f9fafb]"
+                ? "bg-(--primary-color) font-semibold text-white"
+                : "text-[#262626] hover:bg-[#f0f1f3]"
             }`}
           >
             {item}
@@ -81,23 +113,26 @@ function Pagination({ page, pageCount, onPageChange }) {
           <span
             key={item}
             aria-hidden="true"
-            className="flex size-8 items-center justify-center text-[14px] text-[#9fa5b2]"
+            className={`${circleClass} text-[#667085]`}
           >
             …
           </span>
         ),
       )}
 
-      <button
-        type="button"
+      <ArrowButton
+        label="Next page"
+        icon={ChevronRight}
         onClick={() => onPageChange(page + 1)}
-        disabled={page >= pageCount}
-        aria-label="Next page"
-        className={navButtonClass}
-      >
-        <span className="hidden sm:inline">Next</span>
-        <ChevronRight className="size-4" strokeWidth={2} />
-      </button>
+        disabled={isLast}
+      />
+      <ArrowButton
+        label="Last page"
+        icon={ChevronsRight}
+        className="hidden sm:flex"
+        onClick={() => onPageChange(pageCount)}
+        disabled={isLast}
+      />
     </nav>
   );
 }

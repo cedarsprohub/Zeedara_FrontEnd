@@ -218,44 +218,58 @@ function baseProductFields(form) {
   };
 }
 
-// POST /admin/products has no `status` field at all — a new product always
-// starts as a draft server-side, so the drawer publishes it as a second
-// call afterwards when the toggle is on (see index.jsx). It does take
-// price_ngn/compare_at_price_ngn/stock_quantity at the top level, though,
-// to seed the implicit default variant when `variants` is left out of the
-// request entirely — the server's fallback only fires on a missing key, not
-// on one present but empty, so `variants` is omitted here rather than sent
-// as `[]` for a product with no rows added on the Variants tab. Sending `[]`
-// would create the product with genuinely zero variants, which the server
-// then refuses to publish.
-export function buildCreatePayload(form) {
-  const price = toAmount(form.price) ?? 0;
+// The status a save sends. `asDraft` is the "Save as draft" button, which
+// always lands on draft whatever the toggle says. Otherwise the publish
+// toggle decides — except that an archived row stays archived when the
+// toggle is off, rather than every edit quietly restoring it to draft.
+// `originalStatus` is the raw (lowercase) status from before this edit.
+function payloadStatus(form, { asDraft, originalStatus }) {
+  if (asDraft) return "draft";
+  if (form.isPublished) return "active";
+  return originalStatus === "archived" ? "archived" : "draft";
+}
+
+// Whether a save should go live — the stricter validation (and the server's
+// "needs an active variant with a price" rule) only applies when it does.
+export function isPublishing(form, { asDraft = false } = {}) {
+  return !asDraft && form.isPublished;
+}
+
+// POST /admin/products takes `status` directly: omitted or "draft" saves a
+// draft that needs nothing but a name, "active" publishes in the same call
+// (held to the same rules as POST .../publish). It also takes price_ngn/
+// compare_at_price_ngn/stock_quantity at the top level, to seed the implicit
+// default variant when `variants` is left out of the request entirely — the
+// server's fallback only fires on a missing key with a price present, so
+// `variants` is omitted rather than sent as `[]`, and a blank price omits
+// `price_ngn` too, letting a draft be created bare instead of with a
+// zero-priced placeholder variant.
+export function buildCreatePayload(form, { asDraft = false } = {}) {
+  const price = toAmount(form.price);
   const compareAt = toAmount(form.compareAt);
   const { variants, ...rest } = baseProductFields(form);
 
   return {
     ...rest,
+    status: payloadStatus(form, { asDraft }),
     ...(variants.length > 0 ? { variants } : {}),
-    price_ngn: String(price),
-    compare_at_price_ngn:
-      compareAt !== null && compareAt > price ? String(compareAt) : null,
-    stock_quantity: 0,
+    ...(price !== null
+      ? {
+          price_ngn: String(price),
+          compare_at_price_ngn:
+            compareAt !== null && compareAt > price ? String(compareAt) : null,
+          stock_quantity: 0,
+        }
+      : {}),
   };
 }
 
-// PATCH /admin/products/{id} carries `status` directly instead — there's no
+// PATCH /admin/products/{id} carries `status` the same way — there's no
 // per-variant seeding to do on an edit, since real variants already exist.
-// `originalStatus` is the raw (lowercase) status the product had before this
-// edit — an archived row stays archived when the publish toggle is off,
-// rather than every edit quietly restoring it to draft.
-export function buildUpdatePayload(form, { originalStatus } = {}) {
+export function buildUpdatePayload(form, { originalStatus, asDraft = false } = {}) {
   return {
     ...baseProductFields(form),
-    status: form.isPublished
-      ? "active"
-      : originalStatus === "archived"
-        ? "archived"
-        : "draft",
+    status: payloadStatus(form, { asDraft, originalStatus }),
   };
 }
 

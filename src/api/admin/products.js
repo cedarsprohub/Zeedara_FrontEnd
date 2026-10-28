@@ -34,10 +34,11 @@ export function getAdminProduct(id, token) {
   });
 }
 
-// If `variants` is omitted, the server creates one default variant from
-// `base_sku` plus the submitted price/compare-at/stock — a product is never
-// created with zero variants. A new product always starts as a draft — there
-// is no `status` field to set here — so publishing it is a second call.
+// If `variants` is omitted and `price_ngn` is given, the server creates one
+// default variant from `base_sku` plus the submitted price/compare-at/stock;
+// with neither, the product is created bare. `status` defaults to "draft",
+// which needs only a `name`; "active" publishes in the same call and is held
+// to the same rules as publishAdminProduct below.
 export function createAdminProduct(product, token) {
   return adminRequest("/api/v1/admin/products", {
     method: "POST",

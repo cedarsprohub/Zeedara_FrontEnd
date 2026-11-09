@@ -126,7 +126,7 @@ function Overview() {
     // in its empty/error state rather than taking the page down.
     Promise.all([
       listAddresses(accessToken).catch(() => []),
-      listMyOrders({ limit: 1 }, accessToken).catch(() => []),
+      listMyOrders({ limit: 1 }, accessToken).catch(() => null),
       getPendingActions(accessToken).catch(() => null),
     ]).then(([addresses, orders, pendingActions]) => {
       if (!active) return;
@@ -134,7 +134,7 @@ function Overview() {
       setLoaded({
         token: accessToken,
         address: list.find((entry) => entry.is_default) ?? list[0] ?? null,
-        order: (Array.isArray(orders) ? orders : [])[0] ?? null,
+        order: orders?.items?.[0] ?? null,
         pending: pendingActions,
       });
     });

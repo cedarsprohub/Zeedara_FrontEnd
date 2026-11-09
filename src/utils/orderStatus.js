@@ -54,14 +54,11 @@ export function statusTone(status) {
   return ORDER_STATUS_TONE[status] ?? GREY;
 }
 
-// Tab groupings for the order history screen.
+// Tab groupings for the order history screen, as designed. Unpaid and
+// in-preparation orders have no tab of their own; they appear under All.
+// `statuses` is sent to `GET /orders` as its status filter.
 export const ORDER_TABS = [
   { label: "All", statuses: null },
-  { label: "Pending", statuses: ["pending_payment", "payment_failed"] },
-  {
-    label: "Processing",
-    statuses: ["paid", "processing", "packed"],
-  },
   { label: "Shipped", statuses: ["shipped", "delivery_failed"] },
   { label: "Delivered", statuses: ["delivered", "closed"] },
   { label: "Cancelled", statuses: ["cancelled"] },

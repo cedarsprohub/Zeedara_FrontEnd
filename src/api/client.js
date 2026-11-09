@@ -18,6 +18,12 @@ export function buildQuery(params) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === "") continue;
+    // Arrays become a repeated parameter (`?status=a&status=b`), which is how
+    // FastAPI reads a list query.
+    if (Array.isArray(value)) {
+      value.forEach((entry) => search.append(key, String(entry)));
+      continue;
+    }
     search.set(key, String(value));
   }
   const query = search.toString();

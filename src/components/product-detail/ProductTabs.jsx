@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ReviewsPanel from "./ReviewsPanel";
 import { sanitizeDescriptionHtml } from "../../utils/sanitizeHtml";
 
@@ -9,7 +10,27 @@ function ProductTabs({ product, reviews }) {
     { id: "description", label: "Description" },
     { id: "reviews", label: `Reviews (${reviewCount})` },
   ];
-  const [activeTab, setActiveTab] = useState("description");
+  // `#reviews` (e.g. "Leave review" on an order) opens straight onto the
+  // reviews tab and brings it into view.
+  const { hash } = useLocation();
+  const wantsReviews = hash === "#reviews";
+  const [activeTab, setActiveTab] = useState(
+    wantsReviews ? "reviews" : "description",
+  );
+  // Arriving at `#reviews` while already on the page switches tabs too —
+  // adjusted during render rather than in an effect, as React recommends.
+  const [seenHash, setSeenHash] = useState(hash);
+  if (hash !== seenHash) {
+    setSeenHash(hash);
+    if (wantsReviews) setActiveTab("reviews");
+  }
+
+  const rootRef = useRef(null);
+  useEffect(() => {
+    if (wantsReviews) {
+      rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [wantsReviews]);
 
   // Care and authenticity notes are the product's own copy; they replace the
   // invented feature bullets the mock data used to supply.
@@ -22,7 +43,11 @@ function ProductTabs({ product, reviews }) {
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div
+      ref={rootRef}
+      id="reviews"
+      className="flex scroll-mt-40 flex-col gap-8"
+    >
       <div className="flex flex-wrap gap-4 sm:gap-8 lg:justify-center">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;

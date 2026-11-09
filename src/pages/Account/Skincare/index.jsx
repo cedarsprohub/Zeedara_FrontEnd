@@ -67,9 +67,11 @@ const primaryButton =
 const softButton =
   "flex h-10 shrink-0 items-center justify-center gap-2 bg-[#faf4eb] pl-4 pr-2 text-[14px] font-semibold leading-[1.4] tracking-[0.28px] text-(--primary-color)";
 
-// The API hands out UUIDs; the design shows a short reference. The first eight
-// hex digits are plenty to tell a customer's handful of consultations apart.
-const reference = (id) => `SC-${String(id).slice(0, 8).toUpperCase()}`;
+// The API's sequential "SC-1024". The fallback only covers a response from an
+// API deployed before consultation numbers existed.
+const reference = (consultation) =>
+  consultation.consultation_number ??
+  `SC-${String(consultation.id).slice(0, 8).toUpperCase()}`;
 
 // Comma-joined rather than "A and B": labels like "Acne and breakouts" already
 // contain an "and", and "Acne and breakouts and dark spots" reads badly.
@@ -216,7 +218,7 @@ function ConsultationCard({ consultation, onPay, paying, payError }) {
               <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
                 Consultation{" "}
                 <span className="whitespace-nowrap">
-                  #{reference(consultation.id)}
+                  #{reference(consultation)}
                 </span>
               </p>
               <h3 className="text-[18px] font-semibold leading-[1.4] text-black @2xl:text-[20px]">

@@ -37,10 +37,15 @@ export function checkout(
   });
 }
 
-export function listMyOrders({ limit, offset } = {}, accessToken) {
-  return request(`/api/v1/orders${buildQuery({ limit, offset })}`, {
-    token: accessToken,
-  });
+// `{ items, total, limit, offset }`, newest first. Each order carries its line
+// items, and each item its live product references (`product_slug`,
+// `product_variant_id`, `image_url` — null once the product is gone or no longer
+// on sale). `statuses` narrows to any of the given `OrderStatus` values.
+export function listMyOrders({ limit, offset, statuses } = {}, accessToken) {
+  return request(
+    `/api/v1/orders${buildQuery({ limit, offset, status: statuses })}`,
+    { token: accessToken },
+  );
 }
 
 // `email` is only for guest lookups; a signed-in customer is identified by the

@@ -1,16 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.js";
 import { useStickyNavHeight } from "../../../context/NavbarHeightContext";
-import { getOrder, listMyOrders } from "../../../api/orders";
+import { listMyOrders } from "../../../api/orders";
 import { formatAmount } from "../../../utils/formatCurrency";
 import {
   ORDER_STATUS_LABEL,
   ORDER_TABS,
   statusTone,
 } from "../../../utils/orderStatus";
+import ItemImage from "./ItemImage";
+import { reviewHref, useBuyAgain } from "./orderActions";
 
 const PAGE_SIZE = 10;
+
+const solidButton =
+  "bg-(--primary-color) text-white hover:bg-[#a06e1c]";
+const softButton =
+  "bg-[#faf4eb] text-(--primary-color) hover:bg-[#f3e7d2]";
+const buttonShape =
+  "flex h-10 w-full shrink-0 cursor-pointer items-center justify-center whitespace-nowrap px-4 text-[14px] font-semibold leading-[1.4] tracking-[0.28px] transition-colors disabled:cursor-wait disabled:opacity-60 @xl:w-[207px]";
 
 function formatOrderDate(value) {
   const date = new Date(value);
@@ -23,45 +32,39 @@ function formatOrderDate(value) {
       });
 }
 
-// The card's button, per state. Everything here leads somewhere real.
-function primaryAction(order, firstItemName) {
+// The card's buttons, per state, as designed. Every one leads somewhere real:
+// "Order again" refills the cart, "Leave review" opens the product's review
+// form when there's one product to review (the order page lists each item's
+// own button when there are several).
+function cardActions(order) {
+  const detail = `/account/orders/${order.order_number}`;
+  const reviewable = order.items.filter((item) => reviewHref(item));
+  const reviewTo = reviewable.length === 1 ? reviewHref(reviewable[0]) : detail;
+
   switch (order.status) {
     case "pending_payment":
     case "payment_failed":
-      return { label: "COMPLETE PAYMENT", to: "/checkout", variant: "solid" };
+      return [{ label: "COMPLETE PAYMENT", to: "/checkout", tone: "solid" }];
     case "paid":
     case "processing":
     case "packed":
     case "shipped":
-      return {
-        label: "TRACK ORDER",
-        to: `/account/orders/${order.order_number}`,
-        variant: "solid",
-      };
+    case "delivery_failed":
+      return [{ label: "TRACK ORDER", to: detail, tone: "solid" }];
     case "delivered":
     case "closed":
-      // No product id on order items, so a review starts from a catalog search.
-      return firstItemName
-        ? {
-            label: "LEAVE REVIEW",
-            to: `/products?q=${encodeURIComponent(firstItemName)}`,
-            variant: "solid",
-          }
-        : null;
+      return [
+        { label: "ORDER AGAIN", buyAgain: true, tone: "soft" },
+        reviewable.length > 0 && {
+          label: "LEAVE REVIEW",
+          to: reviewTo,
+          tone: "solid",
+        },
+      ].filter(Boolean);
     case "cancelled":
-      return firstItemName
-        ? {
-            label: "ORDER AGAIN",
-            to: `/products?q=${encodeURIComponent(firstItemName)}`,
-            variant: "soft",
-          }
-        : null;
+      return [{ label: "ORDER AGAIN", buyAgain: true, tone: "soft" }];
     default:
-      return {
-        label: "VIEW ORDER",
-        to: `/account/orders/${order.order_number}`,
-        variant: "soft",
-      };
+      return [{ label: "VIEW ORDER", to: detail, tone: "soft" }];
   }
 }
 
@@ -69,7 +72,7 @@ function StatusBadge({ status }) {
   const tone = statusTone(status);
   return (
     <span
-      className={`inline-flex items-center justify-center px-2 py-1 text-[9.6px] font-bold uppercase leading-[1.4] ${tone.bg} ${tone.text}`}
+      className={`inline-flex w-fit min-w-[78px] items-center justify-center px-2 py-1 text-[9.6px] font-bold uppercase leading-[1.4] ${tone.bg} ${tone.text}`}
     >
       {ORDER_STATUS_LABEL[status] ?? status}
     </span>
@@ -77,210 +80,273 @@ function StatusBadge({ status }) {
 }
 
 /**
- * One order, in the designed card layout: image panel on the left, order id and
- * date across the top, then the product with its options, quantity and status,
- * and the total plus action on the right.
- *
- * `detail` is the full order — `OrderListItem` has no line items, so the list
- * fetches each order to fill in the product row (see the note in `Orders`).
- * Until it lands the row shows a skeleton rather than an empty gap.
+ * One order, in the designed card: product image flush left, order id and date
+ * across the top, then the first product with its options, quantity and
+ * status, and the total plus actions on the right. Laid out by the card's own
+ * width — stacked when narrow, the design's row from 576px.
  */
-function OrderCard({ order, detail }) {
+function OrderCard({ order, buyAgain }) {
   const navigate = useNavigate();
   const href = `/account/orders/${order.order_number}`;
-
-  const items = detail?.items ?? [];
-  const first = items[0] ?? null;
-  const extraCount = Math.max(items.length - 1, 0);
-  const action = primaryAction(order, first?.product_name ?? "");
+  const [first] = order.items;
+  const extraCount = Math.max(order.items.length - 1, 0);
+  const actions = cardActions(order);
+  const rebuyable = buyAgain.canBuyAgain(order.items);
+  const pending = buyAgain.pendingKey === order.order_number;
 
   return (
-    <div
+    <article
       onClick={() => navigate(href)}
-      className="flex cursor-pointer border border-[#dadde2] bg-white transition-colors duration-200 hover:border-[#bf8322]"
+      className="@container cursor-pointer border border-[#dadde2] bg-white transition-colors duration-200 hover:border-(--primary-color)"
     >
-      {/* Full-height panel flush to the card's left edge. Order items carry no
-          image, so it's the product's initial on a tint. */}
-      <div className="flex w-[88px] shrink-0 items-center justify-center bg-[#f0f1f3] text-[32px] font-semibold text-[#c9ccd3] sm:w-[163px]">
-        {first ? first.product_name.charAt(0).toUpperCase() : "•"}
-      </div>
+      <div className="flex">
+        <ItemImage item={first} className="w-[88px] self-stretch @xl:w-[163px]" />
 
-      {/* Details */}
-      <div className="flex min-w-0 flex-1 flex-col gap-3 px-3 py-4 sm:py-5">
-        <div className="flex flex-col gap-1 text-[13px] font-medium text-[#48505e] sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:text-[14px]">
-          <p>
-            Order ID: <span className="text-black">{order.order_number}</span>
-          </p>
-          <p className="sm:shrink-0 sm:text-right">
-            Ordered on {formatOrderDate(order.created_at)}
-          </p>
-        </div>
-
-        <span className="h-px w-full bg-[#dadde2]" />
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 flex-col gap-3">
-            {first ? (
-              <div className="flex flex-col gap-2">
-                <h3 className="text-[14px] font-semibold text-black sm:text-[16px]">
-                  {first.product_name}
-                </h3>
-                <div className="flex flex-wrap gap-x-2 gap-y-1 text-[13px] font-medium text-[#667085] sm:whitespace-nowrap sm:text-[14px]">
-                  <span>{first.variant_name}</span>
-                  <span>Qty: {first.quantity}</span>
-                  {extraCount > 0 && (
-                    <span className="text-(--primary-color)">
-                      +{extraCount} more{" "}
-                      {extraCount === 1 ? "item" : "items"}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="skeleton-delayed flex flex-col gap-2">
-                <div className="skeleton h-4 w-[180px]" />
-                <div className="skeleton h-3 w-[120px]" />
-              </div>
-            )}
-            <StatusBadge status={order.status} />
-          </div>
-
-          <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:items-end sm:gap-4">
-            <p className="text-[16px] font-semibold text-black sm:text-[20px]">
-              {formatAmount(order.total_ngn)}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 px-3 py-4 @xl:py-5">
+          <div className="flex flex-col gap-1 text-[14px] font-medium leading-[1.4] text-[#48505e] @xl:flex-row @xl:items-start @xl:justify-between @xl:gap-4">
+            <p>Order ID: {order.order_number}</p>
+            <p className="@xl:shrink-0 @xl:text-right">
+              Ordered on {formatOrderDate(order.created_at)}
             </p>
-            {action && (
-              <Link
-                to={action.to}
-                // The whole card navigates to the detail; the button has its own
-                // destination, so its click must not bubble into that.
-                onClick={(event) => event.stopPropagation()}
-                className={`flex h-10 w-full shrink-0 items-center justify-center whitespace-nowrap px-4 text-[12px] font-semibold tracking-[0.28px] transition-colors sm:w-[207px] ${
-                  action.variant === "soft"
-                    ? "bg-[#faf4eb] text-(--primary-color) hover:bg-[#f3e7d2]"
-                    : "bg-(--primary-color) text-white hover:opacity-90"
-                }`}
-              >
-                {action.label}
-              </Link>
-            )}
+          </div>
+
+          <span className="h-px w-full bg-[#dadde2]" />
+
+          <div className="flex flex-col gap-4 @xl:flex-row @xl:items-center @xl:justify-between">
+            <div className="flex min-w-0 flex-col gap-3">
+              {first && (
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-[16px] font-semibold leading-[1.4] text-black">
+                    {first.product_name}
+                  </h3>
+                  <div className="flex flex-wrap gap-x-2 gap-y-1 text-[14px] font-medium leading-[1.4] text-[#667085]">
+                    <span>{first.variant_name}</span>
+                    <span>Qty: {first.quantity}</span>
+                    {extraCount > 0 && (
+                      <span className="text-(--primary-color)">
+                        +{extraCount} more {extraCount === 1 ? "item" : "items"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              <StatusBadge status={order.status} />
+            </div>
+
+            <div className="flex w-full flex-col items-start gap-3 @xl:w-auto @xl:items-end @xl:gap-4">
+              <p className="text-[18px] font-semibold leading-[1.4] text-black @xl:text-[20px]">
+                {formatAmount(order.total_ngn)}
+              </p>
+              <div className="flex w-full flex-col gap-3 @xl:w-auto @xl:flex-row @xl:gap-4">
+                {actions.map((action) =>
+                  action.buyAgain ? (
+                    rebuyable && (
+                      <button
+                        key={action.label}
+                        type="button"
+                        disabled={Boolean(buyAgain.pendingKey)}
+                        onClick={(event) => {
+                          // The card itself opens the order; this button has
+                          // its own job.
+                          event.stopPropagation();
+                          buyAgain.buyAgain(order.order_number, order.items);
+                        }}
+                        className={`${buttonShape} ${softButton}`}
+                      >
+                        {pending ? "ADDING TO CART…" : action.label}
+                      </button>
+                    )
+                  ) : (
+                    <Link
+                      key={action.label}
+                      to={action.to}
+                      onClick={(event) => event.stopPropagation()}
+                      className={`${buttonShape} ${
+                        action.tone === "soft" ? softButton : solidButton
+                      }`}
+                    >
+                      {action.label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </article>
+  );
+}
+
+// The design's pager: numbered squares around the current page, then Next and
+// Last. Previous/First appear once you've moved off page 1.
+function pageWindow(page, pageCount) {
+  const start = Math.max(1, Math.min(page - 1, pageCount - 2));
+  const end = Math.min(pageCount, start + 2);
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
+function Pager({ page, pageCount, onChange, disabled }) {
+  if (pageCount <= 1) return null;
+  const pages = pageWindow(page, pageCount);
+  const square =
+    "flex h-8 min-w-8 cursor-pointer items-center justify-center px-3 text-[14px] font-medium leading-[1.4] transition-colors disabled:cursor-not-allowed disabled:opacity-40";
+  const idle = "bg-[#f0f1f3] text-[#575f71] hover:bg-[#e6e8eb]";
+
+  return (
+    <nav
+      aria-label="Order pages"
+      className="flex flex-wrap items-center justify-center gap-2"
+    >
+      {page > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => onChange(1)}
+            disabled={disabled}
+            className={`${square} ${idle}`}
+          >
+            First
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(page - 1)}
+            disabled={disabled}
+            className={`${square} ${idle}`}
+          >
+            Prev
+          </button>
+        </>
+      )}
+      {pages[0] > 1 && <span className={`${square} ${idle} cursor-default`}>…</span>}
+      {pages.map((number) => (
+        <button
+          key={number}
+          type="button"
+          onClick={() => onChange(number)}
+          disabled={disabled}
+          aria-current={number === page ? "page" : undefined}
+          className={`${square} px-0 ${
+            number === page ? "bg-(--primary-color) text-white" : idle
+          }`}
+        >
+          {number}
+        </button>
+      ))}
+      {pages[pages.length - 1] < pageCount && (
+        <span className={`${square} ${idle} cursor-default`}>…</span>
+      )}
+      {page < pageCount && (
+        <>
+          <button
+            type="button"
+            onClick={() => onChange(page + 1)}
+            disabled={disabled}
+            className={`${square} ${idle}`}
+          >
+            Next
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(pageCount)}
+            disabled={disabled}
+            className={`${square} ${idle}`}
+          >
+            Last
+          </button>
+        </>
+      )}
+    </nav>
   );
 }
 
 function Orders() {
   const { accessToken } = useAuth();
   const stickyNavHeight = useStickyNavHeight();
+  const buyAgain = useBuyAgain();
 
   const [activeTab, setActiveTab] = useState("All");
   const [page, setPage] = useState(1);
-  // `GET /orders` returns a bare array, so one extra row tells us whether
-  // there's another page. Results carry the page they belong to, which is also
-  // what marks the list as loading.
+  // Tagged with the query it answers, so a tab or page change reads as loading
+  // without a separate flag, and a slow response can't overwrite a newer one.
+  const queryKey = `${activeTab}:${page}`;
   const [result, setResult] = useState({
-    page: 0,
+    key: null,
     orders: [],
-    hasNextPage: false,
+    total: 0,
     error: null,
   });
-  // order_number → OrderPublic, for the product row on each card.
-  const [details, setDetails] = useState({});
 
-  const isLoading = result.page !== page;
-  const { orders, hasNextPage, error } = result;
+  const isLoading = result.key !== queryKey;
+  const { orders, total, error } = result;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   useEffect(() => {
     if (!accessToken) return undefined;
     let active = true;
+    const tab = ORDER_TABS.find((entry) => entry.label === activeTab);
 
     listMyOrders(
-      { limit: PAGE_SIZE + 1, offset: (page - 1) * PAGE_SIZE },
+      {
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
+        statuses: tab?.statuses ?? undefined,
+      },
       accessToken,
     )
-      .then((rows) => {
+      .then((data) => {
         if (!active) return;
-        const list = Array.isArray(rows) ? rows : [];
         setResult({
-          page,
-          orders: list.slice(0, PAGE_SIZE),
-          hasNextPage: list.length > PAGE_SIZE,
+          key: queryKey,
+          orders: Array.isArray(data?.items) ? data.items : [],
+          total: Number(data?.total) || 0,
           error: null,
         });
       })
       .catch((err) => {
         if (!active) return;
-        setResult({ page, orders: [], hasNextPage: false, error: err.message });
+        setResult({ key: queryKey, orders: [], total: 0, error: err.message });
       });
 
     return () => {
       active = false;
     };
-  }, [accessToken, page]);
+  }, [accessToken, activeTab, page, queryKey]);
 
-  // The designed card shows the product, its options and quantity — none of
-  // which `OrderListItem` carries. So each order on the page is read in full,
-  // in parallel, and merged in as it arrives. It's one request per card (10 per
-  // page); a list endpoint that returned items would remove them all.
-  useEffect(() => {
-    if (!accessToken || orders.length === 0) return undefined;
-    let active = true;
-
-    const missing = orders.filter((order) => !details[order.order_number]);
-    if (missing.length === 0) return undefined;
-
-    Promise.all(
-      missing.map((order) =>
-        getOrder(order.order_number, { accessToken })
-          .then((full) => [order.order_number, full])
-          .catch(() => null),
-      ),
-    ).then((pairs) => {
-      const resolved = pairs.filter(Boolean);
-      if (!active || resolved.length === 0) return;
-      setDetails((prev) => ({ ...prev, ...Object.fromEntries(resolved) }));
-    });
-
-    return () => {
-      active = false;
-    };
-    // `details` is intentionally not a dependency: it's written by this effect,
-    // and re-running on every write would loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, orders]);
-
-  // The customer orders endpoint has no status filter, so the tabs narrow the
-  // page that's loaded rather than re-querying.
-  const visibleOrders = useMemo(() => {
-    const tab = ORDER_TABS.find((entry) => entry.label === activeTab);
-    if (!tab?.statuses) return orders;
-    return orders.filter((order) => tab.statuses.includes(order.status));
-  }, [activeTab, orders]);
+  const changePage = (next) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="flex flex-col gap-5 lg:p-8">
-      {/* Filter tabs — pinned below the main nav so the status filters stay
-          reachable while the order list scrolls under them. `pb-5 -mb-5`
-          keeps the visual gap while extending the white backdrop over it. */}
+    <div className="flex flex-col gap-[25px] lg:p-8">
+      {/* Filter tabs — pinned below the main nav so they stay reachable while
+          the list scrolls. `pb-5 -mb-5` keeps the gap while extending the white
+          backdrop over it. */}
       <div
         className="sticky z-10 -mb-5 bg-white pb-5"
         style={{ top: `${stickyNavHeight}px` }}
       >
-        {/* Tabs scroll sideways on narrow screens instead of wrapping into
-            three rows (which would make the sticky bar eat the viewport). */}
-        <div className="flex overflow-x-auto border-b border-[#dadde2] [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden">
+        {/* Scroll sideways on narrow screens rather than wrapping. */}
+        <div
+          role="tablist"
+          className="flex w-full overflow-x-auto border-b border-[#dadde2] [-ms-overflow-style:none] [scrollbar-width:none] sm:w-fit [&::-webkit-scrollbar]:hidden"
+        >
           {ORDER_TABS.map((tab) => {
-            const active = tab.label === activeTab;
+            const selected = tab.label === activeTab;
             return (
               <button
                 key={tab.label}
                 type="button"
-                onClick={() => setActiveTab(tab.label)}
-                className={`relative -mb-px shrink-0 cursor-pointer px-3 py-3 text-[13px] font-semibold uppercase tracking-[0.28px] transition-colors sm:px-4 ${
-                  active
-                    ? "text-(--primary-color) after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-full after:bg-(--primary-color)"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => {
+                  setActiveTab(tab.label);
+                  setPage(1);
+                }}
+                className={`relative -mb-px shrink-0 cursor-pointer px-4 py-3 text-[14px] font-semibold uppercase leading-[1.4] transition-colors ${
+                  selected
+                    ? "text-(--primary-color) after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-(--primary-color)"
                     : "text-[#667085] hover:text-(--primary-color)"
                 }`}
               >
@@ -291,13 +357,15 @@ function Orders() {
         </div>
       </div>
 
-      {error && (
-        <p className="bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
-          {error}
+      {(error || buyAgain.error) && (
+        <p
+          role="alert"
+          className="bg-[#fae9e9] px-4 py-3 text-[14px] font-medium text-[#cf251f]"
+        >
+          {error || buyAgain.error}
         </p>
       )}
 
-      {/* Order list */}
       <div className="flex flex-col gap-5">
         {isLoading ? (
           <div className="skeleton-delayed flex flex-col gap-5">
@@ -305,54 +373,36 @@ function Orders() {
               <div key={index} className="skeleton h-[168px] w-full" />
             ))}
           </div>
-        ) : visibleOrders.length > 0 ? (
-          visibleOrders.map((order) => (
+        ) : orders.length > 0 ? (
+          orders.map((order) => (
             <div key={order.id} className="fade-in">
-              <OrderCard
-                order={order}
-                detail={details[order.order_number]}
-              />
+              <OrderCard order={order} buyAgain={buyAgain} />
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center gap-4 py-16">
-            <p className="text-[13px] font-medium text-[#667085]">
-              No {activeTab === "All" ? "" : `${activeTab.toLowerCase()} `}orders
-              yet.
-            </p>
-            <Link
-              to="/products"
-              className="bg-(--primary-color) px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.28px] text-white transition-opacity hover:opacity-90"
-            >
-              Start shopping
-            </Link>
-          </div>
+          !error && (
+            <div className="flex flex-col items-center gap-4 py-16">
+              <p className="text-[14px] font-medium text-[#667085]">
+                No {activeTab === "All" ? "" : `${activeTab.toLowerCase()} `}
+                orders yet.
+              </p>
+              <Link
+                to="/products"
+                className="bg-(--primary-color) px-6 py-3 text-[14px] font-semibold uppercase tracking-[0.28px] text-white transition-colors hover:bg-[#a06e1c]"
+              >
+                Start shopping
+              </Link>
+            </div>
+          )
         )}
       </div>
 
-      {(page > 1 || hasNextPage) && (
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page === 1 || isLoading}
-            className="flex h-9 cursor-pointer items-center justify-center bg-[#f0f1f3] px-4 text-[13px] font-medium text-[#575f71] transition-colors hover:bg-[#e6e8eb] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Previous
-          </button>
-          <span className="text-[13px] font-medium text-[#667085]">
-            Page {page}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((current) => current + 1)}
-            disabled={!hasNextPage || isLoading}
-            className="flex h-9 cursor-pointer items-center justify-center bg-[#f0f1f3] px-4 text-[13px] font-medium text-[#575f71] transition-colors hover:bg-[#e6e8eb] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <Pager
+        page={page}
+        pageCount={pageCount}
+        onChange={changePage}
+        disabled={isLoading}
+      />
     </div>
   );
 }

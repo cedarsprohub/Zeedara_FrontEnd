@@ -3,17 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { Star } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.js";
 import { submitReview } from "../../api/catalog";
-import { getOrder, listMyOrders } from "../../api/orders";
+import { listMyOrders } from "../../api/orders";
 
 // Only a received order earns a review. `closed` is the state an order settles
 // into after delivery, so it counts too.
-const DELIVERED_STATUSES = new Set(["delivered", "closed"]);
+const DELIVERED_STATUSES = ["delivered", "closed"];
 
-// `OrderListItem` doesn't include line items, so each candidate order has to be
-// read individually. Checking the most recent few keeps that bounded — someone
-// reviewing a product they bought long ago will be caught by the server's own
-// verified-purchase check instead.
-const MAX_ORDERS_CHECKED = 10;
+// The most recent delivered orders, items included, in one request. Someone
+// reviewing a product bought further back than this is still caught by the
+// server's own verified-purchase check.
+const MAX_ORDERS_CHECKED = 50;
 
 function StarRow({ rating, size = "size-4" }) {
   return (
@@ -46,10 +45,11 @@ function formatReviewDate(value) {
 /**
  * Has this account received an order containing this product?
  *
- * Order items identify their product by SKU, so eligibility is decided by
- * intersecting the product's variant SKUs with those on delivered orders. This
- * only gates the form: `POST /reviews` enforces verified purchase itself, so a
- * gap here can't be used to post a review the server wouldn't accept.
+ * Order items carry their `product_id`, so this is a lookup across delivered
+ * orders (SKU is kept as a fallback for items whose variant has since been
+ * deleted). It only gates the form: `POST /reviews` enforces verified purchase
+ * itself, so a gap here can't be used to post a review the server wouldn't
+ * accept.
  */
 function useCanReview(product, accessToken) {
   const skus = (product.variants ?? []).map((variant) => variant.sku);
@@ -61,30 +61,16 @@ function useCanReview(product, accessToken) {
     if (!requestKey) return undefined;
     let active = true;
 
-    listMyOrders({ limit: 50 }, accessToken)
-      .then(async (rows) => {
-        const delivered = (Array.isArray(rows) ? rows : [])
-          .filter((order) => DELIVERED_STATUSES.has(order.status))
-          .slice(0, MAX_ORDERS_CHECKED);
-
-        const details = await Promise.all(
-          delivered.map((order) =>
-            getOrder(order.order_number, { accessToken }).catch(() => null),
-          ),
+    listMyOrders(
+      { limit: MAX_ORDERS_CHECKED, statuses: DELIVERED_STATUSES },
+      accessToken,
+    )
+      .then((page) => {
+        const items = (page?.items ?? []).flatMap((order) => order.items ?? []);
+        const eligible = items.some(
+          (item) => item.product_id === product.id || skus.includes(item.sku),
         );
-
-        const owned = new Set(
-          details
-            .filter(Boolean)
-            .flatMap((order) => order.items.map((item) => item.sku)),
-        );
-
-        if (active) {
-          setChecked({
-            key: requestKey,
-            eligible: skus.some((sku) => owned.has(sku)),
-          });
-        }
+        if (active) setChecked({ key: requestKey, eligible });
       })
       .catch(() => {
         // Couldn't tell — leave the form closed rather than inviting a review

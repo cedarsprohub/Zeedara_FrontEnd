@@ -36,6 +36,9 @@ const CustomHairNewRequest = lazy(
   () => import("../pages/Account/CustomHair/NewRequest"),
 );
 const SkincareConsultations = lazy(() => import("../pages/Account/Skincare"));
+const NewSkincareConsultation = lazy(
+  () => import("../pages/Account/Skincare/NewConsultation"),
+);
 const AddressBook = lazy(() => import("../pages/Account/AddressBook"));
 const NewAddress = lazy(() => import("../pages/Account/AddressBook/NewAddress"));
 const Settings = lazy(() => import("../pages/Account/Settings"));
@@ -145,6 +148,10 @@ function AppRoutes() {
                   <Route
                     path="skincare-consultations"
                     element={<SkincareConsultations />}
+                  />
+                  <Route
+                    path="skincare-consultations/new"
+                    element={<NewSkincareConsultation />}
                   />
                   <Route path="address-book" element={<AddressBook />} />
                   {/* One form, two modes — the edit route prefills from the

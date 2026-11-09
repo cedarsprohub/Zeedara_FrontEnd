@@ -144,6 +144,11 @@ function Overview() {
     };
   }, [accessToken]);
 
+  // Shared by the address card and the order card's "Edit Address".
+  const editAddressRoute = address
+    ? `/account/address-book/${address.id}/edit`
+    : "/account/address-book/new";
+
   const pendingRows = pending
     ? PENDING_ACTIONS.map((row) => ({ ...row, count: pending[row.key] ?? 0 }))
         .filter((row) => row.count > 0)
@@ -198,7 +203,7 @@ function Overview() {
                 <p>{address.phone}</p>
               </div>
               <Link
-                to={`/account/address-book/${address.id}/edit`}
+                to={editAddressRoute}
                 className={`${linkClasses} shrink-0`}
               >
                 Edit Address
@@ -236,18 +241,18 @@ function Overview() {
                   <br />
                   Total: {formatAmount(recentOrder.total_ngn)}
                 </p>
-                {/* The design's second link is "Edit Address" — an order's
-                    delivery address can't be changed once placed (the API has
-                    no route for it), so this goes to the order list instead. */}
-                <div className="flex shrink-0 gap-3">
+                {/* "Edit Address" edits the same default delivery address as
+                    the card above — the one used for orders — or adds one if
+                    none is saved yet. */}
+                <div className="flex shrink-0 gap-2 lg:gap-3">
                   <Link
                     to={`/account/orders/${recentOrder.order_number}`}
                     className={linkClasses}
                   >
                     Track Order
                   </Link>
-                  <Link to="/account/orders" className={linkClasses}>
-                    All Orders
+                  <Link to={editAddressRoute} className={linkClasses}>
+                    Edit Address
                   </Link>
                 </div>
               </div>

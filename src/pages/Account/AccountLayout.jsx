@@ -162,6 +162,11 @@ function AccountLayout() {
   const navigate = useNavigate();
   // The account root shows the menu on mobile; sub-routes show their content.
   const isRoot = pathname === "/account" || pathname === "/account/";
+  // Mobile Back goes up to the section a screen belongs to (a form back to its
+  // list, an order back to Orders), and from a section to the account menu.
+  const segments = pathname.split("/").filter(Boolean);
+  const backTo =
+    segments.length > 2 ? `/${segments.slice(0, 2).join("/")}` : "/account";
 
   return (
     // White panels on an off-white page on desktop; plain white on mobile.
@@ -177,10 +182,10 @@ function AccountLayout() {
               isRoot ? "hidden" : "block"
             }`}
           >
-            {/* Back button returns to the mobile menu; desktop keeps the rail. */}
+            {/* Mobile only (desktop keeps the rail): up one level, see `backTo`. */}
             <button
               type="button"
-              onClick={() => navigate("/account")}
+              onClick={() => navigate(backTo)}
               className="mb-[25px] flex cursor-pointer items-center gap-2 p-3 text-[12px] font-semibold leading-[1.4] text-(--primary-color) lg:hidden"
             >
               <NavIcon

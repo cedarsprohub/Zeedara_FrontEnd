@@ -9,6 +9,20 @@ import {
   readPendingPayment,
 } from "../../utils/pendingPayment";
 
+// Paystack returns every kind of payment here. Store orders go to their receipt;
+// these go back to the account screen that lists them. Keyed by the verify
+// response's `resource_type`.
+const ACCOUNT_DESTINATIONS = {
+  skincare_consultation: {
+    to: "/account/skincare-consultations",
+    label: "your consultations",
+  },
+  custom_wig_request: {
+    to: "/account/custom-hair",
+    label: "your custom hair requests",
+  },
+};
+
 /**
  * Where Paystack returns the customer.
  *
@@ -65,8 +79,9 @@ function PaymentCallback() {
         if (response.paid) {
           clearPendingPayment();
           // The cart has been consumed by the order — resync so the badge and
-          // drawer don't keep showing lines that are now paid for.
-          refresh();
+          // drawer don't keep showing lines that are now paid for. Other
+          // payments never touch the cart.
+          if (!ACCOUNT_DESTINATIONS[response.resource_type]) refresh();
         }
       })
       .catch((err) => {
@@ -74,18 +89,28 @@ function PaymentCallback() {
       });
   }, [reference, refresh]);
 
-  // Hand off to the receipt as soon as the server says it's paid.
+  const destination = ACCOUNT_DESTINATIONS[result?.resource_type] ?? null;
+
+  // Hand off as soon as the server says it's paid: an order to its receipt,
+  // anything else to the account screen it belongs to.
   useEffect(() => {
-    if (status !== "paid" || !result?.order_number) return;
-    const timer = setTimeout(
-      () => navigate(`/order-received/${result.order_number}`, { replace: true }),
-      1200,
-    );
+    if (status !== "paid") return;
+    const target = destination
+      ? destination.to
+      : result?.order_number
+        ? `/order-received/${result.order_number}`
+        : null;
+    if (!target) return;
+    const timer = setTimeout(() => navigate(target, { replace: true }), 1200);
     return () => clearTimeout(timer);
-  }, [status, result, navigate]);
+  }, [status, result, destination, navigate]);
 
   const sidePadding = "px-[clamp(1rem,6.25vw,7.5rem)]";
-  const fallbackOrder = result?.order_number ?? orderNumber;
+  // The sessionStorage order is only relevant to store payments — a leftover one
+  // must not show up under a failed consultation payment.
+  const fallbackOrder = destination
+    ? null
+    : (result?.order_number ?? orderNumber);
 
   return (
     <div
@@ -111,7 +136,7 @@ function PaymentCallback() {
           <CircleCheck className="size-10 text-green-600" />
           <h1 className="text-2xl font-semibold text-black">Payment confirmed</h1>
           <p className="text-sm text-gray-500">
-            Taking you to your order…
+            Taking you to {destination ? destination.label : "your order"}…
           </p>
         </>
       )}
@@ -137,10 +162,10 @@ function PaymentCallback() {
               </Link>
             )}
             <Link
-              to="/account/orders"
+              to={destination ? destination.to : "/account/orders"}
               className="border border-(--primary-color) px-6 py-3 text-[13px] font-semibold uppercase text-(--primary-color) transition-colors hover:bg-[#faf4eb]"
             >
-              My orders
+              {destination ? `Back to ${destination.label}` : "My orders"}
             </Link>
           </div>
         </>

@@ -1,21 +1,41 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.js";
+import { getPendingActions } from "../../../api/auth";
 import { listAddresses } from "../../../api/addresses";
 import { listMyOrders } from "../../../api/orders";
 import { formatAmount } from "../../../utils/formatCurrency";
 import { ORDER_STATUS_LABEL } from "../../../utils/orderStatus";
 
-// TODO(api): these counts have no endpoint behind them. Reviews-outstanding
-// would need the delivered orders cross-referenced against submitted reviews,
-// and returns/custom-hair/skincare have no customer-facing list routes at all,
-// so the figures stay illustrative until the API can supply them.
-const pendingActions = [
-  { count: "12", text: "products waiting for review" },
-  { count: "1", text: "return request under review" },
-  { count: "2", text: "custom hair quote awaiting response" },
-  { count: "1", text: "skincare consultation response available" },
+// `GET /users/me/pending-actions` fields → the card's wording.
+const PENDING_ACTIONS = [
+  {
+    key: "products_awaiting_review",
+    one: "product waiting for review",
+    many: "products waiting for review",
+  },
+  {
+    key: "returns_under_review",
+    one: "return request under review",
+    many: "return requests under review",
+  },
+  {
+    key: "custom_hair_quotes_awaiting_response",
+    one: "custom hair quote awaiting response",
+    many: "custom hair quotes awaiting response",
+  },
+  {
+    key: "skincare_responses_available",
+    one: "skincare consultation response available",
+    many: "skincare consultation responses available",
+  },
 ];
+
+const linkClasses =
+  "cursor-pointer text-[12px] font-semibold leading-[1.4] text-(--primary-color) underline lg:text-[14px]";
+
+const softButtonClasses =
+  "flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[12px] font-semibold leading-[1.4] text-(--primary-color) transition-colors hover:bg-[#f3e7d2] lg:text-[14px]";
 
 function formatOrderDate(value) {
   const date = new Date(value);
@@ -28,13 +48,13 @@ function formatOrderDate(value) {
       });
 }
 
-function Card({ title, children, className = "" }) {
+// Mobile cards stack their content 8px apart; on desktop the title sits at the
+// top and the body is pushed to the bottom, so cards sharing a row line up.
+function Card({ title, children }) {
   return (
-    <div
-      className={`flex flex-col border border-[#dadde2] px-5 py-4 ${className}`}
-    >
+    <div className="flex flex-col gap-2 border border-[#dadde2] px-4 py-3 lg:justify-between lg:gap-4 lg:px-5 lg:py-4">
       <div className="flex flex-col gap-3">
-        <h2 className="text-[14px] font-semibold leading-[1.4] text-black">
+        <h2 className="text-[16px] font-semibold leading-[1.4] text-black lg:text-[18px]">
           {title}
         </h2>
         <span className="h-px w-full bg-[#dadde2]" />
@@ -46,9 +66,33 @@ function Card({ title, children, className = "" }) {
 
 function DetailRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-4 text-[13px] font-medium">
-      <span className="text-[#667085]">{label}</span>
-      <span className="text-black">{value}</span>
+    <div className="flex items-center justify-between gap-4 text-[14px] font-medium leading-[1.4]">
+      <span className="shrink-0 text-[#48505e]">{label}</span>
+      <span className="min-w-0 text-right text-black [overflow-wrap:anywhere]">{value}</span>
+    </div>
+  );
+}
+
+// Long addresses wrap at the "@" rather than mid-word on narrow screens.
+function breakableEmail(email) {
+  if (!email) return "—";
+  const at = email.indexOf("@");
+  if (at < 1) return email;
+  return (
+    <>
+      {email.slice(0, at)}
+      <wbr />
+      {email.slice(at)}
+    </>
+  );
+}
+
+function SkeletonLines({ widths }) {
+  return (
+    <div className="skeleton-delayed flex flex-col gap-2">
+      {widths.map((width, index) => (
+        <div key={index} className="skeleton h-3" style={{ width }} />
+      ))}
     </div>
   );
 }
@@ -59,35 +103,39 @@ function Overview() {
     .filter(Boolean)
     .join(" ");
 
-  // Both cards are tagged with the session they were loaded for, so "loading" is
+  // Every card is tagged with the session it was loaded for, so "loading" is
   // derived rather than tracked, and an account switch can't show the previous
-  // one's address or order.
+  // one's address, order or counts.
   const [loaded, setLoaded] = useState({
     token: null,
     address: null,
     order: null,
+    pending: null,
   });
 
   const isLoading = Boolean(accessToken) && loaded.token !== accessToken;
   const address = isLoading ? null : loaded.address;
   const recentOrder = isLoading ? null : loaded.order;
+  const pending = isLoading ? null : loaded.pending;
 
   useEffect(() => {
     if (!accessToken) return undefined;
     let active = true;
 
-    // One card each, fetched together. Either failing leaves that card in its
-    // empty state rather than taking the page down.
+    // One request per card, fetched together. Any one failing leaves that card
+    // in its empty/error state rather than taking the page down.
     Promise.all([
       listAddresses(accessToken).catch(() => []),
       listMyOrders({ limit: 1 }, accessToken).catch(() => []),
-    ]).then(([addresses, orders]) => {
+      getPendingActions(accessToken).catch(() => null),
+    ]).then(([addresses, orders, pendingActions]) => {
       if (!active) return;
       const list = Array.isArray(addresses) ? addresses : [];
       setLoaded({
         token: accessToken,
         address: list.find((entry) => entry.is_default) ?? list[0] ?? null,
         order: (Array.isArray(orders) ? orders : [])[0] ?? null,
+        pending: pendingActions,
       });
     });
 
@@ -96,26 +144,33 @@ function Overview() {
     };
   }, [accessToken]);
 
+  const pendingRows = pending
+    ? PENDING_ACTIONS.map((row) => ({ ...row, count: pending[row.key] ?? 0 }))
+        .filter((row) => row.count > 0)
+    : [];
+
   return (
-    <div className="flex flex-col gap-6 lg:p-8">
-      <div className="hidden flex-col gap-1 lg:flex">
-        <h1 className="flex flex-wrap items-center gap-2 text-[16px] font-semibold leading-[1.4]">
+    <div className="flex flex-col gap-[25px] lg:p-8">
+      <div className="hidden flex-col lg:flex">
+        <h1 className="flex flex-wrap items-center gap-x-2 text-[24px] font-semibold leading-[1.4]">
           <span className="text-black">Welcome back,</span>
           <span className="text-(--primary-color)">
             {user?.first_name || "there"}
           </span>
         </h1>
-        <p className="text-[13px] text-[#667085]">
+        <p className="text-[16px] leading-[1.4] text-[#48505e]">
           Here&rsquo;s a quick look at your latest account activity.
         </p>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-x-10 md:gap-y-6">
+      {/* One column on phones and in the narrow content panel at `lg` (where the
+          rail eats the width); two side by side when there's room for them. */}
+      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-x-10 md:gap-y-[25px] lg:grid-cols-1 xl:grid-cols-2">
         {/* Account Details */}
-        <Card title="Account Details" className="gap-4">
-          <div className="mt-1 flex flex-col gap-3">
+        <Card title="Account Details">
+          <div className="flex flex-col gap-2 lg:gap-4">
             <DetailRow label="Name" value={fullName || "—"} />
-            <DetailRow label="Email" value={user?.email || "—"} />
+            <DetailRow label="Email" value={breakableEmail(user?.email)} />
             <DetailRow
               label="Phone number"
               value={user?.phone_number || "—"}
@@ -125,58 +180,55 @@ function Overview() {
 
         {/* Default Delivery Address — the saved default, or the first address on
             file if none is flagged. */}
-        <Card title="Default Delivery Address" className="justify-between gap-4">
+        <Card title="Default Delivery Address">
           {isLoading ? (
-            <div className="skeleton-delayed mt-1 flex flex-col gap-2">
-              <div className="skeleton h-3 w-[160px]" />
-              <div className="skeleton h-3 w-[200px]" />
-              <div className="skeleton h-3 w-[120px]" />
-            </div>
+            <SkeletonLines widths={[160, 200, 120]} />
           ) : address ? (
-            <div className="mt-1 text-[13px] font-medium leading-[1.4] text-[#667085]">
-              <p className="font-semibold text-[#48505e]">
-                {address.recipient_name}
-              </p>
-              <p>{address.delivery_address}</p>
-              {(address.city || address.state) && (
-                <p>{[address.city, address.state].filter(Boolean).join(", ")}</p>
-              )}
-              <p>{address.phone}</p>
+            <div className="flex items-end justify-between gap-4">
+              <div className="min-w-0 text-[14px] font-medium leading-[1.4] text-[#667085]">
+                <p className="mb-2 font-semibold text-[#48505e] lg:mb-[14px]">
+                  {address.recipient_name}
+                </p>
+                <p>{address.delivery_address}</p>
+                {(address.city || address.state) && (
+                  <p>
+                    {[address.city, address.state].filter(Boolean).join(", ")}
+                  </p>
+                )}
+                <p>{address.phone}</p>
+              </div>
+              <Link
+                to={`/account/address-book/${address.id}/edit`}
+                className={`${linkClasses} shrink-0`}
+              >
+                Edit Address
+              </Link>
             </div>
           ) : (
-            <p className="mt-1 text-[13px] font-medium leading-[1.4] text-[#667085]">
-              No delivery address saved yet.
-              <br />
-              Add an address to checkout faster next time.
-            </p>
+            <>
+              <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
+                No delivery address saved yet.
+                <br />
+                Add an address to checkout faster next time.
+              </p>
+              <Link to="/account/address-book/new" className={softButtonClasses}>
+                ADD ADDRESS
+              </Link>
+            </>
           )}
-
-          {/* Always the address book's add-new form, whether or not there's
-              already a default on file. Editing an existing address lives on the
-              address book itself, next to the address it belongs to. */}
-          <Link
-            to="/account/address-book/new"
-            className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[13px] font-semibold text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
-          >
-            ADD NEW ADDRESS
-          </Link>
         </Card>
 
         {/* Most Recent Order — the newest row from `GET /orders`. */}
-        <Card title="Most Recent Order" className="justify-between gap-4">
+        <Card title="Most Recent Order">
           {isLoading ? (
-            <div className="skeleton-delayed mt-1 flex flex-col gap-2">
-              <div className="skeleton h-4 w-[140px]" />
-              <div className="skeleton h-3 w-[180px]" />
-              <div className="skeleton h-3 w-[120px]" />
-            </div>
+            <SkeletonLines widths={[140, 180, 120]} />
           ) : recentOrder ? (
             <>
-              <p className="mt-1 text-[14px] font-medium text-black">
+              <p className="text-[14px] font-semibold leading-[1.4] text-black lg:text-[16px] lg:font-medium">
                 Order #{recentOrder.order_number}
               </p>
-              <div className="flex items-end justify-between gap-4">
-                <p className="text-[13px] font-medium leading-[1.4] text-[#667085]">
+              <div className="flex flex-wrap items-end justify-between gap-x-1 gap-y-2">
+                <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
                   Placed on {formatOrderDate(recentOrder.created_at)}
                   <br />
                   Status:{" "}
@@ -184,17 +236,17 @@ function Overview() {
                   <br />
                   Total: {formatAmount(recentOrder.total_ngn)}
                 </p>
-                {/* The design's second link was "Edit Address" — an order's
-                    delivery address can't be changed once placed (the API has no
-                    route for it), so this goes to the order instead. */}
-                <div className="flex shrink-0 gap-3 text-[13px] font-semibold text-(--primary-color)">
+                {/* The design's second link is "Edit Address" — an order's
+                    delivery address can't be changed once placed (the API has
+                    no route for it), so this goes to the order list instead. */}
+                <div className="flex shrink-0 gap-3">
                   <Link
                     to={`/account/orders/${recentOrder.order_number}`}
-                    className="cursor-pointer underline"
+                    className={linkClasses}
                   >
                     Track Order
                   </Link>
-                  <Link to="/account/orders" className="cursor-pointer underline">
+                  <Link to="/account/orders" className={linkClasses}>
                     All Orders
                   </Link>
                 </div>
@@ -202,31 +254,41 @@ function Overview() {
             </>
           ) : (
             <>
-              <p className="mt-1 text-[13px] font-medium leading-[1.4] text-[#667085]">
+              <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
                 You haven&rsquo;t placed an order yet.
               </p>
-              <Link
-                to="/products"
-                className="flex h-10 w-full cursor-pointer items-center justify-center bg-[#faf4eb] px-4 text-[13px] font-semibold text-(--primary-color) transition-colors hover:bg-[#f3e7d2]"
-              >
+              <Link to="/products" className={softButtonClasses}>
                 START SHOPPING
               </Link>
             </>
           )}
         </Card>
 
-        {/* Pending Actions */}
-        <Card title="Pending Actions" className="gap-3">
-          <div className="mt-1 flex flex-col gap-3 text-[13px] font-medium text-[#667085]">
-            {pendingActions.map(({ count, text }) => (
-              <p key={text} className="leading-[1.4]">
-                <span className="font-semibold text-(--primary-color)">
-                  {count}
-                </span>{" "}
-                {text}
-              </p>
-            ))}
-          </div>
+        {/* Pending Actions — live counts from `GET /users/me/pending-actions`;
+            zero rows are dropped rather than shown as "0 …". */}
+        <Card title="Pending Actions">
+          {isLoading ? (
+            <SkeletonLines widths={[200, 180, 220, 190]} />
+          ) : !pending ? (
+            <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
+              We couldn&rsquo;t load your pending actions right now.
+            </p>
+          ) : pendingRows.length === 0 ? (
+            <p className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
+              You&rsquo;re all caught up — nothing needs your attention.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2 text-[14px] font-medium leading-[1.4] text-[#48505e] lg:gap-1">
+              {pendingRows.map(({ key, count, one, many }) => (
+                <li key={key}>
+                  <span className="font-semibold text-(--primary-color)">
+                    {count}
+                  </span>{" "}
+                  {count === 1 ? one : many}
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </div>

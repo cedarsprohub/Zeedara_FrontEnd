@@ -139,3 +139,11 @@ export function updateMe(profile, accessToken) {
     token: accessToken,
   });
 }
+
+// The four counts behind the Account Overview "Pending Actions" card, scoped to
+// the caller: delivered products not yet reviewed, returns awaiting a decision,
+// custom hair requests quoted but not acted on, and skincare consultations the
+// clinic has scheduled.
+export function getPendingActions(accessToken) {
+  return request("/api/v1/users/me/pending-actions", { token: accessToken });
+}

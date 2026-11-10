@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.js";
 import {
@@ -6,8 +6,20 @@ import {
   createConsultation,
   uploadConsultationPhoto,
 } from "../../../api/skincare";
+import {
+  Chip,
+  ConsentCheckbox,
+  FieldError,
+  FilePicker,
+  SelectBox,
+} from "../../../components/account/FormControls";
+import {
+  IMAGE_TYPES,
+  imageError,
+  inputCls,
+  labelCls,
+} from "../../../components/account/formStyles";
 import NavIcon from "../NavIcon";
-import { Glyph } from "./Glyph";
 import {
   AVAILABILITY,
   CONCERNS,
@@ -16,43 +28,8 @@ import {
   SKIN_TYPES,
 } from "./options";
 
-const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-
-const labelCls = "text-[14px] font-medium leading-[1.4] text-[#575f71]";
-// Colour is left out of the shared box so the select can grey its placeholder
-// without two text-colour utilities fighting over it.
-const boxCls =
-  "h-[58px] w-full border border-[#dadde2] bg-white px-[17px] text-[14px] font-medium placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none aria-invalid:border-[#cf251f]";
-const inputCls = `${boxCls} text-black`;
 const headingCls =
   "font-['Anton'] text-[24px] leading-[1.4] text-black sm:text-[30px]";
-
-function FieldError({ id, children }) {
-  if (!children) return null;
-  return (
-    <p id={id} className="text-[13px] font-medium text-[#cf251f]">
-      {children}
-    </p>
-  );
-}
-
-function Chip({ selected, onClick, children }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={onClick}
-      className={`cursor-pointer border px-[17px] py-[9px] text-[14px] font-semibold leading-[1.4] transition-colors ${
-        selected
-          ? "border-(--primary-color) bg-[#faf4eb] text-(--primary-color)"
-          : "border-[#575f71] text-[#575f71] hover:border-(--primary-color) hover:text-(--primary-color)"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 function validate(form, photoError) {
   const errors = {};
@@ -73,7 +50,6 @@ function NewConsultation() {
   const navigate = useNavigate();
   const { user, accessToken } = useAuth();
   const ids = useId();
-  const fileInput = useRef(null);
 
   const [form, setForm] = useState(() => ({
     fullName: [user?.first_name, user?.last_name].filter(Boolean).join(" "),
@@ -85,7 +61,9 @@ function NewConsultation() {
     agreed: false,
   }));
   const [photo, setPhoto] = useState(null);
-  const [photoError, setPhotoError] = useState(null);
+  // Mirrors the server's check so a bad file fails here, before anything is
+  // saved or charged.
+  const photoError = imageError(photo);
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState(null); // null | "saving" | "uploading" | "paying"
   const [submitError, setSubmitError] = useState(null);
@@ -104,22 +82,7 @@ function NewConsultation() {
     else if (!max || list.length < max) set(key)([...list, value]);
   };
 
-  const choosePhoto = (event) => {
-    const file = event.target.files?.[0] ?? null;
-    if (!file) {
-      setPhoto(null);
-      setPhotoError(null);
-      return;
-    }
-    // Mirrors the server's check so a bad file fails here, before anything is
-    // saved or charged.
-    if (!PHOTO_TYPES.includes(file.type)) {
-      setPhotoError("Upload a JPEG, PNG or WebP image.");
-    } else if (file.size > MAX_PHOTO_BYTES) {
-      setPhotoError("Photos must be 5 MB or smaller.");
-    } else {
-      setPhotoError(null);
-    }
+  const choosePhoto = (file) => {
     setPhoto(file);
     setErrors((prev) => ({ ...prev, photo: undefined }));
   };
@@ -252,30 +215,13 @@ function NewConsultation() {
             <legend className={`${headingCls} mb-4`}>Skin Type</legend>
             <label className="flex flex-col gap-2">
               <span className={labelCls}>What is your skin type?</span>
-              <span className="relative block">
-                <select
-                  value={form.skinType}
-                  onChange={(e) => set("skinType")(e.target.value)}
-                  aria-invalid={Boolean(errors.skinType)}
-                  aria-describedby={describedBy("skinType")}
-                  className={`${boxCls} cursor-pointer appearance-none pr-12 ${
-                    form.skinType ? "text-black" : "text-[#9fa5b2]"
-                  }`}
-                >
-                  <option value="" disabled>
-                    Select
-                  </option>
-                  {SKIN_TYPES.map(([value, label]) => (
-                    <option key={value} value={value} className="text-black">
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <Glyph
-                  name="arrowDown"
-                  className="pointer-events-none absolute right-[17px] top-1/2 -translate-y-1/2 text-black"
-                />
-              </span>
+              <SelectBox
+                value={form.skinType}
+                onChange={set("skinType")}
+                options={SKIN_TYPES}
+                aria-invalid={Boolean(errors.skinType)}
+                aria-describedby={describedBy("skinType")}
+              />
               <FieldError id={`${ids}-skinType-error`}>
                 {errors.skinType}
               </FieldError>
@@ -337,40 +283,15 @@ function NewConsultation() {
         {/* Photo */}
         <fieldset className="flex flex-col gap-4">
           <legend className={`${headingCls} mb-4`}>Upload a Photo</legend>
-          <div className="flex min-w-0 flex-wrap items-center gap-[11px] px-1">
-            <input
-              ref={fileInput}
-              id={`${ids}-photo`}
-              type="file"
-              accept={PHOTO_TYPES.join(",")}
-              onChange={choosePhoto}
-              className="sr-only"
-              aria-invalid={Boolean(errors.photo)}
-              aria-describedby={describedBy("photo")}
-            />
-            <label
-              htmlFor={`${ids}-photo`}
-              className="cursor-pointer border border-[#48505e] bg-white px-[17px] py-[9px] text-[14px] font-semibold leading-[1.4] text-[#48505e] shadow-[0_0_2px_4px_#f2f4f7] transition-colors hover:border-(--primary-color) hover:text-(--primary-color)"
-            >
-              Choose file
-            </label>
-            <span className="min-w-0 truncate text-[14px] font-semibold leading-[1.4] text-[#48505e]">
-              {photo ? photo.name : "No file chosen"}
-            </span>
-            {photo && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPhoto(null);
-                  setPhotoError(null);
-                  if (fileInput.current) fileInput.current.value = "";
-                }}
-                className="cursor-pointer text-[13px] font-semibold text-(--primary-color) underline"
-              >
-                Remove
-              </button>
-            )}
-          </div>
+          <FilePicker
+            id={`${ids}-photo`}
+            accept={IMAGE_TYPES.join(",")}
+            file={photo}
+            onChoose={choosePhoto}
+            onRemove={() => setPhoto(null)}
+            invalid={Boolean(errors.photo ?? photoError)}
+            describedBy={describedBy("photo")}
+          />
           <p className="text-[12px] italic text-[#575f71]">
             Optional. A clear photo in good lighting, without filters or heavy
             makeup. JPEG, PNG or WebP, up to 5 MB.
@@ -395,27 +316,16 @@ function NewConsultation() {
 
         {/* Consent */}
         <div className="flex flex-col gap-2">
-          <label className="flex cursor-pointer items-start gap-3">
-            <span className="relative mt-0.5 flex size-5 shrink-0">
-              <input
-                type="checkbox"
-                checked={form.agreed}
-                onChange={(e) => set("agreed")(e.target.checked)}
-                aria-invalid={Boolean(errors.agreed)}
-                aria-describedby={describedBy("agreed")}
-                className="peer absolute inset-0 cursor-pointer appearance-none rounded-[6px] border border-[#9fa5b2] bg-white checked:border-[#faf4eb] checked:bg-(--primary-color) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary-color) aria-invalid:border-[#cf251f]"
-              />
-              <Glyph
-                name="check"
-                className="pointer-events-none relative hidden text-white peer-checked:flex"
-              />
-            </span>
-            <span className="text-[14px] font-medium leading-[1.4] text-[#48505e]">
-              I understand the consultation fee must be paid before my request
-              is reviewed, and Zeedara will send my confirmed date and time
-              after reviewing it.
-            </span>
-          </label>
+          <ConsentCheckbox
+            checked={form.agreed}
+            onChange={set("agreed")}
+            aria-invalid={Boolean(errors.agreed)}
+            aria-describedby={describedBy("agreed")}
+          >
+            I understand the consultation fee must be paid before my request is
+            reviewed, and Zeedara will send my confirmed date and time after
+            reviewing it.
+          </ConsentCheckbox>
           <FieldError id={`${ids}-agreed-error`}>{errors.agreed}</FieldError>
         </div>
 

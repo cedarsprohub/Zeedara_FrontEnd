@@ -35,6 +35,9 @@ const CustomHair = lazy(() => import("../pages/Account/CustomHair"));
 const CustomHairNewRequest = lazy(
   () => import("../pages/Account/CustomHair/NewRequest"),
 );
+const CustomHairQuote = lazy(
+  () => import("../pages/Account/CustomHair/QuoteDocument"),
+);
 const SkincareConsultations = lazy(() => import("../pages/Account/Skincare"));
 const NewSkincareConsultation = lazy(
   () => import("../pages/Account/Skincare/NewConsultation"),
@@ -234,6 +237,15 @@ function AppRoutes() {
                 <Route path="staff-roles/invite" element={<AdminInviteUser />} />
               </Route>
             </Route>
+          </Route>
+
+          {/* Printable quote — outside the site layout so "Save as PDF" gives
+              just the document, no navbar or footer. */}
+          <Route element={<RequireAuth />}>
+            <Route
+              path="/account/custom-hair/:requestId/quote"
+              element={<CustomHairQuote />}
+            />
           </Route>
 
           {/* Catch-all. A real not-found page inside the layout, not a redirect

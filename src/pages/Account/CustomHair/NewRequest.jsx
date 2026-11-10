@@ -1,173 +1,283 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { useId, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext.js";
+import { createRequest, uploadInspirationImage } from "../../../api/customWig";
+import {
+  Chip,
+  ConsentCheckbox,
+  FieldError,
+  FilePicker,
+  SelectBox,
+} from "../../../components/account/FormControls";
+import {
+  IMAGE_TYPES,
+  imageError,
+  inputCls,
+  labelCls,
+} from "../../../components/account/formStyles";
+import NavIcon from "../NavIcon";
+import { BUDGETS, HAIR_PREFERENCES, LIST_ROUTE } from "./options";
 
-const PREFERENCES = [
-  "Wig",
-  "Frontal Wig",
-  "Closure Wig",
-  "Bundles",
-  "Custom Unit",
-];
+const headingCls = "text-[16px] font-bold leading-[1.4] text-black";
 
-const BUDGETS = [
-  "Below ₦50,000",
-  "₦50,000 - ₦100,000",
-  "₦100,000 - ₦200,000",
-  "Above ₦200,000",
-];
-
-const inputCls =
-  "h-[52px] w-full border border-[#dadde2] px-[17px] text-[13px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none";
-
-function Field({ label, children }) {
-  return (
-    <label className="flex flex-col gap-2">
-      <span className="text-[13px] text-[#667085]">{label}</span>
-      {children}
-    </label>
-  );
+function validate(form, photoError) {
+  const errors = {};
+  if (!form.fullName.trim()) errors.fullName = "Enter your full name.";
+  if (form.whatsapp.replace(/\D/g, "").length < 7)
+    errors.whatsapp = "Enter a WhatsApp number we can reach you on.";
+  if (!form.hairPreference) errors.hairPreference = "Choose what you'd like.";
+  if (!form.budget) errors.budget = "Choose a budget range.";
+  if (photoError) errors.photo = photoError;
+  if (!form.agreed) errors.agreed = "Please confirm to continue.";
+  return errors;
 }
 
 function NewRequest() {
   const navigate = useNavigate();
-  const [budget, setBudget] = useState(2); // ₦100,000 - ₦200,000
-  const [agreed, setAgreed] = useState(true);
+  const { user, accessToken } = useAuth();
+  const ids = useId();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Placeholder submit — return to the requests list.
-    navigate("/account/custom-hair");
+  const [form, setForm] = useState(() => ({
+    fullName: [user?.first_name, user?.last_name].filter(Boolean).join(" "),
+    whatsapp: user?.phone_number ?? "",
+    hairPreference: "",
+    budget: "",
+    notes: "",
+    agreed: false,
+  }));
+  const [photo, setPhoto] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [step, setStep] = useState(null); // null | "saving" | "uploading"
+  const [submitError, setSubmitError] = useState(null);
+  // Once saved, a retry must not create a second request; it only re-tries the
+  // image upload.
+  const [createdId, setCreatedId] = useState(null);
+
+  const photoError = imageError(photo);
+
+  const set = (key) => (value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const describedBy = (key) =>
+    errors[key] ? `${ids}-${key}-error` : undefined;
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (step) return;
+
+    const found = validate(form, photoError);
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      const formEl = event.currentTarget;
+      requestAnimationFrame(() => {
+        const first = formEl.querySelector("[aria-invalid='true']");
+        first?.focus({ preventScroll: true });
+        first?.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+      return;
+    }
+
+    setSubmitError(null);
+    try {
+      let id = createdId;
+      if (!id) {
+        setStep("saving");
+        const created = await createRequest(
+          {
+            fullName: form.fullName.trim(),
+            whatsappNumber: form.whatsapp.trim(),
+            hairPreference: form.hairPreference,
+            budgetRange: form.budget,
+            notes: form.notes.trim(),
+          },
+          accessToken,
+        );
+        id = created.id;
+        setCreatedId(id);
+      }
+      if (photo) {
+        setStep("uploading");
+        await uploadInspirationImage(id, photo, accessToken);
+      }
+      navigate(LIST_ROUTE, { state: { submitted: id } });
+    } catch (err) {
+      setStep(null);
+      setSubmitError(err.message);
+    }
   };
 
   return (
-    <div className="flex flex-col gap-6 lg:p-8">
-      {/* Back (desktop — mobile uses the layout's back button) */}
+    <div className="flex flex-col gap-8 lg:p-8">
+      {/* Desktop back — on mobile the account layout's Back goes up a level. */}
       <button
         type="button"
-        onClick={() => navigate("/account/custom-hair")}
-        className="hidden cursor-pointer items-center gap-2 self-start p-2 text-[12px] font-semibold text-(--primary-color) lg:flex"
+        onClick={() => navigate(LIST_ROUTE)}
+        className="hidden h-8 cursor-pointer items-center gap-2 self-start px-3 text-[12px] font-semibold leading-[1.4] text-(--primary-color) lg:flex"
       >
-        <ArrowLeft className="size-4 shrink-0" strokeWidth={2} />
+        <NavIcon name="back" box={16} glyphClassName="-rotate-90 -scale-x-100" />
         Back
       </button>
 
-      <h1 className="text-[16px] font-semibold leading-[1.4] text-black">
-        Custom Wig Request Form
-      </h1>
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="@container flex w-full flex-col gap-9"
+      >
+        <h1 className="text-[20px] font-semibold leading-[1.4] text-black lg:text-[24px]">
+          Custom Wig Request Form
+        </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        {/* Contact details + hair preference */}
-        {/* Side by side only from xl — at lg the account rail leaves too little
-            width for the two-column contact grid next to a 360px column. */}
-        <div className="flex flex-col gap-6 xl:flex-row xl:gap-10">
-          <div className="flex flex-1 flex-col gap-4">
-            <h2 className="text-[14px] font-semibold text-black">
-              Contact Details
-            </h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <Field label="Full Name">
-                <input type="text" className={inputCls} />
-              </Field>
-              <Field label="WhatsApp Number">
-                <input type="tel" className={inputCls} />
-              </Field>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 xl:w-[320px] 2xl:w-[360px]">
-            <h2 className="text-[14px] font-semibold text-black">
-              Hair Preference
-            </h2>
-            <Field label="What do you want?">
-              <div className="relative">
-                <select
-                  defaultValue=""
-                  className={`${inputCls} cursor-pointer appearance-none pr-10`}
-                >
-                  <option value="" disabled>
-                    Select
-                  </option>
-                  {PREFERENCES.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-[#667085]"
-                  strokeWidth={2}
+        {/* Contact details | hair preference — one row once the form is wide
+            enough; the two contact fields pair up sooner. */}
+        <div className="flex flex-col gap-9 @4xl:flex-row @4xl:gap-4">
+          <fieldset className="flex min-w-0 flex-col gap-4 @4xl:w-[58%]">
+            <legend className={`${headingCls} mb-4`}>Contact Details</legend>
+            <div className="flex flex-col gap-4 @lg:flex-row">
+              <label className="flex min-w-0 flex-1 flex-col gap-2">
+                <span className={labelCls}>Full Name</span>
+                <input
+                  type="text"
+                  autoComplete="name"
+                  value={form.fullName}
+                  onChange={(e) => set("fullName")(e.target.value)}
+                  aria-invalid={Boolean(errors.fullName)}
+                  aria-describedby={describedBy("fullName")}
+                  className={inputCls}
                 />
-              </div>
-            </Field>
-          </div>
+                <FieldError id={`${ids}-fullName-error`}>{errors.fullName}</FieldError>
+              </label>
+              <label className="flex min-w-0 flex-1 flex-col gap-2">
+                <span className={labelCls}>WhatsApp Number</span>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={form.whatsapp}
+                  onChange={(e) => set("whatsapp")(e.target.value)}
+                  aria-invalid={Boolean(errors.whatsapp)}
+                  aria-describedby={describedBy("whatsapp")}
+                  className={inputCls}
+                />
+                <FieldError id={`${ids}-whatsapp-error`}>{errors.whatsapp}</FieldError>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="flex min-w-0 flex-1 flex-col gap-4">
+            <legend className={`${headingCls} mb-4`}>Hair Preference</legend>
+            <label className="flex flex-col gap-2">
+              <span className={labelCls}>What do you want?</span>
+              <SelectBox
+                value={form.hairPreference}
+                onChange={set("hairPreference")}
+                options={HAIR_PREFERENCES}
+                aria-invalid={Boolean(errors.hairPreference)}
+                aria-describedby={describedBy("hairPreference")}
+              />
+              <FieldError id={`${ids}-hairPreference-error`}>
+                {errors.hairPreference}
+              </FieldError>
+            </label>
+          </fieldset>
         </div>
 
-        {/* Budget range */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-[14px] font-semibold text-black">Budget Range</h2>
-          <div className="flex flex-wrap gap-4">
-            {BUDGETS.map((label, i) => {
-              const active = i === budget;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => setBudget(i)}
-                  className={`h-10 cursor-pointer border px-4 text-[13px] font-medium transition-colors ${
-                    active
-                      ? "border-(--primary-color) bg-[#faf4eb] text-(--primary-color)"
-                      : "border-[#dadde2] text-[#48505e] hover:border-(--primary-color)"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+        <fieldset className="flex flex-col gap-4">
+          <legend className={`${headingCls} mb-4`}>Budget Range</legend>
+          <div
+            className="flex flex-wrap gap-3 sm:gap-5"
+            aria-invalid={Boolean(errors.budget)}
+            aria-describedby={describedBy("budget")}
+            tabIndex={errors.budget ? -1 : undefined}
+          >
+            {BUDGETS.map(([value, label]) => (
+              <Chip
+                key={value}
+                selected={form.budget === value}
+                onClick={() => set("budget")(value)}
+              >
+                {label}
+              </Chip>
+            ))}
           </div>
-        </div>
+          <FieldError id={`${ids}-budget-error`}>{errors.budget}</FieldError>
+        </fieldset>
 
-        {/* Upload */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-[14px] font-semibold text-black">
-            Upload Inspiration Image
-          </h2>
-          <input
-            type="file"
-            accept="image/*"
-            className="block w-full text-[13px] text-[#667085] file:mr-3 file:cursor-pointer file:border file:border-[#dadde2] file:bg-white file:px-4 file:py-2 file:text-[13px] file:text-black hover:file:border-(--primary-color)"
+        <fieldset className="flex flex-col gap-4">
+          <legend className={`${headingCls} mb-4`}>Upload Inspiration Image</legend>
+          <FilePicker
+            id={`${ids}-photo`}
+            accept={IMAGE_TYPES.join(",")}
+            file={photo}
+            onChoose={(file) => {
+              setPhoto(file);
+              setErrors((prev) => ({ ...prev, photo: undefined }));
+            }}
+            onRemove={() => setPhoto(null)}
+            invalid={Boolean(errors.photo ?? photoError)}
+            describedBy={describedBy("photo")}
           />
-        </div>
+          <p className="text-[12px] italic text-[#575f71]">
+            Optional. JPEG, PNG or WebP, up to 5 MB.
+          </p>
+          <FieldError id={`${ids}-photo-error`}>{errors.photo ?? photoError}</FieldError>
+        </fieldset>
 
-        {/* Notes */}
-        <Field label="Notes (optional)">
+        <label className="flex flex-col gap-2">
+          <span className={labelCls}>Notes (optional)</span>
           <textarea
             rows={4}
+            maxLength={5000}
+            value={form.notes}
+            onChange={(e) => set("notes")(e.target.value)}
             placeholder="Please include more details like your hair texture, color, wig type, length, and any important information…"
-            className="w-full resize-none border border-[#dadde2] p-[17px] text-[13px] text-black placeholder:text-[#9fa5b2] focus:border-(--primary-color) focus:outline-none"
+            className={`${inputCls} h-auto min-h-[100px] resize-y py-[17px]`}
           />
-        </Field>
-
-        {/* Consent */}
-        <label className="flex items-start gap-3 text-[13px] text-[#48505e]">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#bf8322]"
-          />
-          <span>
-            I understand the final price will be confirmed after Zeedara reviews
-            my request.
-          </span>
         </label>
+
+        <div className="flex flex-col gap-2">
+          <ConsentCheckbox
+            checked={form.agreed}
+            onChange={set("agreed")}
+            aria-invalid={Boolean(errors.agreed)}
+            aria-describedby={describedBy("agreed")}
+          >
+            I understand the final price will be confirmed after Zeedara
+            reviews my request.
+          </ConsentCheckbox>
+          <FieldError id={`${ids}-agreed-error`}>{errors.agreed}</FieldError>
+        </div>
+
+        {submitError && (
+          <div
+            role="alert"
+            className="flex flex-col gap-1 bg-[#fae9e9] px-4 py-3 text-[14px] font-medium text-[#cf251f]"
+          >
+            <p>{submitError}</p>
+            {createdId && (
+              <p className="text-[#48505e]">
+                Your request has been saved without the image. Try again, or
+                view it in{" "}
+                <Link to={LIST_ROUTE} className="font-semibold underline">
+                  your requests
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={!agreed}
-          className="h-[52px] w-full cursor-pointer bg-(--primary-color) text-[13px] font-semibold uppercase tracking-[0.28px] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={Boolean(step)}
+          className="w-full cursor-pointer bg-(--primary-color) px-6 py-4 text-[16px] font-bold leading-[1.4] text-white transition-colors hover:bg-[#a06e1c] disabled:cursor-wait disabled:opacity-70"
         >
-          Submit Custom Request
+          {step === "saving"
+            ? "SUBMITTING…"
+            : step === "uploading"
+              ? "UPLOADING IMAGE…"
+              : "SUBMIT CUSTOM REQUEST"}
         </button>
       </form>
     </div>

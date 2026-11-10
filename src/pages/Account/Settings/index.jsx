@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 import { ChevronRight, ShieldCheck, User } from "lucide-react";
 
 // Settings groups. Selecting one opens its `items` in the detail column beside
-// the list (below it on mobile). Items without a `to` — and groups with no
-// items — are placeholders until their screens are designed.
+// the list (below it on mobile). An item either navigates (`to`) or runs an
+// `action` in place.
 const settingsGroups = [
   {
     label: "Profile",
@@ -27,7 +28,7 @@ const settingsGroups = [
       },
       // Destructive, and the design gives it no chevron since it opens a
       // confirmation rather than navigating to another screen.
-      { label: "Delete Account", danger: true, chevron: false },
+      { label: "Delete Account", danger: true, chevron: false, action: "delete" },
     ],
   },
 ];
@@ -71,7 +72,7 @@ function SettingsRow({
       className={`group flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors ${tint}`}
     >
       {Icon && <Icon className={`size-5 shrink-0 ${ink}`} strokeWidth={2} />}
-      <span className={`flex-1 text-[13px] font-medium ${ink}`}>{label}</span>
+      <span className={`flex-1 text-[14px] font-medium leading-[1.4] ${ink}`}>{label}</span>
       {chevron && (
         <ChevronRight className={`size-5 shrink-0 ${ink}`} strokeWidth={2} />
       )}
@@ -81,6 +82,7 @@ function SettingsRow({
 
 function Settings() {
   const [openGroup, setOpenGroup] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const activeGroup = settingsGroups.find((g) => g.label === openGroup) ?? null;
 
@@ -120,6 +122,7 @@ function Settings() {
                 <SettingsRow
                   label={item.label}
                   to={item.to}
+                  onClick={item.action === "delete" ? () => setDeleting(true) : undefined}
                   danger={item.danger}
                   chevron={item.chevron}
                   detail
@@ -129,6 +132,7 @@ function Settings() {
           </div>
         </>
       )}
+      {deleting && <DeleteAccountDialog onClose={() => setDeleting(false)} />}
     </div>
   );
 }

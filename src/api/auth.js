@@ -84,14 +84,52 @@ export function changePassword(currentPassword, newPassword, accessToken) {
   });
 }
 
-// Step 1 of an email change — mails an EMAIL_CHANGE code to the new address.
-// The account isn't touched until the code is confirmed. `currentPassword`
-// re-authenticates the caller and is required for any account that has one;
-// Google-only accounts pass null.
-export function requestEmailChange(newEmail, currentPassword, accessToken) {
+// Email change, as designed: verify the current inbox first, then the new one.
+// Step 1 — mail a code to the address already on the account.
+export function sendCurrentEmailCode(accessToken) {
+  return request("/api/v1/users/me/email/verify-current", {
+    method: "POST",
+    token: accessToken,
+  });
+}
+
+// Step 2 — check that code. Returns `{ email_change_token }`, valid for 15
+// minutes, which authorises step 3 in place of the account password.
+export function confirmCurrentEmailCode(code, accessToken) {
+  return request("/api/v1/users/me/email/verify-current/confirm", {
+    method: "POST",
+    body: { code },
+    token: accessToken,
+  });
+}
+
+// Step 3 — mail an EMAIL_CHANGE code to the new address. The account isn't
+// touched until that code is confirmed. Re-authenticate with either the token
+// from step 2 or the current password.
+export function requestEmailChange(
+  newEmail,
+  { currentPassword = null, emailChangeToken = null } = {},
+  accessToken,
+) {
   return request("/api/v1/users/me/email/request", {
     method: "POST",
-    body: { new_email: newEmail, current_password: currentPassword ?? null },
+    body: {
+      new_email: newEmail,
+      current_password: currentPassword,
+      email_change_token: emailChangeToken,
+    },
+    token: accessToken,
+  });
+}
+
+// Close the account. Accounts with a password confirm with it; Google-only
+// accounts (`user.has_password === false`) send `confirm: "DELETE"`. The
+// server clears the profile, frees the email and revokes every session, so
+// the caller should clear its local session afterwards.
+export function deleteAccount({ currentPassword = null, confirm = null }, accessToken) {
+  return request("/api/v1/users/me", {
+    method: "DELETE",
+    body: { current_password: currentPassword, confirm },
     token: accessToken,
   });
 }

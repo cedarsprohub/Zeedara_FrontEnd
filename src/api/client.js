@@ -113,6 +113,8 @@ async function rawFetch(path, { method = "GET", body, token } = {}) {
 // each needs its own refresh — otherwise an expired admin token would be
 // refreshed using the customer's refresh token (and vice versa). The refresh
 // de-dupe is per client for the same reason.
+const INPUT_REJECTIONS = new Set(["invalid_credentials", "email_change_token_invalid"]);
+
 export function createClient(store) {
   let refreshPromise = null;
 
@@ -148,7 +150,10 @@ export function createClient(store) {
 
     // Only a request that was already carrying a (now-stale) token is worth
     // retrying after a refresh — an unauthenticated 401 is a real auth failure.
-    if (response.status === 401 && token) {
+    // Some 401s reject what the user typed (a wrong current password, an
+    // expired email-change step) while the session itself is fine; refreshing
+    // for those just rotates tokens, and a failed refresh would sign them out.
+    if (response.status === 401 && token && !INPUT_REJECTIONS.has(data?.error?.code)) {
       const refreshed = await refreshAccessToken();
       if (refreshed) {
         ({ response, data } = await rawFetch(path, {

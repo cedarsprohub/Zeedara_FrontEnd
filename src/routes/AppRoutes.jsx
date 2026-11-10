@@ -30,6 +30,7 @@ const NotFound = lazy(() => import("../pages/NotFound"));
 const AccountLayout = lazy(() => import("../pages/Account/AccountLayout"));
 const AccountOverview = lazy(() => import("../pages/Account/Overview"));
 const Orders = lazy(() => import("../pages/Account/Orders"));
+const AccountReviews = lazy(() => import("../pages/Account/Reviews"));
 const OrderDetail = lazy(() => import("../pages/Account/TrackOrder"));
 const CustomHair = lazy(() => import("../pages/Account/CustomHair"));
 const CustomHairNewRequest = lazy(
@@ -49,6 +50,9 @@ const BasicDetails = lazy(() => import("../pages/Account/Settings/BasicDetails")
 const ChangeEmail = lazy(() => import("../pages/Account/Settings/ChangeEmail"));
 const AccountChangePassword = lazy(
   () => import("../pages/Account/Settings/ChangePassword"),
+);
+const AccountResetPassword = lazy(
+  () => import("../pages/Account/Settings/ResetPassword"),
 );
 
 // Auth Pages
@@ -143,6 +147,7 @@ function AppRoutes() {
                   {/* One detail screen for every order state — it reads the
                       order and picks its variant from `status`. */}
                   <Route path="orders/:orderNumber" element={<OrderDetail />} />
+                  <Route path="reviews" element={<AccountReviews />} />
                   <Route path="custom-hair" element={<CustomHair />} />
                   <Route
                     path="custom-hair/new"
@@ -176,6 +181,10 @@ function AppRoutes() {
                   <Route
                     path="settings/change-password"
                     element={<AccountChangePassword />}
+                  />
+                  <Route
+                    path="settings/reset-password"
+                    element={<AccountResetPassword />}
                   />
                 </Route>
               </Route>

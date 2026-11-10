@@ -13,21 +13,25 @@ const PENDING_ACTIONS = [
     key: "products_awaiting_review",
     one: "product waiting for review",
     many: "products waiting for review",
+    to: "/account/reviews",
   },
   {
     key: "returns_under_review",
     one: "return request under review",
     many: "return requests under review",
+    to: "/account/orders",
   },
   {
     key: "custom_hair_quotes_awaiting_response",
     one: "custom hair quote awaiting response",
     many: "custom hair quotes awaiting response",
+    to: "/account/custom-hair",
   },
   {
     key: "skincare_responses_available",
     one: "skincare consultation response available",
     many: "skincare consultation responses available",
+    to: "/account/skincare-consultations",
   },
 ];
 
@@ -284,12 +288,15 @@ function Overview() {
             </p>
           ) : (
             <ul className="flex flex-col gap-2 text-[14px] font-medium leading-[1.4] text-[#48505e] lg:gap-1">
-              {pendingRows.map(({ key, count, one, many }) => (
+              {pendingRows.map(({ key, count, one, many, to }) => (
                 <li key={key}>
-                  <span className="font-semibold text-(--primary-color)">
-                    {count}
-                  </span>{" "}
-                  {count === 1 ? one : many}
+                  {/* Each line opens the screen where it can be dealt with. */}
+                  <Link to={to} className="hover:text-(--primary-color) hover:underline">
+                    <span className="font-semibold text-(--primary-color)">
+                      {count}
+                    </span>{" "}
+                    {count === 1 ? one : many}
+                  </Link>
                 </li>
               ))}
             </ul>

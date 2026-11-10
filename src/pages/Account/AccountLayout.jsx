@@ -8,8 +8,7 @@ import NavIcon from "./NavIcon";
 // Nav items with a `to` are real routes; the rest are placeholders until
 // their screens are built. `match` lists extra pathnames that should mark the
 // item active (used so "Account Overview" highlights on both `/account` and
-// `/account/overview`). `mobileOnly` mirrors the design: Reviews is on the
-// mobile menu but not in the desktop rail.
+// `/account/overview`). `mobileOnly` hides an item from the desktop rail.
 const primaryNav = [
   {
     label: "Account Overview",
@@ -18,7 +17,7 @@ const primaryNav = [
     match: ["/account", "/account/overview"],
   },
   { label: "Orders", icon: "box", to: "/account/orders" },
-  { label: "Reviews", icon: "reviews", mobileOnly: true },
+  { label: "Reviews", icon: "reviews", to: "/account/reviews" },
   { label: "Custom Hair Requests", icon: "hair", to: "/account/custom-hair" },
   {
     label: "Skincare Consultations",

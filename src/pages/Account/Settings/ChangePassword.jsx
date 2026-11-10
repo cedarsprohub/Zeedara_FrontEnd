@@ -1,19 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, XCircle } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.js";
 import { changePassword } from "../../../api/auth";
 import { ApiError } from "../../../api/client";
+import NavIcon from "../NavIcon";
+import { PasswordField, StrengthMeter } from "./PasswordParts";
+import { passwordStrength } from "./passwordRules";
 import SuccessPanel from "./SuccessPanel";
-
-// Same rules and thresholds as the auth screens (see Auth/ChangePassword) so a
-// password judged "Strong" there reads the same here.
-const requirements = [
-  { key: "length", label: "8 characters minimum", test: (v) => v.length >= 8 },
-  { key: "number", label: "a number", test: (v) => /\d/.test(v) },
-  { key: "upper", label: "an UPPERCASE letter", test: (v) => /[A-Z]/.test(v) },
-  { key: "lower", label: "a lowercase letter", test: (v) => /[a-z]/.test(v) },
-];
 
 const MESSAGES = {
   wrongOld: "The current password you entered is incorrect.",
@@ -22,60 +15,6 @@ const MESSAGES = {
 };
 
 const noErrors = { old: [], confirm: [] };
-
-// Password field with the show/hide eye toggle, plus any validation messages
-// beneath it — italic red, per the error-state design.
-function PasswordField({ id, label, value, onChange, disabled, errors = [] }) {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div className="flex w-full max-w-[421px] flex-col gap-2">
-      <label htmlFor={id} className="text-[13px] font-medium text-[#667085]">
-        {label}
-      </label>
-      <div
-        className={`flex h-[52px] items-center gap-2 border px-[17px] ${
-          errors.length
-            ? "border-[#cf251f]"
-            : "border-[#dadde2] focus-within:border-(--primary-color)"
-        }`}
-      >
-        <input
-          id={id}
-          type={visible ? "text" : "password"}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled}
-          aria-invalid={errors.length > 0}
-          autoComplete={
-            id === "old-password" ? "current-password" : "new-password"
-          }
-          className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-black placeholder:text-[#9fa5b2] focus:outline-none disabled:cursor-not-allowed"
-        />
-        <button
-          type="button"
-          onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? "Hide password" : "Show password"}
-          className="shrink-0 cursor-pointer text-[#9fa5b2] transition-colors hover:text-[#667085]"
-        >
-          {visible ? (
-            <Eye className="size-5" strokeWidth={2} />
-          ) : (
-            <EyeOff className="size-5" strokeWidth={2} />
-          )}
-        </button>
-      </div>
-      {errors.map((message) => (
-        <p
-          key={message}
-          className="text-[13px] font-medium italic leading-[1.4] text-[#cf251f]"
-        >
-          {message}
-        </p>
-      ))}
-    </div>
-  );
-}
 
 function ChangePassword() {
   const navigate = useNavigate();
@@ -89,12 +28,7 @@ function ChangePassword() {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const metCount = requirements.filter((r) => r.test(password)).length;
-  const strength =
-    metCount <= 2 ? "Weak" : metCount === 3 ? "Medium" : "Strong";
-  const strengthColor =
-    metCount <= 1 ? "#cf251f" : metCount <= 3 ? "#e7ba6c" : "#0f9959";
-  const strengthWidth = password ? (metCount / requirements.length) * 100 : 0;
+  const { allMet } = passwordStrength(password);
 
   // Enabled once all three fields have something in them — the rule and match
   // checks report as inline errors on submit rather than blocking the button.
@@ -107,7 +41,7 @@ function ChangePassword() {
     // Collect every applicable message — the design shows the unmet-rules and
     // mismatch errors stacked together.
     const confirmErrors = [];
-    if (metCount < requirements.length) confirmErrors.push(MESSAGES.unmetRules);
+    if (!allMet) confirmErrors.push(MESSAGES.unmetRules);
     if (password !== confirm) confirmErrors.push(MESSAGES.mismatch);
 
     if (confirmErrors.length) {
@@ -165,29 +99,31 @@ function ChangePassword() {
       <button
         type="button"
         onClick={() => navigate("/account/settings")}
-        className="hidden cursor-pointer items-center gap-2 self-start p-2 text-[12px] font-semibold text-(--primary-color) lg:flex"
+        className="hidden h-8 cursor-pointer items-center gap-2 self-start px-3 text-[12px] font-semibold leading-[1.4] text-(--primary-color) lg:flex"
       >
-        <ArrowLeft className="size-4 shrink-0" strokeWidth={2} />
+        <NavIcon name="back" box={16} glyphClassName="-rotate-90 -scale-x-100" />
         Back
       </button>
 
       {failure && (
-        <p className="max-w-[699px] bg-[#fae9e9] px-4 py-3 text-[13px] font-medium text-[#cf251f]">
+        <p role="alert" className="max-w-[699px] bg-[#fae9e9] px-4 py-3 text-[14px] font-medium text-[#cf251f]">
           {failure}
         </p>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-9">
         <div className="flex flex-col gap-3">
-          <h1 className="text-[16px] font-semibold leading-[1.4] text-black">
+          <h1 className="text-[20px] font-semibold leading-[1.4] text-black lg:text-[24px]">
             Change Password
           </h1>
-          <p className="max-w-[466px] text-[13px] font-medium leading-[1.4] text-black">
+          <p className="max-w-[466px] text-[14px] font-medium leading-[1.4] text-black">
             Enter your current password, then create a new one.
           </p>
+          {/* Resets from inside the account, as designed, rather than the
+              signed-out forgot-password pages. */}
           <Link
-            to="/forgot-password"
-            className="text-[13px] font-semibold text-(--primary-color) hover:underline"
+            to="/account/settings/reset-password"
+            className="w-fit text-[14px] font-semibold text-(--primary-color) hover:underline"
           >
             Forgot Password?
           </Link>
@@ -195,7 +131,7 @@ function ChangePassword() {
 
         <PasswordField
           id="old-password"
-          label="Old Password"
+          label="Current Password"
           value={oldPassword}
           onChange={setOldPassword}
           disabled={busy}
@@ -219,61 +155,13 @@ function ChangePassword() {
             errors={errors.confirm}
           />
 
-          {/* Strength meter */}
-          <div className="h-3 w-full overflow-hidden rounded-lg bg-[#dadde2]">
-            <div
-              className="h-full rounded-lg transition-all duration-300"
-              style={{
-                width: `${strengthWidth}%`,
-                backgroundColor: strengthColor,
-              }}
-            />
-          </div>
-
-          {/* Requirements — the strength label sits on the first row */}
-          <div className="flex flex-col gap-2">
-            {requirements.map((requirement, index) => {
-              const met = requirement.test(password);
-              const item = (
-                <span className="flex items-center gap-2">
-                  {met ? (
-                    <CheckCircle2
-                      className="size-5 shrink-0 text-[#0f9959]"
-                      strokeWidth={2}
-                    />
-                  ) : (
-                    <XCircle
-                      className="size-5 shrink-0 text-[#cf251f]"
-                      strokeWidth={2}
-                    />
-                  )}
-                  <span className="text-[13px] font-medium text-[#575f71]">
-                    {requirement.label}
-                  </span>
-                </span>
-              );
-
-              return index === 0 ? (
-                <div
-                  key={requirement.key}
-                  className="flex items-center justify-between gap-2"
-                >
-                  {item}
-                  <span className="text-[13px] font-semibold text-black">
-                    {strength}
-                  </span>
-                </div>
-              ) : (
-                <div key={requirement.key}>{item}</div>
-              );
-            })}
-          </div>
+          <StrengthMeter password={password} />
         </div>
 
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex h-10 w-full cursor-pointer items-center justify-center bg-(--primary-color) px-4 text-[12px] font-semibold tracking-[0.28px] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[#f0f0f0] disabled:text-[#bdc2cb] disabled:opacity-100 sm:w-[263px]"
+          className="flex h-10 w-full cursor-pointer items-center justify-center bg-(--primary-color) px-4 text-[14px] font-semibold tracking-[0.28px] text-white transition-colors hover:bg-[#a06e1c] disabled:cursor-not-allowed disabled:bg-[#f0f0f0] disabled:text-[#bdc2cb] disabled:opacity-100 sm:w-[263px]"
         >
           {busy ? "UPDATING…" : "UPDATE PASSWORD"}
         </button>

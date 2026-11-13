@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ChevronDown,
   MoreVertical,
@@ -30,7 +30,11 @@ const COLUMNS = [
 
 function StaffRoles() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("team");
+  // ?tab=activity is how the topbar's "Activity log" link lands here.
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(() =>
+    ["team", "roles", "activity"].includes(searchParams.get("tab")) ? searchParams.get("tab") : "team",
+  );
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 

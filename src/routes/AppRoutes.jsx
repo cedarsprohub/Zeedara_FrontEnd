@@ -23,7 +23,8 @@ const Checkout = lazy(() => import("../pages/Checkout"));
 const PaymentCallback = lazy(() => import("../pages/PaymentCallback"));
 const OrderReceived = lazy(() => import("../pages/OrderReceived"));
 const CustomWig = lazy(() => import("../pages/CustomWig"));
-const Consultation = lazy(() => import("../pages/Consultation"));
+// Route below is disabled; re-enable both together.
+// const Consultation = lazy(() => import("../pages/Consultation"));
 const Skincare = lazy(() => import("../pages/Skincare"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
@@ -75,6 +76,10 @@ const AdminVerifyOtp = lazy(() => import("../pages/Admin/VerifyOtp"));
 const AdminLayout = lazy(() => import("../layout/AdminLayout"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const AdminProducts = lazy(() => import("../pages/Admin/Products"));
+const AdminCustomers = lazy(() => import("../pages/Admin/Customers"));
+const AdminOrders = lazy(() => import("../pages/Admin/Orders"));
+const AdminOrderPanel = lazy(() => import("../pages/Admin/Orders/OrderPanel"));
+const AdminCustomerDetail = lazy(() => import("../pages/Admin/Customers/detail/CustomerDetailPanel"));
 const AdminCategories = lazy(() => import("../pages/Admin/Categories"));
 const AdminStaffRoles = lazy(() => import("../pages/Admin/StaffRoles"));
 const AdminInviteUser = lazy(() => import("../pages/Admin/StaffRoles/InviteUser"));
@@ -241,6 +246,13 @@ function AppRoutes() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="orders" element={<AdminOrders />}>
+                  <Route path=":orderId" element={<AdminOrderPanel />} />
+                </Route>
+                {/* The details panel opens over the list, which stays mounted. */}
+                <Route path="customers" element={<AdminCustomers />}>
+                  <Route path=":customerId" element={<AdminCustomerDetail />} />
+                </Route>
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="staff-roles" element={<AdminStaffRoles />} />
                 <Route path="staff-roles/invite" element={<AdminInviteUser />} />

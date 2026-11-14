@@ -13,7 +13,7 @@ const FALLBACK_MAX = 100000;
  * A bound equal to its end of the track means "unset", and is committed as
  * `null` so the parameter drops out of the query entirely.
  */
-function PriceRangeFilter({ min, max, ceiling, onCommit }) {
+function PriceRangeFilter({ min, max, ceiling, onCommit, showTitle = true }) {
   const limit = ceiling ?? FALLBACK_MAX;
   const step = Math.max(1, Math.round(limit / 100));
 
@@ -56,20 +56,22 @@ function PriceRangeFilter({ min, max, ceiling, onCommit }) {
 
   return (
     <div className="flex flex-col gap-3 border-b border-gray-200 py-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-black">
-          Price Range
-        </h3>
-        {!isDefault && (
-          <button
-            type="button"
-            onClick={() => onCommit({ min: null, max: null })}
-            className="cursor-pointer text-xs font-medium text-gray-500 underline hover:text-(--primary-color)"
-          >
-            Reset
-          </button>
-        )}
-      </div>
+      {showTitle && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-black">
+            Price Range
+          </h3>
+          {!isDefault && (
+            <button
+              type="button"
+              onClick={() => onCommit({ min: null, max: null })}
+              className="cursor-pointer text-xs font-medium text-gray-500 underline hover:text-(--primary-color)"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      )}
 
       <p className="text-xs text-gray-500">
         {formatCurrency(draft.min)} &ndash; {formatCurrency(draft.max)}

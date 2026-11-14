@@ -114,7 +114,7 @@ function SearchBar() {
   const hasQuery = query.trim() !== "";
 
   return (
-    <div className="searchbar-wrap hidden lg:flex order-3 w-full lg:order-none lg:flex-1 lg:justify-center">
+    <div className="searchbar-wrap flex order-3 w-full lg:order-none lg:flex-1 lg:justify-center">
       <div ref={containerRef} className="relative w-full lg:max-w-[560px]">
         {isOpen && (
           <div

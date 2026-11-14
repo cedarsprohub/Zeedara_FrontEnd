@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NavLink, useSearchParams } from "react-router-dom";
 import { ChevronRight, LayoutGrid, List } from "lucide-react";
 import FilterSidebar from "../../components/products/FilterSidebar";
+import MobileFilterBar from "../../components/products/MobileFilterBar";
 import Pagination from "../../components/products/Pagination";
 import CartItem from "../../components/ui/CartItem";
 import Faq from "../../components/faq";
@@ -191,12 +192,26 @@ function Products() {
 
         <h1 className="mb-6 text-2xl font-semibold text-black">{heading}</h1>
 
-        <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="flex flex-col gap-2 lg:flex-row lg:gap-8">
           <FilterSidebar />
 
           <div className="min-w-0 flex-1">
-            {/* Toolbar */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border border-gray-200 px-4 py-3">
+            {/* Below `lg`: ASOS-style Sort / Filter bar and slide-in panel. */}
+            <MobileFilterBar
+              sort={sort}
+              sortOptions={SORT_OPTIONS}
+              onSortChange={(value) => updateParams({ sort: value, page: null })}
+              summary={
+                isLoading
+                  ? "Loading…"
+                  : products.length
+                    ? `Showing ${rangeLabel}`
+                    : "No items"
+              }
+            />
+
+            {/* Toolbar (desktop) */}
+            <div className="mb-6 hidden flex-wrap items-center justify-between gap-4 border border-gray-200 px-4 py-3 lg:flex">
               <p className="text-sm text-gray-600">
                 {isLoading ? (
                   "Loading products…"

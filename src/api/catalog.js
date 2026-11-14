@@ -65,12 +65,30 @@ export function listCollections() {
 // brand that only appeared past row 100 would silently never become a
 // filter option). `toAmount` turns the endpoint's decimal-string max_price
 // into the number the slider does arithmetic on.
-export async function listProductFacets() {
-  const facets = await cachedGet("/api/v1/products/facets");
+//
+// It takes the same filters as `/products` (snake_case keys: `q`,
+// `category_id`, `collection`, `brand`, `product_type`, `min_price`,
+// `max_price`, `in_stock`), and then also returns `total` (products matching
+// all of them) and `counts` per option. Each facet's counts ignore that
+// facet's own filter, so the other brands still show a count while one brand
+// is selected. The option lists and `maxPrice` stay catalogue-wide.
+export async function listProductFacets(filters = {}) {
+  const facets = await cachedGet(
+    `/api/v1/products/facets${buildQuery(filters)}`,
+  );
+  const counts = facets?.counts ?? {};
   return {
     brands: facets?.brands ?? [],
     productTypes: facets?.product_types ?? [],
     maxPrice: facets?.max_price ? toAmount(facets.max_price) : null,
+    total: typeof facets?.total === "number" ? facets.total : null,
+    counts: {
+      category_id: counts.category_id ?? {},
+      collection: counts.collection ?? {},
+      brand: counts.brand ?? {},
+      product_type: counts.product_type ?? {},
+      in_stock: counts.in_stock ?? 0,
+    },
   };
 }
 

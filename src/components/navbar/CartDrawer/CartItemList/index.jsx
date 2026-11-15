@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AlertTriangle, Minus, Plus, Trash2 } from "lucide-react";
 import { formatAmount } from "../../../../utils/formatCurrency";
 
@@ -9,9 +10,34 @@ import { formatAmount } from "../../../../utils/formatCurrency";
  * flagged `available: false` or `price_changed` say so instead of quietly
  * showing a stale figure.
  *
- * `CartItemView` carries no image, so each line shows an initial tile rather
- * than a stand-in photo of some other product.
+ * Each line shows its product's own image (`image_url`). A product with no
+ * image, or one that fails to load, gets an initial tile rather than a
+ * stand-in photo of some other product.
  */
+function CartItemImage({ src, name }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <div className="flex min-h-[100px] w-[100px] shrink-0 items-center justify-center bg-gray-100 text-2xl font-semibold text-gray-400">
+        {name.charAt(0).toUpperCase()}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[100px] w-[100px] shrink-0 overflow-hidden bg-gray-100">
+      <img
+        src={src}
+        alt={name}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
+}
+
 function CartItemList({ items, onSetQuantity, onRemove, disabled = false }) {
   if (items.length === 0) {
     return (
@@ -35,9 +61,11 @@ function CartItemList({ items, onSetQuantity, onRemove, disabled = false }) {
               item.available ? "border-gray-100" : "border-[#f0cfcf]"
             }`}
           >
-            <div className="flex h-auto w-[100px] shrink-0 items-center justify-center bg-gray-100 text-2xl font-semibold text-gray-400">
-              {item.product_name.charAt(0).toUpperCase()}
-            </div>
+            <CartItemImage
+              key={item.image_url ?? "none"}
+              src={item.image_url}
+              name={item.product_name}
+            />
 
             <div className="flex flex-1 flex-col justify-between gap-2 py-2 pr-3">
               <div className="flex flex-col gap-0.5">

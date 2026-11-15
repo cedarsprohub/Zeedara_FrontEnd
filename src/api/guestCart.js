@@ -1,6 +1,6 @@
 import { getProduct } from "./catalog";
 import { toAmount } from "../utils/formatCurrency";
-import { variantLabel } from "../utils/product";
+import { primaryImageUrl, variantLabel } from "../utils/product";
 
 // The signed-out cart.
 //
@@ -61,7 +61,10 @@ export function writeGuestLines(lines) {
   try {
     if (lines.length === 0) localStorage.removeItem(STORAGE_KEY);
     else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lines.slice(0, MAX_LINES)));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(lines.slice(0, MAX_LINES)),
+      );
     }
   } catch {
     // Private-mode storage failures shouldn't break shopping — the cart just
@@ -81,7 +84,10 @@ export function addGuestLine(lines, { slug, variantId, quantity = 1 }) {
   if (existing) {
     return lines.map((line) =>
       sameVariant(line.variantId, variantId)
-        ? { ...line, quantity: clampQuantity(line.quantity + clampQuantity(quantity)) }
+        ? {
+            ...line,
+            quantity: clampQuantity(line.quantity + clampQuantity(quantity)),
+          }
         : line,
     );
   }
@@ -142,7 +148,9 @@ export async function buildGuestCartView(lines) {
       ),
     ),
   );
-  const products = new Map(slugs.map((slug, index) => [slug, responses[index]]));
+  const products = new Map(
+    slugs.map((slug, index) => [slug, responses[index]]),
+  );
 
   const items = [];
   const kept = [];
@@ -186,6 +194,11 @@ export async function buildGuestCartView(lines) {
       stock_available: stockAvailable,
       // Nothing to compare against: the price is read fresh every time.
       price_changed: false,
+      // Same field the server cart sends; null when the product has no media.
+      image_url:
+        Array.isArray(product.media) && product.media.length > 0
+          ? primaryImageUrl(product.media)
+          : null,
       slug: line.slug,
     });
   }
@@ -195,7 +208,10 @@ export async function buildGuestCartView(lines) {
       cart_id: null,
       items,
       item_count: items.reduce((total, item) => total + item.quantity, 0),
-      subtotal_ngn: items.reduce((total, item) => total + item.line_total_ngn, 0),
+      subtotal_ngn: items.reduce(
+        (total, item) => total + item.line_total_ngn,
+        0,
+      ),
       has_issues: items.some((item) => !item.available),
     },
     lines: kept,

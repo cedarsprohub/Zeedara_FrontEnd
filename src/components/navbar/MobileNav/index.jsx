@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
-  Search,
   ChevronRight,
   ChevronLeft,
   Package,
@@ -147,18 +146,11 @@ function MobileNav({ navLinks = [], logo }) {
             </button>
           </div>
 
-          {/* Logo + search */}
-          <div className="flex items-center justify-between gap-4">
+          {/* Logo. Search lives in the header bar, always visible on mobile. */}
+          <div className="flex items-center">
             <NavLink to="/" onClick={close} className="shrink-0">
               <img src={logo} alt="Zeedara Logo" className="h-[24px] w-auto" />
             </NavLink>
-            <button
-              type="button"
-              aria-label="Search"
-              className="flex items-center justify-center p-2 cursor-pointer"
-            >
-              <Search className="size-5 text-black" />
-            </button>
           </div>
         </div>
 
